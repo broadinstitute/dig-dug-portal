@@ -88,6 +88,12 @@ export default {
             default: false,
         },
     },
+    emits: [
+        "update:dataTableOpen",
+        "toggle-assistant",
+        "toggle-settings",
+        "update:viewingRegionWidthBp",
+    ],
     data() {
         zoomSelectCounter += 1;
         return {

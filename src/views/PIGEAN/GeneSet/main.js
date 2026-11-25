@@ -1,4 +1,4 @@
-import Vue from "vue";
+import { mountPage } from "@/utils/pageSetup";
 import Template from "./Template.vue";
 import store from "./store.js";
 
@@ -21,9 +21,11 @@ import alertUtils from "@/utils/alertUtils";
 import pigeanUtils from "@/utils/pigeanUtils.js";
 import Formatters from "@/utils/formatters";
 import dataConvert from "@/utils/dataConvert";
+import { cloneDeep } from "@/utils/lodashUtils";
 import { pageMixin } from "@/mixins/pageMixin.js";
 
-new Vue({
+// @vue/component
+mountPage(Template, {
     store,
     components: {
         SearchHeaderWrapper,
@@ -132,7 +134,7 @@ new Vue({
             );
         },
         phewasAdjustedData() {
-            let adjustedData = structuredClone(this.phewasAllData);
+            let adjustedData = cloneDeep(this.phewasAllData);
             for (let i = 0; i < adjustedData.length; i++) {
                 if (adjustedData[i].beta_uncorrected < 0) {
                     adjustedData[i].beta_uncorrected = 0;
@@ -165,8 +167,4 @@ new Vue({
         this.pigeanPhenotypeMap = 
             pigeanUtils.mapPhenotypes(this.$store.state.pigeanAllPhenotypes.data);
     },
-
-    render(createElement, context) {
-        return createElement(Template);
-    },
-}).$mount("#app");
+});

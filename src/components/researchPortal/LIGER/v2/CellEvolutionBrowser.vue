@@ -1,5 +1,4 @@
 <script>
-import Vue from "vue";
 import CellStateInfographic from "../CellStateInfographic.vue";
 import GeneSearch from "./GeneSearch.vue";
 import ScopeSelect from "./ScopeSelect.vue";
@@ -203,7 +202,8 @@ const TOOLTIP_EDGE_MARGIN_Y = 150;
 const TOOLTIP_PROSE_MARGIN_X = 340;
 const TOOLTIP_PROSE_MARGIN_Y = 260;
 
-export default Vue.component("CellEvolutionBrowser", {
+export default {
+    name: "CellEvolutionBrowser",
     components: {
         CellStateInfographic,
         GeneSearch,
@@ -1546,7 +1546,7 @@ export default Vue.component("CellEvolutionBrowser", {
         await this.initializeFromQuery();
     },
 
-    beforeDestroy() {
+    beforeUnmount() {
         this.clearSuggestionTimer();
         clearTimeout(this.pulseTimer);
     },
@@ -2631,7 +2631,7 @@ export default Vue.component("CellEvolutionBrowser", {
             this.canvasTooltip = null;
         }
     }
-});
+};
 </script>
 
 <template>
@@ -2752,9 +2752,9 @@ export default Vue.component("CellEvolutionBrowser", {
                     </div>
 
                     <dl v-if="canvasTooltip.stats" class="tip-stats">
-                        <template v-for="stat in canvasTooltip.stats">
-                            <dt :key="stat.label + '-l'">{{ stat.label }}</dt>
-                            <dd :key="stat.label + '-v'">{{ stat.value }}</dd>
+                        <template v-for="stat in canvasTooltip.stats" :key="stat.label">
+                            <dt>{{ stat.label }}</dt>
+                            <dd>{{ stat.value }}</dd>
                         </template>
                     </dl>
 
@@ -3148,8 +3148,8 @@ export default Vue.component("CellEvolutionBrowser", {
                             <template v-if="bodyState === 'empty-gene'">
                                 Pick a gene, tissue and cell type above to see the programs its expression is associated with.
                             </template>
-                            <template v-else-if="bodyState === 'empty-programs'">
-                                {{ scopeSummary }} returned no gene programs.
+                            <template v-else-if="bodyState === 'empty-programs'">{{
+                                " " }}{{ scopeSummary }} returned no gene programs.
                             </template>
                             <!-- The way out is in the message, not only in the
                                  legend: the legend lives on the canvas, and there is

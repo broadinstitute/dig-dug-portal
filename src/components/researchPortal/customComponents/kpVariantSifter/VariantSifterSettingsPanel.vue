@@ -96,15 +96,15 @@
                                         :checked="isVisible(section.id)"
                                         @change="onToggleSection(section.id, $event)"
                                     />
-                                    <span class="vks-settings-section-label">
-                                        {{ section.label }}
-                                    </span>
+                                    <span class="vks-settings-section-label">{{
+                                        " " }}{{ section.label }}{{ " "
+                                    }}</span>
                                 </label>
                                 <span
                                     v-if="section.description"
                                     class="vks-settings-section-desc"
-                                >
-                                    {{ section.description }}
+                                >{{
+                                    " " }}{{ section.description }}
                                 </span>
                             </li>
                         </ul>
@@ -199,8 +199,8 @@
                                 <span
                                     v-if="row.detail"
                                     class="vks-settings-info-detail"
-                                >
-                                    {{ row.detail }}
+                                >{{
+                                    " " }}{{ row.detail }}
                                 </span>
                             </dd>
                         </div>
@@ -272,6 +272,13 @@ export default {
             default: true,
         },
     },
+    emits: [
+        "close",
+        "update:projectId",
+        "update:suggestActionsAfterUserAction",
+        "update:refetchAssociationsOnZoom",
+        "update:visibleSectionIds",
+    ],
     data() {
         return {
             tabs: VKS_SETTINGS_TABS,
@@ -313,7 +320,7 @@ export default {
     mounted() {
         document.addEventListener("keydown", this.onKeyDown);
     },
-    beforeDestroy() {
+    beforeUnmount() {
         document.removeEventListener("keydown", this.onKeyDown);
     },
     methods: {

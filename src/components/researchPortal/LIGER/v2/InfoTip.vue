@@ -1,5 +1,4 @@
 <script>
-import Vue from "vue";
 
 // The one tooltip for this browser. Wraps its trigger and shows `text` on hover or
 // keyboard focus.
@@ -29,7 +28,8 @@ import Vue from "vue";
 const OFFSET = 8;
 const MARGIN = 8;
 
-export default Vue.component("InfoTip", {
+export default {
+    name: "InfoTip",
     props: {
         // Plain text. Newlines become paragraph breaks -- these strings explain a
         // measurement and run to several sentences, and one wall of text is not
@@ -90,7 +90,7 @@ export default Vue.component("InfoTip", {
         }
     },
 
-    beforeDestroy() {
+    beforeUnmount() {
         this.hide();
     },
 
@@ -154,7 +154,7 @@ export default Vue.component("InfoTip", {
             this.tip = null;
         }
     }
-});
+};
 </script>
 
 <template>

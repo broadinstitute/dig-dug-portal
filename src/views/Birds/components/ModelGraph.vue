@@ -255,12 +255,13 @@
   </svg>
 </template>
 <script>
-import Vue from "vue";
 
-export default Vue.component("modelgraph", {
+export default {
+  name: "modelgraph",
   components: {
   },
   props: { method: { type: String, required: true } },
+  emits: ["show-tip", "hide-tip", "move-tip"],
   data() { return { activeHover: null }; },
   mounted() { 
     this.drawEdges();
@@ -308,7 +309,7 @@ export default Vue.component("modelgraph", {
     },
   },
   watch: { method() { this.$nextTick(this.applyFocus); } },
-});
+};
 </script>
 <style>
 @import url("/css/birdcss/revisions.css");

@@ -6,11 +6,13 @@
 </template>
 
 <script>
+import { markRaw } from "vue";
 import * as d3 from "d3";
 import colors from "@/utils/colors";
-import Vue from "vue";
+import { cloneDeep } from "@/utils/lodashUtils";
 
-export default Vue.component("functional-violin-plot", {
+export default {
+    name: "functional-violin-plot",
     props: {
         data: {
             type: (Array, null),
@@ -74,7 +76,7 @@ export default Vue.component("functional-violin-plot", {
         }
         //window.addEventListener('resize', this.handleResize);
     },
-    beforeDestroy() {
+    beforeUnmount() {
         //window.removeEventListener('resize', this.handleResize);
         if (this.eventElements.length > 0) {
             this.removeAllListeners(this.eventElements);
@@ -132,17 +134,22 @@ export default Vue.component("functional-violin-plot", {
                 this.getYAxisSpacing(y);
             width = this.chartWidth - leftMargin - this.margin.right;
 
-            this.svg = d3
-                .select(plotId)
-                .append("svg")
-                .attr("width", width + leftMargin + this.margin.right)
-                .attr("height", height + this.margin.top + this.margin.bottom)
-                .attr("id", `${this.plotId}_svg`)
-                .append("g")
-                .attr(
-                    "transform",
-                    `translate(${leftMargin},${this.margin.top})`
-                );
+            this.svg = markRaw(
+                d3
+                    .select(plotId)
+                    .append("svg")
+                    .attr("width", width + leftMargin + this.margin.right)
+                    .attr(
+                        "height",
+                        height + this.margin.top + this.margin.bottom
+                    )
+                    .attr("id", `${this.plotId}_svg`)
+                    .append("g")
+                    .attr(
+                        "transform",
+                        `translate(${leftMargin},${this.margin.top})`
+                    )
+            );
             this.svg
                 .append("g")
                 .call(d3.axisLeft(y))
@@ -177,7 +184,7 @@ export default Vue.component("functional-violin-plot", {
                 .thresholds(y.ticks(20))
                 .value((d) => d);
 
-            let statData = structuredClone(this.data).filter(
+            let statData = cloneDeep(this.data).filter(
                 (d) => d[xField] !== empty
             );
 
@@ -276,7 +283,7 @@ export default Vue.component("functional-violin-plot", {
             return t;
         },
     },
-});
+};
 </script>
 
 <style scoped>

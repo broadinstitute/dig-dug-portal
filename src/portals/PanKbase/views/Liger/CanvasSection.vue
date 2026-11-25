@@ -28,7 +28,7 @@ export default {
         }
     },
 
-    beforeDestroy() {
+    beforeUnmount() {
         window.removeEventListener("pointermove", this.handleBrowserCanvasPointerMove);
         window.removeEventListener("pointerup", this.handleBrowserCanvasPointerUp);
         window.removeEventListener("pointercancel", this.handleBrowserCanvasPointerUp);
@@ -407,14 +407,14 @@ export default {
                                             viewModel.activeHierarchyPath.model,
                                             factorGroup.factor
                                         )?.label || factorGroup.factor"
-                                    >
-                                        {{ viewModel.getFactorSummary(
+                                    >{{
+                                        " " }}{{ viewModel.getFactorSummary(
                                             viewModel.activeHierarchyPath.dataset,
                                             viewModel.activeHierarchyPath.cellType,
                                             viewModel.activeHierarchyPath.model,
                                             factorGroup.factor
-                                        )?.label || factorGroup.factor }}
-                                    </span>
+                                        )?.label || factorGroup.factor }}{{ " "
+                                    }}</span>
                                 </span>
                                 <span class="liger-browser-item-chevron">↗</span>
                             </button>
@@ -492,15 +492,15 @@ export default {
                                 @click="viewModel.selectSharedProgramGroup(programGroup.key)"
                             >
                                 <span class="liger-browser-item-copy">
-                                    <span class="liger-browser-item-label" :title="programGroup.label">
-                                        {{ programGroup.label }}
-                                    </span>
-                                    <span class="liger-browser-item-sublabel">
-                                        {{ getSharedProgramRowSubLabel(programGroup) }}
-                                    </span>
+                                    <span class="liger-browser-item-label" :title="programGroup.label">{{
+                                        " " }}{{ programGroup.label }}{{ " "
+                                    }}</span>
+                                    <span class="liger-browser-item-sublabel">{{
+                                        " " }}{{ getSharedProgramRowSubLabel(programGroup) }}{{ " "
+                                    }}</span>
                                 </span>
-                                <span class="liger-browser-item-meta" :title="getSharedProgramRowMetaTitle(programGroup)">
-                                    {{ getSharedProgramRowMeta(programGroup) }}
+                                <span class="liger-browser-item-meta" :title="getSharedProgramRowMetaTitle(programGroup)">{{
+                                    " " }}{{ getSharedProgramRowMeta(programGroup) }}
                                 </span>
                             </button>
                         </div>
@@ -527,19 +527,19 @@ export default {
                                 @click="viewModel.openSharedProgramContext(context)"
                             >
                                 <span class="liger-browser-item-copy">
-                                    <span class="liger-browser-item-label">
-                                        {{ context.cellType }}
-                                    </span>
-                                    <span class="liger-browser-item-sublabel">
-                                        {{ context.datasetLabel }}
-                                    </span>
+                                    <span class="liger-browser-item-label">{{
+                                        " " }}{{ context.cellType }}{{ " "
+                                    }}</span>
+                                    <span class="liger-browser-item-sublabel">{{
+                                        " " }}{{ context.datasetLabel }}{{ " "
+                                    }}</span>
                                 </span>
                                 <span
                                     v-if="viewModel.groupProgramsEnabled"
                                     class="liger-browser-item-meta"
                                     :title="context.scoreField"
-                                >
-                                    {{ formatSharedContextScore(context.score) }}
+                                >{{
+                                    " " }}{{ formatSharedContextScore(context.score) }}
                                 </span>
                             </button>
                         </div>

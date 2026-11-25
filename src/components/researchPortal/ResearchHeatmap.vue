@@ -59,14 +59,14 @@
 </template>
 
 <script>
-import Vue from "vue";
 import $ from "jquery";
-import { BootstrapVueIcons } from "bootstrap-vue";
 import ResearchHeatmapVector from "@/components/researchPortal/vectorPlots/ResearchHeatmapVector.vue";
 
-Vue.use(BootstrapVueIcons);
-
-export default Vue.component("research-heatmap", {
+export default {
+	name: "research-heatmap",
+	components: {
+		ResearchHeatmapVector,
+	},
 	props: ["heatmapData", "renderConfig","utils","sectionId"],
 	data() {
 		return {
@@ -83,7 +83,7 @@ export default Vue.component("research-heatmap", {
 		this.renderHeatmap();
 		//this.renderScaleLegend();
 	},
-	beforeDestroy() {},
+	beforeUnmount() {},
 	computed: {
 		renderData() {
 			let massagedData = {};
@@ -608,7 +608,7 @@ export default Vue.component("research-heatmap", {
 
 		},
 	},
-});
+};
 
 $(function () {});
 </script>

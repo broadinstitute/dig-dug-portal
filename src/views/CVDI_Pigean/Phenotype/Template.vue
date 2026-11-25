@@ -124,7 +124,7 @@
                         >
                             <div class="label">{{ filterField.label }}</div>
                         </filter-greater-less>
-                        <template slot="filtered" slot-scope="{ filter }">
+                        <template v-slot:filtered="{ filter }">
                             <pigean-plot
                                 v-if="
                                     $store.state.pigeanPhenotype.data.length >
@@ -185,7 +185,7 @@
                         >
                             <div class="label">{{ filterField.label }}</div>
                         </filter-greater-less>
-                        <template slot="filtered" slot-scope="{ filter }">
+                        <template v-slot:filtered="{ filter }">
                             <pigean-plot
                                 v-if="
                                     $store.state.pigeanPhenotype.data.length >
@@ -249,7 +249,7 @@
                             <div class="label">{{ filterField.label }}</div>
                         </filter-greater-less>
 
-                        <template slot="filtered" slot-scope="{ filter }">
+                        <template v-slot:filtered="{ filter }">
                             <pigean-plot
                                 v-if="
                                     $store.state.genesetPhenotype.data.length >
@@ -313,7 +313,7 @@
                             <div class="label">{{ filterField.label }}</div>
                         </filter-greater-less>
 
-                        <template slot="filtered" slot-scope="{ filter }">
+                        <template v-slot:filtered="{ filter }">
                             <pigean-plot
                                 v-if="
                                     $store.state.genesetPhenotype.data.length >
@@ -349,6 +349,30 @@
         <page-footer :disease-group="$parent.diseaseGroup"></page-footer>
     </div>
 </template>
+
+<script>
+import CriterionFunctionGroup from "@/components/criterion/group/CriterionFunctionGroup.vue";
+import CvdiPigeanTable from "@/views/CVDI_Pigean/CVDIPigeanTable.vue";
+import FilterEnumerationControl from "@/components/criterion/FilterEnumeration.vue";
+import FilterGreaterLess from "@/components/criterion/FilterGreaterLess.vue";
+import PageFooter from "@/components/PageFooter.vue";
+import PageHeader from "@/components/PageHeader.vue";
+import PigeanPlot from "@/components/PigeanPlot.vue";
+import SearchHeaderWrapper from "@/components/SearchHeaderWrapper.vue";
+
+export default {
+    components: {
+        CriterionFunctionGroup,
+        CvdiPigeanTable,
+        FilterEnumerationControl,
+        FilterGreaterLess,
+        PageFooter,
+        PageHeader,
+        PigeanPlot,
+        SearchHeaderWrapper,
+    },
+};
+</script>
 <style scoped>
 .phenotype-search-input {
     display: block !important;

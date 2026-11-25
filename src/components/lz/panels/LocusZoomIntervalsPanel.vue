@@ -1,12 +1,12 @@
 <script>
 import LocusZoom from 'locuszoom';
-import Vue from "vue";
 import LzPanel from "./LzPanel"
 import{  rgb, color } from "d3";
 import { LZBioIndexSource, LZColorScheme } from "@/utils/lzUtils"
 import { LzLayout, LzPanelClass, LzDataSource, bioIndexParams } from "@/components/lz/beta/lzConfiguration";
 
-export default Vue.component('lz-intervals-panel', {
+export default {
+    name: "lz-intervals-panel",
     components: {
         LzPanel
     },
@@ -26,6 +26,7 @@ export default Vue.component('lz-intervals-panel', {
         scoring: Object,
         title: String,
     },
+    emits: ["input", "resolve", "error"],
     data() {
         return {
             panelId: null,
@@ -56,7 +57,7 @@ export default Vue.component('lz-intervals-panel', {
         },
     },
     
-});
+};
 
 export function makeIntervalsPanel(
         index,

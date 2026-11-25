@@ -28,15 +28,12 @@
 </template>
 
 <script>
-import Vue from "vue";
 import $ from "jquery";
 import uiUtils from "@/utils/uiUtils";
-import { BootstrapVueIcons } from "bootstrap-vue";
 import Formatters from "@/utils/formatters.js";
 
-Vue.use(BootstrapVueIcons);
-
-export default Vue.component("m-bitmap-plot", {
+export default {
+    name: "m-bitmap-plot",
     props: ["plotData", "renderConfig"],
     data() {
         return {
@@ -90,7 +87,7 @@ export default Vue.component("m-bitmap-plot", {
         this.renderPlot();
         window.addEventListener("resize", this.onResize);
     },
-    beforeDestroy() {
+    beforeUnmount() {
         window.removeEventListener("resize", this.onResize);
     },
     computed: {
@@ -460,7 +457,7 @@ export default Vue.component("m-bitmap-plot", {
             });
         },
     },
-});
+};
 
 $(function () {});
 </script>

@@ -1,4 +1,3 @@
-import Vue from "vue";
 import Vuex from "vuex";
 
 import bioPortal from "@/modules/bioPortal";
@@ -12,8 +11,6 @@ import Alert, {
 } from "@/components/Alert";
 
 import { query } from "@/utils/bioIndexUtils";
-
-Vue.use(Vuex);
 
 export default new Vuex.Store({
     modules: {

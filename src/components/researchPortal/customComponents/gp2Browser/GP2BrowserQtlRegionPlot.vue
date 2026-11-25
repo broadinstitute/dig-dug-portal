@@ -91,9 +91,9 @@
                 :key="gene.name"
                 class="gp2-view-region-bridge-gene"
                 :style="{ color: gene.color }"
-            >
-                {{ gene.name }}
-            </span>
+            >{{
+                " " }}{{ gene.name }}{{ " "
+            }}</span>
         </div>
         <VariantSifterVariantDotMenu
             :open="dotMenuOpen"
@@ -249,6 +249,16 @@ export default {
             default: null,
         },
     },
+    emits: [
+        "update:viewingCenterBp",
+        "commit-viewing-region",
+        "set-reference-variant",
+        "toggle-star-variant",
+        "toggle-position-marker",
+        "update:regionViewArea",
+        "update:regionShiftBp",
+        "pan-end",
+    ],
     data() {
         return {
             dotPositions: [],
@@ -510,7 +520,7 @@ export default {
             }
         });
     },
-    beforeDestroy() {
+    beforeUnmount() {
         window.removeEventListener("resize", this.onResize);
         document.removeEventListener("mousedown", this.onDocumentMouseDown);
         this.endPanListeners();

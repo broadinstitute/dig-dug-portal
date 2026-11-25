@@ -90,6 +90,7 @@ export default {
             default: null,
         },
     },
+    emits: ["set-reference-variant", "toggle-star-variant", "hover-variant"],
     data() {
         return {
             loading: false,
@@ -164,7 +165,7 @@ export default {
             }
         });
     },
-    beforeDestroy() {
+    beforeUnmount() {
         window.removeEventListener("resize", this.onResize);
         document.removeEventListener("mousedown", this.onDocumentMouseDown);
         if (this.resizeObserver) {

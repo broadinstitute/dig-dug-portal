@@ -139,15 +139,12 @@
 </template>
 
 <script>
-import Vue from "vue";
 import $ from "jquery";
 import { cloneDeep } from "@/utils/lodashUtils";
-import { BootstrapVueIcons } from "bootstrap-vue";
 import boxPlotVector from "@/components/researchPortal/vectorPlots/ResearchBoxPlotVector.vue";
 
-Vue.use(BootstrapVueIcons);
-
-export default Vue.component("research-box-plot", {
+export default {
+    name: "research-box-plot",
     props: [
         "phenotypeMap",
         "phenotypesData",
@@ -168,12 +165,12 @@ export default Vue.component("research-box-plot", {
             spaceBy: 7,
             trigger: 0,
             hoverItems: {},
-            showCanvas: true,
         };
     },
     modules: {},
     components: {
         boxPlotVector,
+        ResearchBoxPlotVector: boxPlotVector,
     },
     created: function () {
         this.renderBoxPlot();
@@ -182,7 +179,7 @@ export default Vue.component("research-box-plot", {
         window.addEventListener("resize", this.onResize);
         this.renderBoxPlot();
     },
-    beforeDestroy() {
+    beforeUnmount() {
         window.removeEventListener("resize", this.onResize);
     },
     computed: {
@@ -196,7 +193,6 @@ export default Vue.component("research-box-plot", {
             }
         },
         renderData() {
-            this.showCanvas = true;
             let content = {};
             content["data"] = [];
 
@@ -232,9 +228,11 @@ export default Vue.component("research-box-plot", {
             if (!!content.data && content.data.length > 0) {
                 return content;
             } else {
-                this.showCanvas = false;
                 return null;
             }
+        },
+        showCanvas() {
+            return !!this.renderData;
         },
         adjPlotMargin() {
             let customPlotMargin = !!this.renderConfig["plot margin"]
@@ -903,7 +901,7 @@ export default Vue.component("research-box-plot", {
             });
         },
     },
-});
+};
 
 $(function () {});
 </script>

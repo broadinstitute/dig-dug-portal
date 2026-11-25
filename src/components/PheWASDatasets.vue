@@ -28,8 +28,8 @@
                     >
                     <b-col class="top-level-header-item">View</b-col>
                 </b-row>
-                <template v-for="(item, index) in tableData">
-                    <b-row :key="index" class="top-level-value">
+                <template v-for="(item, index) in tableData" :key="index">
+                    <b-row class="top-level-value">
                         <b-col cols="4" class="top-level-value-item"
                             ><a
                                 :href="`/phenotype.html?phenotype=${item.phenotype.name}`"
@@ -104,7 +104,6 @@
                     </b-row>
 
                     <div
-                        :key="`features_${index}`"
                         :class="`features_${index}`"
                         class="feature-content-wrapper hidden"
                     >
@@ -190,7 +189,6 @@
                         </template>
                     </div>
                     <div
-                        :key="`features_top25_${index}`"
                         :class="`features_top25_${index}`"
                         class="feature-content-wrapper hidden"
                     >
@@ -213,9 +211,8 @@
                                 >Nearest Genes</b-col
                             >
                         </b-row>
-                        <template v-for="i in 25">
+                        <template v-for="i in 25" :key="`features_top25_${index}_${i}`">
                             <b-row
-                                :key="`features_top25_${index}_${i}`"
                                 :id="`${index}_${item.phenotype.name}_variant_${
                                     i - 1
                                 }`"
@@ -306,13 +303,13 @@
 </template>
 
 <script>
-import Vue from "vue";
 import { BIO_INDEX_HOST } from "../utils/bioIndexUtils";
 import { orderBy, groupBy, cloneDeep } from "@/utils/lodashUtils";
 import Formatters from "@/utils/formatters";
 import uiUtils from "@/utils/uiUtils";
 import DataDownload from "@/components/DataDownload";
-export default Vue.component("PhewasDatasets", {
+export default {
+    name: "PhewasDatasets",
     components: { DataDownload },
     props: [
         "associations",
@@ -508,7 +505,7 @@ export default Vue.component("PhewasDatasets", {
             this.showTop25(index);
         },
     },
-});
+};
 </script>
 
 <style>

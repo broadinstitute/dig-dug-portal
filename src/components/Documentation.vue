@@ -4,10 +4,10 @@
 </template>
 
 <script>
-import Vue from "vue";
 import documentationParser from "@/utils/documentationUtils";
 
-export default Vue.component("documentation", {
+export default {
+    name: "documentation",
     props: ["name", "contentFill", "contentMap", "defaultContent"],
 
     data: context => {
@@ -37,7 +37,7 @@ export default Vue.component("documentation", {
             return converter.makeHtml(content);
         }
     },
-});
+};
 </script>
 <style scoped>
 .tooltip {

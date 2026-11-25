@@ -1,5 +1,4 @@
 <script>
-import Vue from "vue";
 import HeatTable from "./HeatTable.vue";
 
 // Show every match by default; the thresholds are opt-in filters.
@@ -23,7 +22,8 @@ const PREVIEW_TRAIT_ROWS = 4;
 // it. The overview answers "what is this state and how far has it been curated";
 // every many-row association lives behind its own tab rather than all landing at
 // once.
-export default Vue.component("StateDetails", {
+export default {
+    name: "StateDetails",
     components: {
         HeatTable
     },
@@ -46,6 +46,7 @@ export default Vue.component("StateDetails", {
             default: false
         }
     },
+    emits: ["open-program"],
 
     data() {
         return {
@@ -229,7 +230,7 @@ export default Vue.component("StateDetails", {
             this.activeTab = key;
         },
     },
-});
+};
 </script>
 
 <template>
@@ -253,9 +254,9 @@ export default Vue.component("StateDetails", {
                         <span class="detail-note-label">{{ note.label }}</span>
                         <span class="detail-note-bubble">
                             <dl class="detail-note-grid">
-                                <template v-for="field in note.rows">
-                                    <dt :key="`${note.key}-${field.label}-dt`">{{ field.label }}</dt>
-                                    <dd :key="`${note.key}-${field.label}-dd`">{{ field.value }}</dd>
+                                <template v-for="field in note.rows" :key="`${note.key}-${field.label}`">
+                                    <dt>{{ field.label }}</dt>
+                                    <dd>{{ field.value }}</dd>
                                 </template>
                             </dl>
                         </span>
@@ -264,9 +265,9 @@ export default Vue.component("StateDetails", {
             </div>
             <div class="detail-curation-summary">
                 <dl v-if="provenanceRows.length" class="detail-field-grid">
-                    <template v-for="field in provenanceRows">
-                        <dt :key="`${field.label}-dt`">{{ field.label }}</dt>
-                        <dd :key="`${field.label}-dd`">{{ field.value }}</dd>
+                    <template v-for="field in provenanceRows" :key="field.label">
+                        <dt>{{ field.label }}</dt>
+                        <dd>{{ field.value }}</dd>
                     </template>
                 </dl>
                 <div v-else class="empty-state">No curation record reported.</div>
@@ -300,9 +301,9 @@ export default Vue.component("StateDetails", {
                                 v-for="marker in previewMarkers"
                                 :key="marker"
                                 class="detail-marker"
-                            >
-                                {{ marker }}
-                            </span>
+                            >{{
+                                " " }}{{ marker }}{{ " "
+                            }}</span>
                             <button
                                 v-if="hiddenMarkerCount"
                                 type="button"
@@ -370,9 +371,9 @@ export default Vue.component("StateDetails", {
                             v-for="marker in markers"
                             :key="marker"
                             class="detail-marker"
-                        >
-                            {{ marker }}
-                        </span>
+                        >{{
+                            " " }}{{ marker }}{{ " "
+                        }}</span>
                     </div>
                     <div v-else class="empty-state">No marker genes returned.</div>
 
@@ -463,17 +464,17 @@ export default Vue.component("StateDetails", {
                     <h5>Scoring and methods</h5>
                     <p v-if="methodsDetail.text">{{ methodsDetail.text }}</p>
                     <dl v-if="methodsDetail.rows.length" class="detail-field-grid">
-                        <template v-for="field in methodsDetail.rows">
-                            <dt :key="`${field.label}-dt`">{{ field.label }}</dt>
-                            <dd :key="`${field.label}-dd`">{{ field.value }}</dd>
+                        <template v-for="field in methodsDetail.rows" :key="field.label">
+                            <dt>{{ field.label }}</dt>
+                            <dd>{{ field.value }}</dd>
                         </template>
                     </dl>
                     <template v-if="methodsDetail.activityWeights.length">
                         <h5 class="detail-subheading">Activity weightings</h5>
                         <dl class="detail-field-grid">
-                            <template v-for="weight in methodsDetail.activityWeights">
-                                <dt :key="`${weight.id}-dt`">{{ weight.label }}</dt>
-                                <dd :key="`${weight.id}-dd`">{{ weight.description }}</dd>
+                            <template v-for="weight in methodsDetail.activityWeights" :key="weight.id || weight.label">
+                                <dt>{{ weight.label }}</dt>
+                                <dd>{{ weight.description }}</dd>
                             </template>
                         </dl>
                     </template>

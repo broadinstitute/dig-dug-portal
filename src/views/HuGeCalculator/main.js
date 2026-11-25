@@ -1,10 +1,8 @@
-import Vue from "vue";
+import { mountPage } from "@/utils/pageSetup";
 
 import Template from "./Template.vue";
 import store from "./store.js";
-import { BootstrapVue, BootstrapVueIcons, BIconMouse2 } from "bootstrap-vue";
-import "bootstrap/dist/css/bootstrap.css";
-import "bootstrap-vue/dist/bootstrap-vue.css";
+import { BIconMouse2 } from "bootstrap-vue";
 import uiUtils from "@/utils/uiUtils";
 import Documentation from "@/components/Documentation.vue";
 import TooltipDocumentation from "@/components/TooltipDocumentation.vue";
@@ -35,11 +33,8 @@ import MaskTable from "@/components/MaskTable";
 import LocusZoomAssociationsPanel from "@/components/lz/panels/LocusZoomAssociationsPanel";
 import sessionUtils from "@/utils/sessionUtils";
 
-Vue.config.productionTip = false;
-Vue.use(BootstrapVue);
-Vue.use(BootstrapVueIcons);
-
-new Vue({
+// @vue/component
+mountPage(Template, {
     store,
     components: {
         Documentation,
@@ -85,7 +80,6 @@ new Vue({
             showLZSection: false,
             toggleIcon: "+",
             matchingGenes: [],
-            phenotypelist: [],
             hugecalSearchCriterion: keyParams.gene
                 ? [
                       {
@@ -237,6 +231,7 @@ new Vue({
         },
 
         phenotyopes52KAssociations() {
+            let phenotypelist = [];
             if (this.$store.state.geneAssociations52k.data.length > 0) {
                 for (
                     let i = 0;
@@ -246,10 +241,10 @@ new Vue({
                     let phenotype = {};
                     phenotype["name"] =
                         this.$store.state.geneAssociations52k.data[i].phenotype;
-                    this.phenotypelist.push(phenotype);
+                    phenotypelist.push(phenotype);
                 }
             }
-            return this.phenotypelist;
+            return phenotypelist;
         },
         docDetails() {
             let gene = this.selectedGene[0];
@@ -495,7 +490,4 @@ new Vue({
             }
         },
     },
-    render(createElement, context) {
-        return createElement(Template);
-    },
-}).$mount("#app");
+});

@@ -243,9 +243,9 @@
 </template>
 
 <script>
-import Vue from "vue";
 
-export default Vue.component("research-single-cell-info", {
+export default {
+    name: "research-single-cell-info",
     props: {
         data: {
             type: Object,
@@ -264,7 +264,7 @@ export default Vue.component("research-single-cell-info", {
     mounted() {},
     computed: {},
     methods: {},
-});
+};
 </script>
 
 <style scoped>

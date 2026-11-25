@@ -1,5 +1,4 @@
 <script>
-import Vue from "vue";
 import {
     field,
     numericField,
@@ -30,7 +29,8 @@ const TOP_GENE_SET_ROWS = 25;
 //
 // The honest replacement is here: the factorization's own `label`, which for islet
 // beta calls 7 of 10 programs QC or artifact programs, plus counted QC enrichment.
-export default Vue.component("ProgramInfo", {
+export default {
+    name: "ProgramInfo",
     components: {
         InfoTabs,
         InfoTip,
@@ -89,6 +89,7 @@ export default Vue.component("ProgramInfo", {
             default: ""
         }
     },
+    emits: ["select-state"],
 
     data() {
         return {
@@ -436,7 +437,7 @@ export default Vue.component("ProgramInfo", {
                 .join("\n");
         }
     }
-});
+};
 </script>
 
 <template>
@@ -555,9 +556,9 @@ export default Vue.component("ProgramInfo", {
                         <span v-if="topTraits.length" class="section-note">Top {{ topTraits.length }} by |beta|</span>
                     </h5>
                     <dl v-if="topTraits.length" class="pair-list">
-                        <template v-for="trait in topTraits">
-                            <dt :key="trait.key + '-l'">{{ trait.label }}</dt>
-                            <dd :key="trait.key + '-v'">{{ trait.group }}</dd>
+                        <template v-for="trait in topTraits" :key="trait.key">
+                            <dt>{{ trait.label }}</dt>
+                            <dd>{{ trait.group }}</dd>
                         </template>
                     </dl>
                     <div v-else-if="loadingTraits" class="section-empty">Loading…</div>
@@ -749,9 +750,9 @@ export default Vue.component("ProgramInfo", {
                                 <span v-if="!group.flagging" class="report-info-only">informational only</span>
                             </div>
                             <dl v-if="group.fields.length" class="pair-list">
-                                <template v-for="item in group.fields">
-                                    <dt :key="group.key + item.key + '-l'">{{ item.label }}</dt>
-                                    <dd :key="group.key + item.key + '-v'">{{ item.value }}</dd>
+                                <template v-for="item in group.fields" :key="group.key + item.key">
+                                    <dt>{{ item.label }}</dt>
+                                    <dd>{{ item.value }}</dd>
                                 </template>
                             </dl>
                         </div>

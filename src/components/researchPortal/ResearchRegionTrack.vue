@@ -81,15 +81,12 @@
 </template>
 
 <script>
-import Vue from "vue";
 import $ from "jquery";
-import { BootstrapVueIcons } from "bootstrap-vue";
 import regionTrackVector from "@/components/researchPortal/vectorPlots/ResearchRegionTrackVector.vue";
 import { indexOf } from "@amcharts/amcharts4/.internal/core/utils/Array";
 
-Vue.use(BootstrapVueIcons);
-
-export default Vue.component("research-region-track", {
+export default {
+    name: "research-region-track",
     props: [
         "sectionId",
         "plotConfig",
@@ -107,7 +104,6 @@ export default Vue.component("research-region-track", {
         return {
             posData: {},
             groupsList: null,
-            colorGroups:[],
             infoBoxFrozen: false,
             starGroups: [],
             infoBoxContent:{action:null,data:[]}
@@ -116,13 +112,14 @@ export default Vue.component("research-region-track", {
     modules: {
     },
     components: {
-        regionTrackVector
+        regionTrackVector,
+        ResearchRegionTrackVector: regionTrackVector,
     },
     mounted: function () {
         this.renderPlot();
         window.addEventListener("resize", this.onResize);
     },
-    beforeDestroy() {
+    beforeUnmount() {
         window.removeEventListener("resize", this.onResize);
     },
     computed: {
@@ -206,10 +203,22 @@ export default Vue.component("research-region-track", {
                 return returnObj;
             }
         },
+        colorGroups() {
+            let colorGroups =[];
+
+            if(Array.isArray(this.plotData) && !!this.plotConfig["color by"]) {
+                this.plotData.map(row=>{
+                    if(!colorGroups.includes(row[this.plotConfig["color by"]])) {
+                        colorGroups.push(row[this.plotConfig["color by"]]);
+                    }
+                })
+            }
+
+            return colorGroups.sort();
+        },
         renderData() {
 
             let massagedData = {};
-            let colorGroups =[];
 
             this.plotData.map(row=>{
 
@@ -217,18 +226,11 @@ export default Vue.component("research-region-track", {
                     massagedData[row[this.plotConfig["y axis field"]]] = {};
                 };
 
-                if(!!this.plotConfig["color by"] && !colorGroups.includes(row[this.plotConfig["color by"]])) {
-                    colorGroups.push(row[this.plotConfig["color by"]]);
-                }
-
                 if(!massagedData[row[this.plotConfig["y axis field"]]][row[this.plotConfig["render by"]]]) {
                     massagedData[row[this.plotConfig["y axis field"]]][row[this.plotConfig["render by"]]] = [];
                 }
                 massagedData[row[this.plotConfig["y axis field"]]][row[this.plotConfig["render by"]]].push(row);
             })
-
-
-            this.colorGroups = colorGroups.sort();
 
             return massagedData;
 
@@ -841,7 +843,7 @@ export default Vue.component("research-region-track", {
         },
        
     },
-});
+};
 
 $(function () { });
 

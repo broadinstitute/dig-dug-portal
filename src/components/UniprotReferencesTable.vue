@@ -45,17 +45,10 @@
 </template>
 
 <script>
-import Vue from "vue";
-import { BootstrapVue, IconsPlugin } from "bootstrap-vue";
-Vue.use(BootstrapVue);
-Vue.use(IconsPlugin);
-
-import "bootstrap/dist/css/bootstrap.css";
-import "bootstrap-vue/dist/bootstrap-vue.css";
-
 import DataDownload from "@/components/DataDownload";
 
-export default Vue.component("UniprotReferencesTable", {
+export default {
+    name: "UniprotReferencesTable",
     components: {
         DataDownload,
     },
@@ -121,5 +114,5 @@ export default Vue.component("UniprotReferencesTable", {
             this[obj] = "";
         },
     },
-});
+};
 </script>

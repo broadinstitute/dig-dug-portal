@@ -94,35 +94,42 @@
 						v-html="'Click dot for more options.'"
 					></span>
 					<template
-						v-for="(variant, vIndex) in hoverDotPosFullList"
-						v-if="vIndex < 5"
+						v-for="(variant, vIndex) in (hoverDotPosFullList || []).filter((variant, vIndex) => vIndex < 5)"
 					>
 						<span class="gene-on-clicked-dot-mplot">
 							<b v-html="variant[renderConfig.renderBy]"></b
 						></span>
 						<span
-							v-if="
-								dataComparisonConfig == null ||
-								dataComparisonConfig.fieldsToCompare.includes(
-									infoKey
-								) == false
-							"
 							class="content-on-clicked-dot"
-							v-for="(info, infoKey, infoIndex) in variant"
+							v-for="
+								[info, infoKey, infoIndex] in Object.keys(variant || {})
+									.map((k, i) => [variant[k], k, i])
+									.filter(
+										([info, infoKey, infoIndex]) =>
+											dataComparisonConfig == null ||
+											dataComparisonConfig.fieldsToCompare.includes(
+												infoKey
+											) == false
+									)
+							"
 							v-html="infoKey + ': ' + info"
 						>
 						</span>
 						<span
-							v-if="
-								dataComparisonConfig != null &&
-								dataComparisonConfig.fieldsToCompare.includes(
-									infoKey
-								) == true
-							"
 							class="content-on-clicked-dot"
-							v-for="(info, infoKey, infoIndex) in variant"
-						>
-							{{ infoKey }}: <br />
+							v-for="
+								[info, infoKey, infoIndex] in Object.keys(variant || {})
+									.map((k, i) => [variant[k], k, i])
+									.filter(
+										([info, infoKey, infoIndex]) =>
+											dataComparisonConfig != null &&
+											dataComparisonConfig.fieldsToCompare.includes(
+												infoKey
+											) == true
+									)
+							"
+						>{{
+							" " }}{{ infoKey }}: <br />
 							<span
 								class="content-on-clicked-dot-values"
 								v-for="(infoItem, infoItemKey) in info"
@@ -149,28 +156,36 @@
 							<b v-html="variant[renderConfig.renderBy]"></b
 						></span>
 						<span
-							v-if="
-								dataComparisonConfig == null ||
-								dataComparisonConfig.fieldsToCompare.includes(
-									infoKey
-								) == false
-							"
 							class="content-on-clicked-dot"
-							v-for="(info, infoKey) in variant"
+							v-for="
+								[info, infoKey] in Object.keys(variant || {})
+									.map((k) => [variant[k], k])
+									.filter(
+										([info, infoKey]) =>
+											dataComparisonConfig == null ||
+											dataComparisonConfig.fieldsToCompare.includes(
+												infoKey
+											) == false
+									)
+							"
 							v-html="infoKey + ': ' + info"
 						>
 						</span>
 						<span
-							v-if="
-								dataComparisonConfig != null &&
-								dataComparisonConfig.fieldsToCompare.includes(
-									infoKey
-								) == true
-							"
 							class="content-on-clicked-dot"
-							v-for="(info, infoKey) in variant"
-						>
-							{{ infoKey }}: <br />
+							v-for="
+								[info, infoKey] in Object.keys(variant || {})
+									.map((k) => [variant[k], k])
+									.filter(
+										([info, infoKey]) =>
+											dataComparisonConfig != null &&
+											dataComparisonConfig.fieldsToCompare.includes(
+												infoKey
+											) == true
+									)
+							"
+						>{{
+							" " }}{{ infoKey }}: <br />
 							<span
 								class="content-on-clicked-dot-values"
 								v-for="(infoItem, infoItemKey) in info"
@@ -253,35 +268,48 @@
 						v-html="'Click dot for more options.'"
 					></span>
 					<template
-						v-for="(hLdVariant, hLdVIndex) in hoverLdDotPosFullList"
-						v-if="hLdVIndex < 5"
+						v-for="
+							(hLdVariant, hLdVIndex) in (hoverLdDotPosFullList || [])
+								.filter(
+									(hLdVariant, hLdVIndex) =>
+										hLdVIndex < 5
+								)
+						"
 					>
 						<span class="gene-on-clicked-dot-mplot">
 							<b v-html="hLdVariant[renderConfig.renderBy]"></b
 						></span>
 						<span
-							v-if="
-								dataComparisonConfig == null ||
-								dataComparisonConfig.fieldsToCompare.includes(
-									hLdVInfoKey
-								) == false
-							"
 							class="content-on-clicked-dot"
-							v-for="(hLdVInfo, hLdVInfoKey) in hLdVariant"
+							v-for="
+								[hLdVInfo, hLdVInfoKey] in Object.keys(hLdVariant || {})
+									.map((k) => [hLdVariant[k], k])
+									.filter(
+										([hLdVInfo, hLdVInfoKey]) =>
+											dataComparisonConfig == null ||
+											dataComparisonConfig.fieldsToCompare.includes(
+												hLdVInfoKey
+											) == false
+									)
+							"
 							v-html="hLdVInfoKey + ': ' + hLdVInfo"
 						>
 						</span>
 						<span
-							v-if="
-								dataComparisonConfig != null &&
-								dataComparisonConfig.fieldsToCompare.includes(
-									hLdVInfoKey
-								) == true
-							"
 							class="content-on-clicked-dot"
-							v-for="(hLdVInfo, hLdVInfoKey) in hLdVariant"
-						>
-							{{ hLdVInfoKey }}: <br />
+							v-for="
+								[hLdVInfo, hLdVInfoKey] in Object.keys(hLdVariant || {})
+									.map((k) => [hLdVariant[k], k])
+									.filter(
+										([hLdVInfo, hLdVInfoKey]) =>
+											dataComparisonConfig != null &&
+											dataComparisonConfig.fieldsToCompare.includes(
+												hLdVInfoKey
+											) == true
+									)
+							"
+						>{{
+							" " }}{{ hLdVInfoKey }}: <br />
 							<span
 								class="content-on-clicked-dot-values"
 								v-for="(hLdVItem, hLdVItemKey) in hLdVInfo"
@@ -311,28 +339,36 @@
 							<b v-html="ldVariant[renderConfig.renderBy]"></b
 						></span>
 						<span
-							v-if="
-								dataComparisonConfig == null ||
-								dataComparisonConfig.fieldsToCompare.includes(
-									ldInfoKey
-								) == false
-							"
 							class="content-on-clicked-dot"
-							v-for="(ldInfo, ldInfoKey) in ldVariant"
+							v-for="
+								[ldInfo, ldInfoKey] in Object.keys(ldVariant || {})
+									.map((k) => [ldVariant[k], k])
+									.filter(
+										([ldInfo, ldInfoKey]) =>
+											dataComparisonConfig == null ||
+											dataComparisonConfig.fieldsToCompare.includes(
+												ldInfoKey
+											) == false
+									)
+							"
 							v-html="ldInfoKey + ': ' + ldInfo"
 						>
 						</span>
 						<span
-							v-if="
-								dataComparisonConfig != null &&
-								dataComparisonConfig.fieldsToCompare.includes(
-									ldInfoKey
-								) == true
-							"
 							class="content-on-clicked-dot"
-							v-for="(ldInfo, ldInfoKey) in ldVariant"
-						>
-							{{ ldInfoKey }}: <br />
+							v-for="
+								[ldInfo, ldInfoKey] in Object.keys(ldVariant || {})
+									.map((k) => [ldVariant[k], k])
+									.filter(
+										([ldInfo, ldInfoKey]) =>
+											dataComparisonConfig != null &&
+											dataComparisonConfig.fieldsToCompare.includes(
+												ldInfoKey
+											) == true
+									)
+							"
+						>{{
+							" " }}{{ ldInfoKey }}: <br />
 							<span
 								class="content-on-clicked-dot-values"
 								v-for="(ldInfoItem, ldInfoItemKey) in ldInfo"
@@ -388,17 +424,14 @@
 </template>
 
 <script>
-import Vue from "vue";
 import $ from "jquery";
 import uiUtils from "@/utils/uiUtils";
-import { BootstrapVueIcons } from "bootstrap-vue";
 import Formatters from "@/utils/formatters.js";
 
 import Chi from "chi-squared";
 
-Vue.use(BootstrapVueIcons);
-
-export default Vue.component("research-region-plot", {
+export default {
+	name: "research-region-plot",
 	props: [
 		"plotData",
 		"renderConfig",
@@ -466,23 +499,26 @@ export default Vue.component("research-region-plot", {
 
 		window.addEventListener("resize", this.onResize);
 	},
-	beforeDestroy() {
+	beforeUnmount() {
 		window.removeEventListener("resize", this.onResize);
 	},
 	computed: {
-		renderData() {
+		plotContent() {
 			if (this.plotData == null) {
 				return null;
 			} else {
 				let rawData = this.plotData;
 				let comparingData = [];
-				this.yAxisFieldItems = [];
+				let yAxisFieldItems = [];
 
 				if (!!this.dataComparisonConfig) {
 					for (const [rKey, r] of Object.entries(rawData)) {
 						let tempObj = r;
 
 						if (!!this.renderConfig.ifCombineYAxisField) {
+							// the rows belong to the parent
+							tempObj = { ...r };
+
 							let yAxisFieldArr = [];
 							let yAxisField =
 								r[this.renderConfig.ifCombineYAxisField.field];
@@ -490,7 +526,7 @@ export default Vue.component("research-region-plot", {
 							for (const [yKey, y] of Object.entries(
 								yAxisField
 							)) {
-								this.yAxisFieldItems.push(yKey);
+								yAxisFieldItems.push(yKey);
 								yAxisFieldArr.push(y);
 							}
 							let combined;
@@ -533,13 +569,17 @@ export default Vue.component("research-region-plot", {
 						comparingData.push(tempObj);
 					}
 
-					this.yAxisFieldItems = [...new Set(this.yAxisFieldItems)];
-
-					return comparingData;
+					return {
+						data: comparingData,
+						yAxisFieldItems: [...new Set(yAxisFieldItems)],
+					};
 				} else {
-					return rawData;
+					return { data: rawData, yAxisFieldItems: yAxisFieldItems };
 				}
 			}
+		},
+		renderData() {
+			return !!this.plotContent ? this.plotContent.data : null;
 		},
 		ldVariantCorrelationsData() {
 			let contents = this.$store.state.umLdServer.variantCorrelations;
@@ -567,6 +607,15 @@ export default Vue.component("research-region-plot", {
 		},
 	},
 	watch: {
+		// first, so that the watchers below draw with the items of the current data
+		plotContent: {
+			handler(CONTENT) {
+				if (!!CONTENT) {
+					this.yAxisFieldItems = CONTENT.yAxisFieldItems;
+				}
+			},
+			immediate: true,
+		},
 		ldVariantCorrelationsData(data) {
 			let ldData = {};
 
@@ -1816,25 +1865,6 @@ export default Vue.component("research-region-plot", {
 			CTX.arc(XPOS, YPOS, 5, 0, 2 * Math.PI);
 			CTX.fill();
 		},
-		feedHoverContent(xLoc, yLoc, ID, CONTENT) {
-			let hoverContent;
-
-			if (!!this.renderConfig.hoverContent) {
-				hoverContent = this.renderConfig.hoverContent;
-			}
-
-			if (!this.dotPosData[xLoc]) {
-				this.dotPosData[xLoc] = {};
-			}
-			this.dotPosData[xLoc][yLoc] = {};
-			this.dotPosData[xLoc][yLoc][this.renderConfig.renderBy] = ID;
-			if (!!this.renderConfig.hoverContent) {
-				hoverContent.map((h) => {
-					this.dotPosData[xLoc][yLoc][h] = CONTENT[h];
-				});
-			}
-		},
-
 		feedHoverContent(xLoc, yLoc, ID, CONTENT, POS_DATA) {
 			let hoverContent;
 
@@ -1854,7 +1884,7 @@ export default Vue.component("research-region-plot", {
 			}
 		},
 	},
-});
+};
 
 $(function () {});
 </script>

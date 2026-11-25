@@ -31,16 +31,16 @@
 										<div v-for="option in isParameterActive('kp genes').options">
 											<span>
 												<a :href="(option.url) ? option.url + gene : 'javascript:;'" 
-													class="ss-explore">
-													{{option['url label'] }}
-												</a>
+													class="ss-explore">{{
+													" " }}{{option['url label'] }}{{ " "
+												}}</a>
 												<span v-if="!!option.url && !!option.sections"> | </span>
 												<a href="javascript:;" 
 													class="ss-generate-summary"
 													@click="generateSummary(gene, option['summary id'], option['summary label'], option.sections)"
-												>
-													{{option['summary label'] }}
-												</a>
+												>{{
+													" " }}{{option['summary label'] }}{{ " "
+												}}</a>
 											</span>
 										</div>
 									</div>
@@ -67,16 +67,16 @@
 												<span>
 													<a :href="(option.url) ? option.url + phenotype.name : 'javascript:;'"
 														class="ss-explore"
-														>
-														{{ option['url label'] }}
-													</a>
+														>{{
+														" " }}{{ option['url label'] }}{{ " "
+													}}</a>
 													<span v-if="!!option.url && !!option.sections"> | </span>
 													<a href="javascript:;" 
 														class="ss-generate-summary"
 														@click="generateSummary(phenotype.name, option['summary id'], option['summary label'], option.sections)"
-													>
-														{{option['summary label'] }}
-													</a>
+													>{{
+														" " }}{{option['summary label'] }}{{ " "
+													}}</a>
 												</span>
 											</div>
 										</div>
@@ -102,16 +102,16 @@
 														<span>
 															<a :href="(option.url) ? option.url + item.value : 'javascript:;'"
 																class="ss-explore"
-															>
-															{{ option['url label'] }}
-															</a>
+															>{{
+															" " }}{{ option['url label'] }}{{ " "
+															}}</a>
 															<span v-if="!!option.url && !!option.sections"> | </span>
 															<a href="javascript:;" 
 																class="ss-generate-summary"
 																@click="generateSummary(item.value, option['summary id'], option['summary label'], option.sections)"
-															>
-																{{option['summary label'] }}
-															</a>
+															>{{
+																" " }}{{option['summary label'] }}{{ " "
+															}}</a>
 														</span>
 													</div>
 												</div>
@@ -144,13 +144,13 @@
 </template>
 
 <script>
-import Vue from "vue";
 import { match } from "@/utils/bioIndexUtils";
 import { BIO_INDEX_HOST } from "@/utils/bioIndexUtils";
 import alertUtils from "@/utils/alertUtils";
 import EventBus from "@/utils/eventBus";
 
-export default Vue.component("research-single-search-cfde", {
+export default {
+	name: "research-single-search-cfde",
 	props: ["singleSearchConfig", "phenotypes", "utils", "fromNav"],
 	modules: {},
 
@@ -197,7 +197,7 @@ export default Vue.component("research-single-search-cfde", {
 		//listens for search event from nav component
 		EventBus.$on('activate-search', this.onFocus);
 	},
-	beforeDestroy() {
+	beforeUnmount() {
 		EventBus.$off('activate-search');
 	},
 	computed: {},
@@ -768,7 +768,7 @@ export default Vue.component("research-single-search-cfde", {
 			this.singleSearchResult.genes = matches;
 		},
 	},
-});
+};
 </script>
 
 <style scoped>

@@ -18,8 +18,8 @@
                             :key="p"
                             @click="removePhenotype(i)"
                             class="btn"
-                        >
-                            {{ p }}
+                        >{{
+                            " " }}{{ p }}
                             <span class="remove">X</span>
                         </b-badge>
                     </template>
@@ -29,8 +29,8 @@
                             variant="success"
                             @click="unsetPvalue()"
                             class="btn"
-                        >
-                            {{ pValue }}
+                        >{{
+                            " " }}{{ pValue }}
                             <span class="remove">X</span>
                         </b-badge>
                     </template>
@@ -40,8 +40,8 @@
                             variant="info"
                             @click="unsetBeta()"
                             class="btn"
-                        >
-                            {{ betaText }}
+                        >{{
+                            " " }}{{ betaText }}
                             <span class="remove">X</span>
                         </b-badge>
                     </template>
@@ -96,19 +96,13 @@
 </template>
 
 <script>
-import Vue from "vue";
-import { BootstrapVue, IconsPlugin } from "bootstrap-vue";
 import Formatters from "@/utils/formatters";
 
-Vue.use(BootstrapVue);
-Vue.use(IconsPlugin);
-
-import "bootstrap/dist/css/bootstrap.css";
-import "bootstrap-vue/dist/bootstrap-vue.css";
 import Documentation from "@/components/Documentation";
 import TooltipDocumentation from "@/components/TooltipDocumentation";
 
-export default Vue.component("phewas-table", {
+export default {
+    name: "phewas-table",
     props: ["associations", "phenotypeMap", "filter"],
     components: {
         Documentation,
@@ -236,5 +230,5 @@ export default Vue.component("phewas-table", {
             this.beta = "";
         },
     },
-});
+};
 </script>

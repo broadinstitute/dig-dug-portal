@@ -21,9 +21,8 @@
 				<div class="col-md-10">
 					<span style="font-size: 13px"
 						>Common variant p-value:
-						<template v-for="tValue in pThreshold">
+						<template v-for="tValue in pThreshold" :key="tValue">
 							<span
-								:key="tValue"
 								:style="
 									'margin-right:5px; background-color:' +
 									getPColor(tValue, 'MAGMA')
@@ -36,9 +35,8 @@
 						v-if="Object.keys(rareVariantMap).length > 0"
 						style="font-size: 13px"
 						>Rare variant p-value:
-						<template v-for="tValue in rarePThreshold">
+						<template v-for="tValue in rarePThreshold" :key="tValue">
 							<span
-								:key="tValue"
 								:style="
 									'margin-right:5px; background-color:' +
 									getPColor(tValue, 'rare')
@@ -189,11 +187,10 @@
 					<template
 						v-for="(
 							itemValue, itemIndex
-						) in groupedAssociationsDisplay"
+						) in groupedAssociationsDisplay" :key="itemValue.gene"
 					>
 						<tr
 							:id="itemValue.gene"
-							:key="itemValue.gene"
 							:class="
 								currentGene == itemValue.gene
 									? 'current-gene'
@@ -247,10 +244,9 @@
 							</td>
 							<td class="no-padding text-center">
 								<template
-									v-for="phenotype in itemValue.phenotypes"
+									v-for="phenotype in itemValue.phenotypes" :key="phenotype"
 								>
 									<div
-										:key="phenotype"
 										class="multi-values-div"
 										:class="
 											hugeRange(
@@ -314,7 +310,7 @@
 								class="no-padding text-center"
 							>
 								<template
-									v-for="phenotype in itemValue.phenotypes"
+									v-for="phenotype in itemValue.phenotypes" :key="phenotype"
 								>
 									<!--:class="
 											itemValue[phenotype + ':pValue'] <
@@ -324,7 +320,6 @@
 										"
 										-->
 									<div
-										:key="phenotype"
 										class="multi-values-div"
 										:style="
 											'background-color:' +
@@ -352,7 +347,7 @@
 								class="no-padding text-center"
 							>
 								<template
-									v-for="phenotype in itemValue.phenotypes"
+									v-for="phenotype in itemValue.phenotypes" :key="phenotype"
 								>
 									<!--:class="
 											itemValue[phenotype + ':pValue'] <
@@ -362,7 +357,6 @@
 										"
 										-->
 									<div
-										:key="phenotype"
 										class="multi-values-div"
 										:style="
 											'background-color:' +
@@ -443,23 +437,16 @@
 </template>
 
 <script>
-import Vue from "vue";
-import { BootstrapVue, IconsPlugin } from "bootstrap-vue";
 import Chi from "chi-squared";
 import Formatters from "@/utils/formatters";
 import uiUtils from "@/utils/uiUtils";
 import TooltipDocumentation from "@/components/TooltipDocumentation.vue";
 import GeneFinderHeatmap from "@/components/geneFinderHeatmap.vue";
 
-Vue.use(BootstrapVue);
-Vue.use(IconsPlugin);
-
-import "bootstrap/dist/css/bootstrap.css";
-import "bootstrap-vue/dist/bootstrap-vue.css";
-
 import DataDownload from "@/components/DataDownload";
 
-export default Vue.component("GeneFinderWEglTable", {
+export default {
+	name: "GeneFinderWEglTable",
 	components: {
 		TooltipDocumentation,
 		DataDownload,
@@ -514,15 +501,11 @@ export default Vue.component("GeneFinderWEglTable", {
 		},
 
 		groupedAssociations() {
-			//console.log(this.associations);
-			let groups = {};
-			let associations = this.tableData;
-
-			let data = associations; //Object.values(groups);
-
 			// calculate the chiSquared for each row
-
-			data.forEach((r) => (r.chiSquared = this.chiSquared(r)));
+			let data = this.tableData.map((r) => ({
+				...r,
+				chiSquared: this.chiSquared(r),
+			}));
 
 			// sort all the records by combined p-value
 			data.sort((a, b) => a.chiSquared - b.chiSquared);
@@ -535,18 +518,18 @@ export default Vue.component("GeneFinderWEglTable", {
 				this.currentPage * this.rowsPerPage - this.rowsPerPage;
 			let endIndex = this.currentPage * this.rowsPerPage - 1;
 			for (let i = startIndex; i <= endIndex; i++) {
-				if (this.groupedAssociations[i]) {
+				let row = this.groupedAssociations[i];
+				if (row) {
 					if (this.minMaxTPM) {
 						let tpmPercent =
-							((this.groupedAssociations[i].maxTPM -
-								this.minMaxTPM.min) /
+							((row.maxTPM - this.minMaxTPM.min) /
 								(this.minMaxTPM.max - this.minMaxTPM.min)) *
 							100;
 
-						this.groupedAssociations[i]["tpmPercent"] = tpmPercent;
+						row = { ...row, tpmPercent };
 					}
 
-					returnList.push(this.groupedAssociations[i]);
+					returnList.push(row);
 				}
 			}
 
@@ -785,7 +768,7 @@ export default Vue.component("GeneFinderWEglTable", {
 			uiUtils.convertJson2Csv(downloadData, "gene_finder_data");
 		},
 	},
-});
+};
 </script>
 
 <style>

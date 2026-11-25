@@ -61,9 +61,9 @@
                 <details v-if="record">
                     <summary>All source fields</summary>
                     <dl class="pigean-raw-fields">
-                        <template v-for="(value, key) in rawFields"
-                            ><dt :key="key + '-key'">{{ key }}</dt>
-                            <dd :key="key + '-value'">{{ value }}</dd></template
+                        <template v-for="(value, key) in rawFields" :key="key"
+                            ><dt>{{ key }}</dt>
+                            <dd>{{ value }}</dd></template
                         >
                     </dl>
                 </details>
@@ -317,6 +317,7 @@ export default {
         phenotypeMetadata: Object,
         metadataBusy: Boolean,
     },
+    emits: ["close", "trait", "select"],
     data: () => ({
         tab: 0,
         metric: "combined",
@@ -493,7 +494,7 @@ export default {
             this.loadTab();
         },
     },
-    beforeDestroy() {
+    beforeUnmount() {
         if (this.contextController) this.contextController.abort();
         this.contextController = null;
         if (this.controller) this.controller.abort();

@@ -1,4 +1,4 @@
-import Vue from "vue";
+import { mountPage } from "@/utils/pageSetup";
 import Template from "./Template.vue";
 import store from "./store.js";
 
@@ -14,6 +14,7 @@ import sessionUtils from "@/utils/sessionUtils";
 import sortUtils from "@/utils/sortUtils";
 import dataConvert from "@/utils/dataConvert";
 import bioIndexUtils from "@/utils/bioIndexUtils";
+import { cloneDeep } from "@/utils/lodashUtils";
 import SearchHeaderWrapper from "@/components/SearchHeaderWrapper.vue";
 import GenesetSizeSelectPicker from "@/components/GenesetSizeSelectPicker.vue";
 import PigeanTable from "@/components/PigeanTable.vue";
@@ -27,7 +28,8 @@ import FilterPValue from "@/components/criterion/FilterPValue.vue";
 import TooltipDocumentation from "@/components/TooltipDocumentation.vue";
 import NetworkGraph from "@/components/NetworkGraph.vue";
 import { pageMixin } from "@/mixins/pageMixin.js";
-new Vue({
+// @vue/component
+mountPage(Template, {
     store,
     components: {
         SearchHeaderWrapper,
@@ -409,7 +411,7 @@ new Vue({
             );
         },
         namesAndMechanisms(originalData) {
-            let data = structuredClone(originalData);
+            let data = cloneDeep(originalData);
             let mechanisms = this.mechanismMap;
             data.forEach((item) => {
                 const mechanism = mechanisms[item.factor] || {};
@@ -432,8 +434,4 @@ new Vue({
             this.$store.dispatch("queryPhenotype");
         }
     },
-
-    render(createElement) {
-        return createElement(Template);
-    },
-}).$mount("#app");
+});

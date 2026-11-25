@@ -314,7 +314,7 @@
                         </h2>
                         <p>
                             <a
-                                href="https://docs.google.com/forms/d/e/1FAIpQLSdA8Wn6QDLNLoUejq-BJrPW7SFAM7DsFggu8iPOIhOP0WS2Tw/viewform"
+                                href="https://docs.google.com/forms/d/e/1FAIpQLSd1mcMDAvztctyVc5-U4GjvFflr0YnLJn_GA6ca83Dzvc_bHw/viewform"
                                 target="_blank"
                                 >Sign up</a
                             >
@@ -348,6 +348,30 @@
         </div>
     </div>
 </template>
+
+<script>
+import DiseaseGroupSelect from "@/components/DiseaseGroupSelect.vue";
+import DiseaseSystems from "@/components/DiseaseSystems.vue";
+import Documentation from "@/components/Documentation.vue";
+import NewsFeedSection from "@/components/frontPage/NewsFeedSection.vue";
+import PageFooter from "@/components/PageFooter.vue";
+import PageHeader from "@/components/PageHeader.vue";
+import ResearchPageDescription from "@/components/researchPortal/ResearchPageDescription.vue";
+import ResearchSingleSearch from "@/components/researchPortal/ResearchSingleSearch.vue";
+
+export default {
+    components: {
+        DiseaseGroupSelect,
+        DiseaseSystems,
+        Documentation,
+        NewsFeedSection,
+        PageFooter,
+        PageHeader,
+        ResearchPageDescription,
+        ResearchSingleSearch,
+    },
+};
+</script>
 <style>
 p[id="home.example"] {
     white-space: break-spaces;

@@ -59,10 +59,9 @@
 							<template
 								v-for="a in pkgDataSelected.filter(
 									(s) => s.type == 'Annotation'
-								)"
+								)" :key="a.id"
 							>
 								<span
-									:key="a.id"
 									:class="'btn search-bubble '"
 									:style="
 										'background-color:' +
@@ -212,13 +211,11 @@
 import Vue from "vue";
 import $ from "jquery";
 //import uiUtils from "@/utils/uiUtils";
-import { BootstrapVueIcons } from "bootstrap-vue";
 //import Formatters from "@/utils/formatters.js";
 //import keyParams from "@/utils/keyParams";
 
-Vue.use(BootstrapVueIcons);
-
-export default Vue.component("research-annotations-plot-v2", {
+export default {
+	name: "research-annotations-plot-v2",
 	props: [
 		"region",
 		"phenotype",
@@ -261,7 +258,7 @@ export default Vue.component("research-annotations-plot-v2", {
 		window.addEventListener("resize", this.onResize);
 		this.getAnnotations(this.searchingRegion);
 	},
-	beforeDestroy() {
+	beforeUnmount() {
 		window.removeEventListener("resize", this.onResize);
 	},
 	computed: {
@@ -2088,7 +2085,7 @@ export default Vue.component("research-annotations-plot-v2", {
 			});
 		},
 	},
-});
+};
 
 $(function () {});
 </script>

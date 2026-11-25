@@ -31,21 +31,21 @@
                     <span :id="canvasId + 'pheWasInfoBoxContent'"></span>
 
                     <span v-for="(ptValue, ptKey) in hoverItems" :key="ptKey">
-                        <strong v-if="!linkPhenotypes">
-                            {{
+                        <strong v-if="!linkPhenotypes">{{
+                            " " }}{{
                                 (phenotypeMap[ptKey] &&
                                     phenotypeMap[ptKey].description) ||
                                 ptKey
-                            }}
-                        </strong>
+                            }}{{ " "
+                        }}</strong>
                         <strong v-else>
-                            <a :href="phenotypeLink(ptKey)">
-                                {{
+                            <a :href="phenotypeLink(ptKey)">{{
+                                " " }}{{
                                     (phenotypeMap[ptKey] &&
                                         phenotypeMap[ptKey].description) ||
                                     ptKey
-                                }}
-                            </a>
+                                }}{{ " "
+                            }}</a>
                         </strong>
                         <br />
                         <span
@@ -254,16 +254,15 @@
 </template>
 
 <script>
-import Vue from "vue";
 import { cloneDeep } from "@/utils/lodashUtils";
-import { BootstrapVueIcons } from "bootstrap-vue";
 import bioIndexUtils from "@/utils/bioIndexUtils";
 import pheWasPlotVector from "@/components/researchPortal/vectorPlots/ResearchPheWasPlotVector.vue";
-Vue.use(BootstrapVueIcons);
 
-export default Vue.component("ResearchPigeanPhewasPlot", {
+export default {
+    name: "ResearchPigeanPhewasPlot",
     components: {
         pheWasPlotVector,
+        ResearchPhewasPlotVector: pheWasPlotVector,
     },
     props: [
         "canvasId",
@@ -284,6 +283,7 @@ export default Vue.component("ResearchPigeanPhewasPlot", {
         "isPigean",
         "matchingHoverDots",
     ],
+    emits: ["dotsHovered", "pigeanColors"],
 
     data() {
         return {
@@ -292,7 +292,6 @@ export default Vue.component("ResearchPigeanPhewasPlot", {
             spaceBy: 7,
             trigger: 0,
             hoverItems: {},
-            showCanvas: true,
             selectedYAxisFields: [], // Track which y-axis fields are selected
             filterByThreshold: true, // User-controlled threshold filter toggle (initially checked)
             selectedGroups: [], // Track which phenotype groups are selected
@@ -362,7 +361,6 @@ export default Vue.component("ResearchPigeanPhewasPlot", {
             return null;
         },
         renderData() {
-            this.showCanvas = true;
             let content = {};
             content["data"] = [];
 
@@ -507,9 +505,11 @@ export default Vue.component("ResearchPigeanPhewasPlot", {
             if (!!content.data && content.data.length > 0) {
                 return content;
             } else {
-                this.showCanvas = false;
                 return null;
             }
+        },
+        showCanvas() {
+            return !!this.renderData;
         },
         adjPlotMargin() {
             let customPlotMargin = this.renderConfig["plot margin"]
@@ -650,7 +650,7 @@ export default Vue.component("ResearchPigeanPhewasPlot", {
             }
         });
     },
-    beforeDestroy() {
+    beforeUnmount() {
         window.removeEventListener("resize", this.onResize);
         document.removeEventListener('click', this.handleClickOutside);
     },
@@ -1872,7 +1872,7 @@ export default Vue.component("ResearchPigeanPhewasPlot", {
             return destination;
         },
     },
-});
+};
 </script>
 
 <style>

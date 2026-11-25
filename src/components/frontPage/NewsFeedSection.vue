@@ -26,10 +26,10 @@
 </template>
 
 <script>
-import Vue from "vue";
 import $ from "jquery";
 
-export default Vue.component("news-feed-section", {
+export default {
+	name: "news-feed-section",
 	props: ["diseaseGroup", "newsFeed"],
 	data() {
 		return {};
@@ -50,7 +50,7 @@ export default Vue.component("news-feed-section", {
 			return content;
 		},
 	},
-});
+};
 </script>
 <style scoped>
 .news {

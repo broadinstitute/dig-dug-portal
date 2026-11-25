@@ -23,18 +23,10 @@
 </template>
 
 <script>
-import Vue from "vue";
-
-import { BootstrapVue, IconsPlugin } from "bootstrap-vue";
-
-Vue.use(BootstrapVue);
-Vue.use(IconsPlugin);
-
-import "bootstrap/dist/css/bootstrap.css";
-import "bootstrap-vue/dist/bootstrap-vue.css";
 import uiUtils from "@/utils/uiUtils";
 
-export default Vue.component("new-features-section", {
+export default {
+    name: "new-features-section",
     props: ["newFeatures", "nid"],
     data() {
         return {
@@ -70,6 +62,6 @@ export default Vue.component("new-features-section", {
                 : (this.selectedNews = nid);
         }
     }
-});
+};
 </script>
 

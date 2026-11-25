@@ -98,10 +98,9 @@
 							<template
 								v-for="a in pkgDataSelected.filter(
 									(s) => s.type == 'Annotation'
-								)"
+								)" :key="a.id"
 							>
 								<span
-									:key="a.id"
 									:class="'btn search-bubble '"
 									:style="
 										'background-color:' +
@@ -117,10 +116,9 @@
 							<template
 								v-for="t in pkgDataSelected.filter(
 									(s) => s.type == 'Tissue'
-								)"
+								)" :key="t.id"
 							>
 								<span
-									:key="t.id"
 									:class="'btn search-bubble '"
 									:style="'background-color:#999999'"
 									v-html="
@@ -353,13 +351,11 @@
 import Vue from "vue";
 import $ from "jquery";
 //import uiUtils from "@/utils/uiUtils";
-import { BootstrapVueIcons } from "bootstrap-vue";
 //import Formatters from "@/utils/formatters.js";
 //import keyParams from "@/utils/keyParams";
 
-Vue.use(BootstrapVueIcons);
-
-export default Vue.component("research-biosamples-plot", {
+export default {
+	name: "research-biosamples-plot",
 	props: [
 		"region",
 		"phenotype",
@@ -403,7 +399,7 @@ export default Vue.component("research-biosamples-plot", {
 			this.getBSAnnotations(this.searchingRegion);
 		}
 	},
-	beforeDestroy() {
+	beforeUnmount() {
 		window.removeEventListener("resize", this.onResize);
 	},
 	computed: {
@@ -2207,7 +2203,7 @@ export default Vue.component("research-biosamples-plot", {
 			});
 		},
 	},
-});
+};
 
 $(function () {});
 </script>

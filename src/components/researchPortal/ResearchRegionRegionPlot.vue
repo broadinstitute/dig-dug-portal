@@ -8,13 +8,10 @@
 </template>
 
 <script>
-import Vue from "vue";
 import $ from "jquery";
-import { BootstrapVueIcons } from "bootstrap-vue";
 
-Vue.use(BootstrapVueIcons);
-
-export default Vue.component("region-region-plot", {
+export default {
+	name: "region-region-plot",
 	props: [
 		"renderConfig",
 		"plotMargin",
@@ -42,7 +39,7 @@ export default Vue.component("region-region-plot", {
 		this.renderPlot();
 		window.addEventListener("resize", this.onResize);
 	},
-	beforeDestroy() {
+	beforeUnmount() {
 		window.removeEventListener("resize", this.onResize);
 	},
 	computed: {
@@ -453,7 +450,7 @@ export default Vue.component("region-region-plot", {
 			this.renderPlot();
 		},
 	},
-});
+};
 
 $(function () { });
 </script>

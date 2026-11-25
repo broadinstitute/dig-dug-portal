@@ -32,9 +32,8 @@
 									<option value="">
 										{{ "Select Tissue" }}
 									</option>
-									<template v-for="tissue in GLTissues">
+									<template v-for="tissue in GLTissues" :key="tissue.tissue">
 										<option
-											:key="tissue.tissue"
 											:value="tissue.tissue"
 											v-html="getTissueLabel(tissue)"
 										></option>
@@ -82,9 +81,8 @@
 							"
 							style="position: absolute; right: 10px; top: 7px"
 						>
-							<template v-for="tissue in Object.keys(GLData)">
+							<template v-for="tissue in Object.keys(GLData)" :key="tissue">
 								<span
-									:key="tissue"
 									:class="'btn GL-search-bubble '"
 									v-html="
 										tissue +
@@ -208,17 +206,14 @@
 </template>
 
 <script>
-import Vue from "vue";
 import $ from "jquery";
 //import uiUtils from "@/utils/uiUtils";
 //import alertUtils from "@/utils/alertUtils";
-import { BootstrapVueIcons } from "bootstrap-vue";
 //import Formatters from "@/utils/formatters.js";
 //import keyParams from "@/utils/keyParams";
 
-Vue.use(BootstrapVueIcons);
-
-export default Vue.component("research-gene-links-plot", {
+export default {
+	name: "research-gene-links-plot",
 	props: [
 		"region",
 		"phenotype",
@@ -237,6 +232,8 @@ export default Vue.component("research-gene-links-plot", {
 		return {
 			spaceBy: 20,
 			GEData: {},
+			// GEData and pkgData.GLData get and lose keys that Vue 2 does not track. The computed
+			// properties made from them read trigger, so that changing it makes them look again.
 			trigger: 0,
 			GLPosData: {},
 			GLData: null,
@@ -252,12 +249,12 @@ export default Vue.component("research-gene-links-plot", {
 		window.addEventListener("resize", this.onResize);
 		this.getGlobalEnrichment(this.searchingRegion);
 	},
-	beforeDestroy() {
+	beforeUnmount() {
 		window.removeEventListener("resize", this.onResize);
 	},
 	computed: {
 		GLTissues() {
-			this.trigger--;
+			this.trigger;
 			if (Object.keys(this.GEData).length == 0) {
 				return null;
 			} else {
@@ -290,7 +287,7 @@ export default Vue.component("research-gene-links-plot", {
 			}
 		},
 		renderData() {
-			this.trigger--;
+			this.trigger;
 
 			let renderObj = {};
 
@@ -335,7 +332,7 @@ export default Vue.component("research-gene-links-plot", {
 			return renderObj;
 		},
 		methodsArr() {
-			this.trigger--;
+			this.trigger;
 
 			if (!!this.pkgData.GLData) {
 				let methodIndex = [];
@@ -353,7 +350,7 @@ export default Vue.component("research-gene-links-plot", {
 			}
 		},
 		genesArr() {
-			this.trigger--;
+			this.trigger;
 
 			if (!!this.pkgData.GLData) {
 				let genes = [];
@@ -728,6 +725,9 @@ export default Vue.component("research-gene-links-plot", {
 				!!this.pkgData.GLData &&
 				Object.keys(this.pkgData.GLData).length > 0
 			) {
+				// GLData may have changed since the last drawing
+				this.trigger++;
+
 				let staredPositions = [];
 				this.GLPosData = {};
 
@@ -1256,7 +1256,7 @@ export default Vue.component("research-gene-links-plot", {
 			//}
 		},
 	},
-});
+};
 
 $(function () {});
 </script>

@@ -57,7 +57,7 @@
             >
                 <div class="label">P-Value (&le;)</div>
             </filter-pvalue-control>
-            <template slot="filtered">
+            <template v-slot:filtered>
                 <template v-if="filteredItems().length > 0">
                     <div
                         v-if="plotsReady"
@@ -247,7 +247,8 @@ import plotUtils from "@/utils/plotUtils";
 import dataConvert from "@/utils/dataConvert";
 import colors from "@/utils/colors";
 
-export default Vue.component("LigerTable", {
+export default {
+    name: "LigerTable",
     components: {
         DataDownload,
         LigerGeneProgramSubtable,
@@ -256,6 +257,8 @@ export default Vue.component("LigerTable", {
         FilterEnumeration,
         FilterGreaterLess,
         FilterPValue,
+        FilterEnumerationControl: FilterEnumeration,
+        FilterPvalueControl: FilterPValue,
     },
     props: {
         geneName: {
@@ -757,5 +760,5 @@ export default Vue.component("LigerTable", {
             row.toggleDetails();
         },
     },
-});
+};
 </script>

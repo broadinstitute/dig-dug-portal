@@ -610,6 +610,7 @@ export default {
         PigeanPhenotypeSummary,
     },
     props: { route: { type: Object, required: true } },
+    emits: ["navigate"],
     data: () => ({
         models: MODELS,
         labels: METRIC_LABELS,
@@ -850,7 +851,7 @@ export default {
             this.registryError = error.message;
         }
     },
-    beforeDestroy() {
+    beforeUnmount() {
         if (this.controller) this.controller.abort();
         if (this.highlightController) this.highlightController.abort();
         clearTimeout(this.copyTimer);

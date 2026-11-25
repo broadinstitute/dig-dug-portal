@@ -70,7 +70,7 @@
 									>{{ hugeScore }}</b-td
 								>
 								<b-td style="width: 20px" class="text-left"
-									><-- HuGE Score</b-td
+									>&lt;-- HuGE Score</b-td
 								>
 							</b-tr>
 						</b-tbody>
@@ -113,15 +113,14 @@
 </template>
         
 <script>
-import Vue from "vue";
-import "bootstrap/dist/css/bootstrap.css";
 import Formatters from "@/utils/formatters";
 
 import TooltipDocumentation from "@/components/TooltipDocumentation.vue";
 import ColorBarPlot from "@/components/ColorBarPlot.vue";
 import Hugescoretable from "@/components/Hugescoretable.vue";
 
-export default Vue.component("hugecal-score-section", {
+export default {
+	name: "hugecal-score-section",
 	props: [
 		"currentPage",
 		"docDetails",
@@ -136,7 +135,7 @@ export default Vue.component("hugecal-score-section", {
 	data() {
 		return {};
 	},
-	components: { TooltipDocumentation, ColorBarPlot, Hugescoretable },
+	components: { TooltipDocumentation, ColorBarPlot, Hugescoretable, HugescoreTable: Hugescoretable },
 	computed: {
 		commonVarBF() {
 			let commonBF = 1;
@@ -346,7 +345,7 @@ export default Vue.component("hugecal-score-section", {
 			return isExomeWideSignificant;
 		},
 	},
-});
+};
 </script>
 
 <style scoped>

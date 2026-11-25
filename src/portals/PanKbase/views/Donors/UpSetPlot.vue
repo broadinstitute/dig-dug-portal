@@ -277,7 +277,7 @@ export default {
             this.resizeObserver.observe(this.$refs.container);
         }
     },
-    beforeDestroy() {
+    beforeUnmount() {
         if (this.resizeObserver) {
             this.resizeObserver.disconnect();
         }

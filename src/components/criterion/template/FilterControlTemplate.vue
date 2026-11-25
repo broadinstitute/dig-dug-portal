@@ -28,17 +28,10 @@
 </template>
 
 <script>
-import Vue from "vue";
 import Autocomplete from "@/components/Autocomplete.vue";
-import { BootstrapVue, IconsPlugin } from "bootstrap-vue";
 
-Vue.use(BootstrapVue);
-Vue.use(IconsPlugin);
-
-import "bootstrap/dist/css/bootstrap.css";
-import "bootstrap-vue/dist/bootstrap-vue.css";
-
-export default Vue.component("filter-control-template", {
+export default {
+    name: "filter-control-template",
     props: {
         value: Object,
         field: String,
@@ -80,6 +73,8 @@ export default Vue.component("filter-control-template", {
             default: false
         }
     },
+    // The filters listen for it here, and the template emits it on them. Declared to keep their listener off the root element.
+    emits: ["input-change"],
     components: {
         Autocomplete,
     },
@@ -166,7 +161,7 @@ export default Vue.component("filter-control-template", {
             }
         },
     },
-});
+};
 </script>
 <style scoped>
     .col {

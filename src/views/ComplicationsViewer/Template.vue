@@ -83,60 +83,87 @@
                             :showChiSquared="true"
                         ></gene-finder-table>
                     </div>
-                    <div
-                        class="card-body"
+                    <template
                         v-if="
                             $store.state.bioPortal.phenotypeMap &&
                             $parent.complicationViewerPhenotypes.length > 0 &&
                             $store.state.associations.length > 0
                         "
-                        v-for="pheno in $parent.complicationViewerPhenotypes"
                     >
-                        <h4 class="card-title">
-                            Genome-wide single-variant associations for
-                            {{
-                            $store.state.bioPortal.phenotypeMap[pheno]
-                            .description
-                            }}
-                        </h4>
-                        <div class="row">
-                            <div class="col-md-6">
-                                <div class="card" style="width: 95%; border: 0">
-                                    <raw-img
-                                        id="manhattanPlot"
-                                        :src="`/api/raw/plot/phenotype/${pheno}/manhattan.png`"
-                                        alt="Manhattan Plot"
-                                        :documentation="'phenotype.associationplots.manhattan'"
-                                        :contentFill="{
-                                            phenotype:
-                                                $store.state.bioPortal
-                                                    .phenotypeMap[pheno]
-                                                    .description,
-                                        }"
-                                    />
+                        <div
+                            class="card-body"
+                            v-for="pheno in $parent.complicationViewerPhenotypes"
+                        >
+                            <h4 class="card-title">
+                                Genome-wide single-variant associations for
+                                {{
+                                $store.state.bioPortal.phenotypeMap[pheno]
+                                .description
+                                }}
+                            </h4>
+                            <div class="row">
+                                <div class="col-md-6">
+                                    <div class="card" style="width: 95%; border: 0">
+                                        <raw-img
+                                            id="manhattanPlot"
+                                            :src="`/api/raw/plot/phenotype/${pheno}/manhattan.png`"
+                                            alt="Manhattan Plot"
+                                            :documentation="'phenotype.associationplots.manhattan'"
+                                            :contentFill="{
+                                                phenotype:
+                                                    $store.state.bioPortal
+                                                        .phenotypeMap[pheno]
+                                                        .description,
+                                            }"
+                                        />
+                                    </div>
                                 </div>
-                            </div>
-                            <div class="col-md-6">
-                                <div class="card" style="width: 95%; border: 0">
-                                    <raw-img
-                                        id="qqPlot"
-                                        :src="`/api/raw/plot/phenotype/${pheno}/qq.png`"
-                                        alt="QQ Plot"
-                                        :documentation="'phenotype.associationplots.qq'"
-                                        :contentFill="{
-                                            phenotype:
-                                                $store.state.bioPortal
-                                                    .phenotypeMap[pheno]
-                                                    .description,
-                                        }"
-                                    />
+                                <div class="col-md-6">
+                                    <div class="card" style="width: 95%; border: 0">
+                                        <raw-img
+                                            id="qqPlot"
+                                            :src="`/api/raw/plot/phenotype/${pheno}/qq.png`"
+                                            alt="QQ Plot"
+                                            :documentation="'phenotype.associationplots.qq'"
+                                            :contentFill="{
+                                                phenotype:
+                                                    $store.state.bioPortal
+                                                        .phenotypeMap[pheno]
+                                                        .description,
+                                            }"
+                                        />
+                                    </div>
                                 </div>
                             </div>
                         </div>
-                    </div>
+                    </template>
                 </div>
             </div>
         </div>
         <page-footer :disease-group="$parent.diseaseGroup"></page-footer>
     </div>
 </template>
+
+<script>
+import CriterionListGroup from "@/components/criterion/group/CriterionListGroup.vue";
+import Documentation from "@/components/Documentation.vue";
+import FilterEnumerationControl from "@/components/criterion/FilterEnumeration.vue";
+import FilterPvalueControl from "@/components/criterion/FilterPValue.vue";
+import GeneFinderTable from "@/components/GeneFinderTable.vue";
+import PageFooter from "@/components/PageFooter.vue";
+import PageHeader from "@/components/PageHeader.vue";
+import RawImg from "@/components/RawImage.vue";
+
+export default {
+    components: {
+        CriterionListGroup,
+        Documentation,
+        FilterEnumerationControl,
+        FilterPvalueControl,
+        GeneFinderTable,
+        PageFooter,
+        PageHeader,
+        RawImg,
+    },
+};
+</script>

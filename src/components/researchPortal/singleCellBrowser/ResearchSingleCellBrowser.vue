@@ -288,9 +288,9 @@
                                     <div v-for="field in activeFilterFields" :key="`chip-${field}`"
                                         style="display:flex; gap:4px; align-items:center; font-size:12px; background:#eef3f8; border:1px solid #cfdbe6; border-radius:12px; padding:1px 8px; max-width:100%;">
                                         <span style="font-weight:bold; white-space:nowrap;">{{ displayLabel(field) }}</span>
-                                        <span style="overflow:hidden; text-overflow:ellipsis; white-space:nowrap;">
-                                            {{ filterSummaryFor(field) }}
-                                        </span>
+                                        <span style="overflow:hidden; text-overflow:ellipsis; white-space:nowrap;">{{
+                                            " " }}{{ filterSummaryFor(field) }}{{ " "
+                                        }}</span>
                                         <span @click="clearFieldFilter(field)" style="cursor:pointer; font-weight:bold; opacity:0.6;" title="Remove this filter">&times;</span>
                                     </div>
                                 </div>
@@ -324,7 +324,7 @@
                                             plotting inference, which calls every field over
                                             the label cap categorical even when it is numbers.
 
-                                            the filter is applied on @change, not @input: the
+                                            the filter is applied on @change, not by v-model: the
                                             mask rebuild plus a full re-aggregation on every
                                             pixel of a drag would be seconds of work per
                                             gesture on a large dataset.
@@ -339,7 +339,7 @@
                                                 :max="numericRangeFor(openFilterField).max"
                                                 :step="numericRangeFor(openFilterField).step"
                                                 :decimals="numericRangeFor(openFilterField).decimals"
-                                                :value="rangeValueFor(openFilterField)"
+                                                :modelValue="rangeValueFor(openFilterField)"
                                                 @change="setFilterRange(openFilterField, $event)"
                                             />
                                         </template>
@@ -370,13 +370,13 @@
                                                         :checked="isFilterLabelSelected(openFilterField, label)"
                                                         @change="toggleFilterValue(openFilterField, label)"/>
                                                     <span :style="isMissingLabel(label) ? 'font-style:italic; opacity:0.7;' : ''"
-                                                        style="overflow:hidden; text-overflow:ellipsis; white-space:nowrap;">
-                                                        {{ filterLabelDisplay(label) }}
-                                                    </span>
+                                                        style="overflow:hidden; text-overflow:ellipsis; white-space:nowrap;">{{
+                                                        " " }}{{ filterLabelDisplay(label) }}{{ " "
+                                                    }}</span>
                                                     <span v-if="facetCountFor(openFilterField, label) !== null"
-                                                        :style="`margin-left:auto; opacity:${facetCountFor(openFilterField, label) ? 0.6 : 0.35}; white-space:nowrap;`">
-                                                        {{ facetCountFor(openFilterField, label).toLocaleString() }}
-                                                    </span>
+                                                        :style="`margin-left:auto; opacity:${facetCountFor(openFilterField, label) ? 0.6 : 0.35}; white-space:nowrap;`">{{
+                                                        " " }}{{ facetCountFor(openFilterField, label).toLocaleString() }}{{ " "
+                                                    }}</span>
                                                 </label>
                                             </div>
                                         </template>
@@ -617,7 +617,6 @@
                                             :subsetKey="cellCompositionVars.segmentByLabel"
                                             :highlightKey="cellCompositionVars.highlightLabel"
                                             :height="300"
-                                            xAxisLabel="Log-Normalized Expression"
                                             :xAxisLabel="isATACseq ? 'Gene Activity Score' : 'Log-Normalized Expression'"
                                             :yAxisLabel="displayLabel(geneExpressionVars.selectedLabel)"
                                         />
@@ -659,7 +658,6 @@
                                             :facetAxisLabel="displayLabel(geneExpressionVars.selectedLabel)"
                                             :highlightKey="cellCompositionVars.highlightLabel"
                                             :height="320"
-                                            xAxisLabel="Log-Normalized Expression"
                                             :xAxisLabel="isATACseq ? 'Gene Activity Score' : 'Log-Normalized Expression'"
                                             :yAxisLabel="displayLabel(cellCompositionVars.segmentByLabel)"
                                             :range="[minExpressionValue(geneExpressionVars.selectedGene), maxExpressionValue(geneExpressionVars.selectedGene)]"
@@ -1262,7 +1260,7 @@
     */
 
     import * as d3 from 'd3';
-    import Vue, { shallowRef } from 'vue';
+    import { nextTick, shallowRef } from 'vue';
     import keyParams from "@/utils/keyParams";
     import EventBus from "@/utils/eventBus";
     import {llog} from "./llog.js";
@@ -1302,7 +1300,8 @@
     //cell, so this is a hard cap on the DOM, not a preference - see openFilterLabels
     const FILTER_LABELS_SHOWN = 200;
 
-    export default Vue.component('research-single-cell-browser', {
+    export default {
+        name: "research-single-cell-browser",
         components: {
             ResearchUmapPlotGL,
             ResearchStackedBarPlot,
@@ -1312,7 +1311,8 @@
             ResearchSingleCellSelector,
             ResearchSingleCellInfo,
             ResearchRangeSlider,
-            DownloadChart
+            DownloadChart,
+            ResearchUmapPlotGl: ResearchUmapPlotGL,
         },
         props: {
             sectionId: {
@@ -1570,12 +1570,16 @@
             }
         },
         watch: {
-            expressionData(){
+            expressionGenes(){
                 this.rebuildExpressionStatsAll();
             },
-            geneNames(){
-                this.sortedGeneNames = [...this.geneNames].sort();
-                this.geneLists["searched genes"] = this.geneNames;
+            geneNames: {
+                //genes are added in place
+                deep: true,
+                handler(){
+                    this.sortedGeneNames = [...this.geneNames].sort();
+                    this.geneLists["searched genes"] = this.geneNames;
+                }
             },
             markersList(){
                 this.geneLists["marker genes"] = this.markersList;
@@ -1590,12 +1594,16 @@
             document.addEventListener('mousedown', this.handleFilterOutsideClick);
             this.init();
         },
-        beforeDestroy(){
+        beforeUnmount(){
             EventBus.$off('on-select',this.handleSelectEvent);
             document.removeEventListener('mousedown', this.handleFilterOutsideClick);
             this.stopColumnResize();
         },
         computed: {
+            //changes when a gene is loaded or evicted, without walking its values
+            expressionGenes(){
+                return Object.keys(this.expressionData);
+            },
             isDev(){
                 return keyParams['dev']===1;
             },
@@ -2403,7 +2411,7 @@
                 this.preloadItem = '';
                 this.dataLoaded = true;
 
-                await Vue.nextTick();
+                await nextTick();
 
                 //configuration settings
 
@@ -2477,7 +2485,7 @@
 
                 this.dataReady = true;
 
-                await Vue.nextTick();
+                await nextTick();
 
                 //return;
                 
@@ -2523,7 +2531,7 @@
                 }
 
                 //debug only, mem=1 in the url. see memoryReport.js
-                await Vue.nextTick();
+                await nextTick();
                 reportSingleCellMemory({
                     datasetId: this.datasetId,
                     fields: this.fields,
@@ -2659,8 +2667,8 @@
                     const index = this.expressionLRU.findIndex(g => g !== this.geneExpressionVars.selectedGene);
                     if(index === -1) break;
                     const [evicted] = this.expressionLRU.splice(index, 1);
-                    Vue.delete(this.expressionData, evicted);
-                    Vue.delete(this.expressionExtents, evicted);
+                    delete this.expressionData[evicted];
+                    delete this.expressionExtents[evicted];
                     llog(`evicted ${evicted} expression, keeping ${limit} genes`);
                 }
             },
@@ -2688,14 +2696,14 @@
                         && !this.geneNames.includes(gene)) {
                         this.geneNames.push(gene);
                     }
-                    Vue.set(this.expressionData, gene, expressionResult);
+                    this.expressionData[gene] = expressionResult;
                     this.touchGene(gene);
                     this.evictExpressionData(expressionResult.length);
                     //same d3 calls the template used to make per violin, run once here
-                    Vue.set(this.expressionExtents, gene, {
+                    this.expressionExtents[gene] = {
                         min: d3.min(expressionResult),
                         max: d3.max(expressionResult)
-                    });
+                    };
 
                     llog('getGeneExpression', gene);
                     //llog(addToKeyParams);
@@ -2717,7 +2725,7 @@
                             */
                     }
 
-                    await Vue.nextTick();
+                    await nextTick();
 
                     if(!this.geneExpressionVars.selectedGene || setAsSelected){
                         this.geneClick(gene);
@@ -2726,7 +2734,7 @@
                     if(!this.genesNotFound.includes(gene)){
                         this.genesNotFound.push(gene);
                     }
-                    await Vue.nextTick();
+                    await nextTick();
                 }
             },
             maxCountValue(){
@@ -3086,7 +3094,7 @@
             numericRangeFor(field){
                 if(!field || !this.fields) return null;
                 if(!(field in this.numericRanges)){
-                    this.$set(this.numericRanges, field, scUtils.numericRangeFor(this.fields, field));
+                    this.numericRanges[field] = scUtils.numericRangeFor(this.fields, field);
                 }
                 return this.numericRanges[field];
             },
@@ -3364,7 +3372,7 @@
                 //e.target.value = '';
                 parts.forEach(async (gene) => {
                     await this.getGeneExpression(gene.toUpperCase(), true, true);
-                    await Vue.nextTick();
+                    await nextTick();
                 })
             },
             geneListClick(e){
@@ -3406,7 +3414,7 @@
                 this.cellCompositionVars.highlightLabel = e.hoveredLabel;
             }
         },
-    });
+    };
 </script>
 
 <style scoped>
@@ -3465,24 +3473,23 @@
 .tabs-wrapper {
     display: flex;
     z-index: 1;
-
-    .tab {
-        padding: 10px 10px;
-        margin: 0 -1px -1px 0;
-        background: #eee;
-        cursor: pointer;
-        font-size: 16px;
-        flex: 1;
-    }
-    .tab:last-child {
-        margin-right: 0;
-    }
-    .tab.selected {
-        cursor: default;
-        background: #fff;
-        border-bottom: white;
-        font-weight: bold;
-    }
+}
+.tabs-wrapper .tab {
+    padding: 10px 10px;
+    margin: 0 -1px -1px 0;
+    background: #eee;
+    cursor: pointer;
+    font-size: 16px;
+    flex: 1;
+}
+.tabs-wrapper .tab:last-child {
+    margin-right: 0;
+}
+.tabs-wrapper .tab.selected {
+    cursor: default;
+    background: #fff;
+    border-bottom: white;
+    font-weight: bold;
 }
 
 
@@ -3505,20 +3512,18 @@ button:hover {
     display: flex;
     align-items: center;
     justify-content: center;
-    svg{
-        width:14px;
-    }
-    path{
-        /*fill:transparent;*/
-        opacity: .25;
-        /*stroke:#434343;*/
-    }
 }
-.colorize-option.active{
-    path{
-        /*fill:#434343;*/
-        opacity: 1;
-    }
+.colorize-option svg{
+    width:14px;
+}
+.colorize-option path{
+    /*fill:transparent;*/
+    opacity: .25;
+    /*stroke:#434343;*/
+}
+.colorize-option.active path{
+    /*fill:#434343;*/
+    opacity: 1;
 }
 
 .legends {

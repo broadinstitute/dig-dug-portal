@@ -73,14 +73,11 @@
 </template>
 
 <script>
-import Vue from "vue";
 import $ from "jquery";
-import { BootstrapVueIcons } from "bootstrap-vue";
 import genesTrackVector from "@/components/researchPortal/vectorPlots/ResearchGenesTrackVector.vue";
 
-Vue.use(BootstrapVueIcons);
-
-export default Vue.component("multi-genes-track", {
+export default {
+	name: "multi-genes-track",
 	props: [
 		"region",
 		"genesData",
@@ -106,7 +103,7 @@ export default Vue.component("multi-genes-track", {
 		//uiUtils,
 		//Formatters,
 	},
-	components: { genesTrackVector },
+	components: { genesTrackVector, ResearchGenesTrackVector: genesTrackVector },
 	mounted: function () {
 		window.addEventListener("resize", this.onResize);
 		if(!!this.genesData) {
@@ -118,7 +115,7 @@ export default Vue.component("multi-genes-track", {
 	created() {
 		//this.$root.$refs.genesTrack = this;
 	},
-	beforeDestroy() {
+	beforeUnmount() {
 		window.removeEventListener("resize", this.onResize);
 	},
 	computed: {
@@ -527,7 +524,7 @@ export default Vue.component("multi-genes-track", {
 			}
 		},
 	},
-});
+};
 
 $(function () {});
 </script>

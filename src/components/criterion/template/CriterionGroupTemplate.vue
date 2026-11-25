@@ -45,15 +45,7 @@
 </template>
 
 <script>
-import Vue from "vue";
-import { BootstrapVue, IconsPlugin } from "bootstrap-vue";
-
-Vue.use(BootstrapVue);
-Vue.use(IconsPlugin);
-
-import "bootstrap/dist/css/bootstrap.css";
-import "bootstrap-vue/dist/bootstrap-vue.css";
-
+import { h } from "vue";
 import { isEqual, cloneDeep, groupBy } from "@/utils/lodashUtils";
 import {
     filterFromPredicates,
@@ -77,23 +69,24 @@ const EventListener = {
      * In CriterionGroupTemplate we'll use 'change' as the event share between EventListener and the child components.
      *
      */
-    render(createElement) {
-        // Using Vue's createElement API with render functions to eliminate the need to define const EventListener in a separate component file.
-        // Without using Vue's runtime compiler (bloat), we can't define scoped slots directly in it, so instead we use an undocumented internal
-        // feature – of course – to give the element a default slot.
-        // So don't touch this, it works great
-        // https://stackoverflow.com/a/58859267
-
-        return createElement("div", this.$scopedSlots.default());
+    // Declared, or the DOM change events of the inputs in the slot would reach the parent's @change as well.
+    emits: ["change", "filter-mounted"],
+    // A render function eliminates the need to define const EventListener in a separate component file.
+    setup(props, { slots }) {
+        return () => h("div", slots.default());
     },
 };
 
-export default Vue.component("criterion-group-template", {
+export default {
+    name: "criterion-group-template",
+    // the default config builds with compat, which would make value/input of a parent's v-model
+    compatConfig: { COMPONENT_V_MODEL: false },
     components: {
         CriterionPills,
+        EventListener,
     },
     props: {
-        value: [Function, Array],
+        modelValue: [Function, Array],
         filterType: {
             type: String,
             // required: true,
@@ -133,14 +126,14 @@ export default Vue.component("criterion-group-template", {
             default: true,
         },
     },
-    components: {
-        EventListener,
-    },
+    emits: ["update:filter-list", "update:filter-function", "update:modelValue"],
     data() {
         return {
             // the filter on the end prevents malformed initial values from being used in the component
             filterListInternal: null,
             filterFunctionInternal: null,
+            // the list that the `filtersToDefine` watcher set last, so that it does not take its own change for a new list
+            definedFilterList: null,
 
             // Vue doesn't identify anonymous functions of the same form with one another,
             // so we are turning these two props into data to prevent infinite loops that result
@@ -159,16 +152,16 @@ export default Vue.component("criterion-group-template", {
     created() {
         if (typeof this.filterList !== "undefined") {
             this.filterListInternal = this.filterList;
-        } else if (!!this.value && Array.isArray(this.value)) {
-            this.filterListInternal = this.value;
+        } else if (!!this.modelValue && Array.isArray(this.modelValue)) {
+            this.filterListInternal = this.modelValue;
         } else {
             this.filterListInternal = [];
         }
 
         if (typeof this.filterFunction !== "undefined") {
             this.filterFunctionInternal = this.filterFunction;
-        } else if (!!this.value && typeof this.value === "function") {
-            this.filterFunctionInternal = this.value;
+        } else if (!!this.modelValue && typeof this.modelValue === "function") {
+            this.filterFunctionInternal = this.modelValue;
         } else {
             this.filterFunctionInternal = (id) => true;
         }
@@ -186,21 +179,20 @@ export default Vue.component("criterion-group-template", {
             if (this.filterType === "function") {
                 return this.filterFunctionInternal;
             } else if (this.filterType === "list") {
-                if (
-                    this.filterListInternal != null &&
-                    Object.keys(this.initialFilterDefinitionMap).length > 0
-                ) {
-                    this.filterListInternal = this.filterListInternal.map(
-                        (el) =>
-                            Object.assign(
-                                el,
-                                this.initialFilterDefinitionMap[el.field][0]
-                            )
-                    );
-                }
-
                 return this.filterListInternal;
             }
+        },
+        // the filters of a list group, once its controls have given their definitions
+        filtersToDefine() {
+            if (
+                this.filterType === "list" &&
+                this.filterListInternal != null &&
+                Object.keys(this.initialFilterDefinitionMap).length > 0
+            ) {
+                return [...this.filterListInternal];
+            }
+
+            return null;
         },
         combinedCriterion() {
             return {
@@ -282,7 +274,7 @@ export default Vue.component("criterion-group-template", {
             },
             deep: true,
         },
-        value: {
+        modelValue: {
             handler: function (newCriterionValue) {
                 if (this.filterType === "function") {
                     this.filterFunctionInternal = newCriterionValue;
@@ -311,13 +303,35 @@ export default Vue.component("criterion-group-template", {
             },
             deep: true,
         },
+        // The parent's filters have only a field and a threshold, the rest is the definition from the control of that
+        // field. It goes into the parent's own filters, and the list becomes a new array: `criterion` compares the list
+        // with the one before, which the parent may have changed in place, to tell if it has something to emit.
+        // This is before `filterListInternal` and `criterion`, whose watchers use the definitions.
+        filtersToDefine: {
+            handler: function (filters) {
+                const isOwnChange =
+                    this.filterListInternal === this.definedFilterList;
+                this.definedFilterList = null;
+
+                if (filters != null && !isOwnChange) {
+                    this.filterListInternal = filters.map((el) =>
+                        Object.assign(
+                            el,
+                            this.initialFilterDefinitionMap[el.field][0]
+                        )
+                    );
+                    this.definedFilterList = this.filterListInternal;
+                }
+            },
+            immediate: true,
+        },
         /*
         Support events for catching new filter lists and functions
         seprately, regardless of the kind of criterion group.
 
         The events are `@update:filter-list` and `@update:filter-function`.
 
-        They act like `@input` does with `v-model`, except it's with a filter list or
+        They act like `@update:modelValue` does with `v-model`, except it's with a filter list or
         filter function only. You can use both at the same time.
 
         ```vue
@@ -372,11 +386,11 @@ export default Vue.component("criterion-group-template", {
         criterion: {
             handler: function (newCriterionValue, oldCriterionValue) {
                 if (!isEqual(newCriterionValue, oldCriterionValue)) {
-                    this.$emit("input", newCriterionValue);
+                    this.$emit("update:modelValue", newCriterionValue);
                 }
             },
             deep: true,
         },
     },
-});
+};
 </script>

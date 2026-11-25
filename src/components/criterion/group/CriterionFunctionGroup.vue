@@ -2,8 +2,8 @@
     <criterion-group-template
         :ref="Math.floor(Math.random() * 10000).toString()"
         
-        :value="value"
-        @input="emitInput"
+        :modelValue="modelValue"
+        @update:modelValue="emitModelValue"
 
         :hide="hide"
         :filterType="'function'"
@@ -19,17 +19,19 @@
         @update:filter-list="emitFilterList"
     >
         <slot></slot>
-        <template slot="filtered" slot-scope="{ filter }">
+        <template v-slot:filtered="{ filter }">
             <slot name="filtered" :filter="filter"></slot>
         </template>
     </criterion-group-template>
 </template>
 <script>
-import Vue from "vue";
 import CriterionGroupTemplate from "@/components/criterion/template/CriterionGroupTemplate.vue";
-export default Vue.component("criterion-function-group", {
+export default {
+    name: "criterion-function-group",
+    // the default config builds with compat, which would make value/input of a parent's v-model
+    compatConfig: { COMPONENT_V_MODEL: false },
     props: {
-        value: {
+        modelValue: {
             type: Function,
             default: function (id) {
                 return true;
@@ -49,10 +51,11 @@ export default Vue.component("criterion-function-group", {
             type: Boolean,
         },
     },
+    emits: ["update:modelValue", "update:filter-list", "update:filter-function"],
     components: { CriterionGroupTemplate },
     methods: {
-        emitInput(value) {
-            this.$emit("input", value);
+        emitModelValue(value) {
+            this.$emit("update:modelValue", value);
         },
         emitFilterList(value) {
             this.$emit("update:filter-list", value);
@@ -61,5 +64,5 @@ export default Vue.component("criterion-function-group", {
             this.$emit("update:filter-function", value);
         },
     },
-});
+};
 </script>

@@ -8,15 +8,12 @@
 </template>
 
 <script>
-import Vue from "vue";
 import $ from "jquery";
 import * as d3 from "d3";
 import { cloneDeep } from "@/utils/lodashUtils";
-import { BootstrapVueIcons } from "bootstrap-vue";
 
-Vue.use(BootstrapVueIcons);
-
-export default Vue.component("research-box-plot-vector", {
+export default {
+    name: "research-box-plot-vector",
     props: [
         "renderData",
         "renderConfig",
@@ -34,7 +31,7 @@ export default Vue.component("research-box-plot-vector", {
     mounted: function () {
         //this.renderBoxPlot(this.margin)
     },
-    beforeDestroy() {},
+    beforeUnmount() {},
     computed: {
         canvasId() {
             let canvasId = this.sectionId.replaceAll("_", "-").toLowerCase();
@@ -333,7 +330,7 @@ export default Vue.component("research-box-plot-vector", {
                 .style("stroke-width", 2);
         },
     },
-});
+};
 
 $(function () {});
 </script>

@@ -93,6 +93,20 @@
         </div>
     </div>
 </template>
+
+<script>
+import NetworkGraph from "@/components/NetworkGraph.vue";
+import PageHeader from "@/components/PageHeader.vue";
+import SearchHeaderWrapper from "@/components/SearchHeaderWrapper.vue";
+
+export default {
+    components: {
+        NetworkGraph,
+        PageHeader,
+        SearchHeaderWrapper,
+    },
+};
+</script>
 <style scoped>
 .phenotype-search-input {
     display: block !important;

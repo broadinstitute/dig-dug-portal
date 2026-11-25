@@ -482,12 +482,13 @@
 </template>
 
 <script>
-import Vue from "vue";
-import { BootstrapVueIcons } from "bootstrap-vue";
+import ResearchSingleSearchCfde from "@/components/researchPortal/ResearchSingleSearchCFDE.vue";
 
-Vue.use(BootstrapVueIcons);
-
-export default Vue.component("cfde-landing", {
+export default {
+    name: "cfde-landing",
+    components: {
+        ResearchSingleSearchCfde,
+    },
     props: ["sectionConfigs", "phenotypesInUse", "utilsBox", "keyParams"],
     data() {
         return {
@@ -527,7 +528,7 @@ export default Vue.component("cfde-landing", {
 
         this.init();
     },
-    beforeDestroy() {
+    beforeUnmount() {
         window.removeEventListener("resize", this.handleResize);
         window.removeEventListener("scroll", this.highlightTopmostTitle);
     },
@@ -1089,7 +1090,7 @@ export default Vue.component("cfde-landing", {
             }
         },
     },
-});
+};
 </script>
 <style scoped>
 

@@ -131,12 +131,17 @@
                                             >Alternative names:&nbsp;</strong
                                         >
                                         <span
-                                            v-for="gene in $parent.alternateNames"
-                                            v-if="gene.source == 'alias'"
+                                            v-for="
+                                                gene in ($parent.alternateNames || [])
+                                                    .filter(
+                                                        (gene) =>
+                                                            gene.source == 'alias'
+                                                    )
+                                            "
                                             :key="gene.name"
-                                        >
-                                            {{ gene.name }}
-                                        </span>
+                                        >{{
+                                            " " }}{{ gene.name }}{{ " "
+                                        }}</span>
                                         &nbsp;
                                     </div>
                                     <div v-if="$parent.regionText">
@@ -292,7 +297,7 @@
                             >
                             </transcript-selectpicker>
                         </div>
-                        <template slot="filtered" slot-scope="{ filter }">
+                        <template v-slot:filtered="{ filter }">
                             <span class="filter-pill-collection center">
                                 <b-badge
                                     v-if="
@@ -481,7 +486,9 @@
                                     >
                                     </research-phewas-plot>
                                     <unauthorized-message
-                                        :restricted="$store.state.restricted"
+                                        :restricted="
+                                            $parent.transcriptOr52kRestricted
+                                        "
                                     >
                                     </unauthorized-message>
                                     <gene-associations-masks
@@ -693,7 +700,7 @@
                                 Adjusted p-value: strain and sex (&le;)
                             </div>
                         </filter-pvalue-control>
-                        <template slot="filtered" slot-scope="{ filter }">
+                        <template v-slot:filtered="{ filter }">
                             <mouse-summary-table
                                 :items="$store.state.mouseSummary.data"
                                 :is-gene-page="true"
@@ -761,7 +768,7 @@
                             >
                                 <div class="label">Sources</div>
                             </filter-enumeration-control>
-                            <template slot="filtered" slot-scope="{ filter }">
+                            <template v-slot:filtered="{ filter }">
                                 <uniprot-references-table
                                     :references="$parent.dbReference"
                                     :filter="filter"
@@ -794,8 +801,7 @@
                             </a>
                         </div>
                         <div
-                            v-for="gene in $parent.alternateNames"
-                            v-if="gene.source != 'alias'"
+                            v-for="gene in ($parent.alternateNames || []).filter((gene) => gene.source != 'alias')"
                             :key="gene.name"
                             class="gene-with-signal none"
                         >
@@ -810,8 +816,8 @@
                                     $parent.externalResources[gene.source].title
                                 "
                             >
-                                {{ gene.source.toUpperCase() }}
-                            </a>
+                                {{ gene.source.toUpperCase() }}{{ " "
+                            }}</a>
                             <a
                                 v-else
                                 :href="
@@ -822,8 +828,8 @@
                                 :title="
                                     $parent.externalResources[gene.source].title
                                 "
-                            >
-                                {{ gene.source.toUpperCase() }}
+                            >{{
+                                " " }}{{ gene.source.toUpperCase() }}
                             </a>
                         </div>
                     </div>
@@ -834,6 +840,62 @@
         <page-footer :disease-group="$parent.diseaseGroup"></page-footer>
     </div>
 </template>
+
+<script>
+import AncestrySelectpicker from "@/components/AncestrySelectPicker.vue";
+import ColocusTable from "@/components/ColocusTable.vue";
+import CriterionFunctionGroup from "@/components/criterion/group/CriterionFunctionGroup.vue";
+import Documentation from "@/components/Documentation.vue";
+import EglsSectionOnGene from "@/components/EffectorGenesSectionOnGene.vue";
+import FilterEnumerationControl from "@/components/criterion/FilterEnumeration.vue";
+import FilterPvalueControl from "@/components/criterion/FilterPValue.vue";
+import GeneAssociationsMasks from "@/components/GeneAssociationsMasks.vue";
+import GeneAssociationsTable from "@/components/GeneAssociationsTable.vue";
+import LigerTable from "@/components/LigerTable.vue";
+import MouseSummaryTable from "@/components/MouseSummaryTable.vue";
+import PageFooter from "@/components/PageFooter.vue";
+import PageHeader from "@/components/PageHeader.vue";
+import PigeanGene from "@/components/PigeanGene.vue";
+import ResearchExpressionDisplay from "@/components/researchPortal/ResearchExpressionDisplay.vue";
+import ResearchPhewasPlot from "@/components/researchPortal/ResearchPheWAS.vue";
+import ResearchSingleSearch from "@/components/researchPortal/ResearchSingleSearch.vue";
+import SearchHeaderWrapper from "@/components/SearchHeaderWrapper.vue";
+import TooltipDocumentation from "@/components/TooltipDocumentation.vue";
+import TranscriptSelectpicker from "@/components/TranscriptSelectPicker.vue";
+import TranslatorPredicateTable from "@/components/NCATS/old/PredicateTable.vue";
+import UnauthorizedMessage from "@/components/UnauthorizedMessage.vue";
+import UniprotReferencesTable from "@/components/UniprotReferencesTable.vue";
+import VariantSearch from "@/components/VariantSearch.vue";
+
+export default {
+    components: {
+        AncestrySelectpicker,
+        ColocusTable,
+        CriterionFunctionGroup,
+        Documentation,
+        EglsSectionOnGene,
+        FilterEnumerationControl,
+        FilterPvalueControl,
+        GeneAssociationsMasks,
+        GeneAssociationsTable,
+        LigerTable,
+        MouseSummaryTable,
+        PageFooter,
+        PageHeader,
+        PigeanGene,
+        ResearchExpressionDisplay,
+        ResearchPhewasPlot,
+        ResearchSingleSearch,
+        SearchHeaderWrapper,
+        TooltipDocumentation,
+        TranscriptSelectpicker,
+        TranslatorPredicateTable,
+        UnauthorizedMessage,
+        UniprotReferencesTable,
+        VariantSearch,
+    },
+};
+</script>
 
 <style scoped>
 .container {

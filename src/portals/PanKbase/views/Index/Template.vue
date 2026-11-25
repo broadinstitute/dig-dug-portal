@@ -191,6 +191,22 @@
     </div>
 </template>
 
+<script>
+import DonorSnapshot from "@/portals/PanKbase/views/Donors/DonorSnapshot.vue";
+import PkbFooter from "@/portals/PanKbase/components/pkb-footer.vue";
+import PkbHeader from "@/portals/PanKbase/components/pkb-header.vue";
+import ResearchSingleSearch from "@/components/researchPortal/ResearchSingleSearch.vue";
+
+export default {
+    components: {
+        DonorSnapshot,
+        PkbFooter,
+        PkbHeader,
+        ResearchSingleSearch,
+    },
+};
+</script>
+
 <style scoped>
 .pkb-nav {
     background: #fafafa99 !important;
@@ -323,28 +339,27 @@
 .section-item.medium {
     flex-direction: column-reverse;
     justify-content: flex-end;
-
-    .item-copy {
-        width: -webkit-fill-available;
-        max-width: unset;
-        padding: 20px;
-        display: flex;
-        flex-direction: column;
-        flex: 1;
-    }
-    .item-title {
-        font-weight: bold;
-        font-size: 1.2em;
-    }
-    .item-bg {
-        width: auto;
-        height: 200px;
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        mix-blend-mode: darken;
-        overflow: hidden;
-    }
+}
+.section-item.medium .item-copy {
+    width: -webkit-fill-available;
+    max-width: unset;
+    padding: 20px;
+    display: flex;
+    flex-direction: column;
+    flex: 1;
+}
+.section-item.medium .item-title {
+    font-weight: bold;
+    font-size: 1.2em;
+}
+.section-item.medium .item-bg {
+    width: auto;
+    height: 200px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    mix-blend-mode: darken;
+    overflow: hidden;
 }
 
 .section-item.soon::after {

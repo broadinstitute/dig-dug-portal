@@ -39,14 +39,11 @@
 </template>
 
 <script>
-import Vue from "vue";
 import $ from "jquery";
 //import uiUtils from "@/utils/uiUtils";
-import { BootstrapVueIcons } from "bootstrap-vue";
 
-Vue.use(BootstrapVueIcons);
-
-export default Vue.component("research-m-plot", {
+export default {
+    name: "research-m-plot",
     props: ["plotData", "renderConfig", "utils"],
     data() {
         return {
@@ -460,7 +457,7 @@ export default Vue.component("research-m-plot", {
             }
         },
     },
-});
+};
 
 $(function () {
     let customScript = document.createElement("script");

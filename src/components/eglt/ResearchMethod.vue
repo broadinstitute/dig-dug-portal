@@ -4,11 +4,11 @@
 </template>
 
 <script>
-import Vue from "vue";
 
-export default Vue.component("research-method-section", {
+export default {
+    name: "research-method-section",
     props: ["researchMethod"],
     mounted: function() {}
-});
+};
 </script>
 

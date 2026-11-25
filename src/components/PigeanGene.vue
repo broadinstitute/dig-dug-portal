@@ -68,8 +68,10 @@
                     :fields="tableFields"
                     :per-page="perPage"
                     :current-page="currentPage"
-                    :sort-by.sync="pigeanTableSortBy"
-                    :sort-desc.sync="pigeanTableSortDesc"
+                    :sort-by="pigeanTableSortBy"
+                    @update:sortBy="pigeanTableSortBy = $event"
+                    :sort-desc="pigeanTableSortDesc"
+                    @update:sortDesc="pigeanTableSortDesc = $event"
                     detail-key="_rowKey"
                     responsive
                 >
@@ -134,8 +136,8 @@
                                 <span
                                     :class="['score-swatch', 'score-swatch-combined', evidenceRangeClass(row.item.Combined_support)]"
                                 ></span>
-                                {{ formatScore(row.item.Combined_support) }}
-                            </span>
+                                {{ formatScore(row.item.Combined_support) }}{{ " "
+                            }}</span>
                         </span>
                     </template>
                     <template #cell(Direct_support)="row">
@@ -145,8 +147,8 @@
                               <span
                                   :class="['score-swatch', 'score-swatch-part', evidenceRangeClass(row.item.Direct_support)]"
                               ></span>
-                              {{ formatScore(row.item.Direct_support) }}
-                          </span>
+                              {{ formatScore(row.item.Direct_support) }}{{ " "
+                          }}</span>
                         </span>
                       </div>
                       <b-button
@@ -165,8 +167,8 @@
                                 <span
                                     :class="['score-swatch', 'score-swatch-part', evidenceRangeClass(row.item.Indirect_support)]"
                                 ></span>
-                                {{ formatScore(row.item.Indirect_support) }}
-                            </span>
+                                {{ formatScore(row.item.Indirect_support) }}{{ " "
+                            }}</span>
                         </span>
                       </div>
                       <b-button
@@ -395,7 +397,7 @@
                         <strong>HuGE Score (&ge;)</strong>
                     </div>
                 </filter-greater-control>
-                <template slot="filtered" slot-scope="{ filter }">
+                <template v-slot:filtered="{ filter }">
                     <research-phewas-plot
                         v-if="hugeScores && hugeScores.length > 0"
                         ref="hugeScorePheWASPlot"
@@ -692,7 +694,8 @@ function joinMultiValues(fieldsToJoin, joinBy, row) {
     return out;
 }
 
-export default Vue.component("pigean-gene", {
+export default {
+  name: "pigean-gene",
   components: {
     ResearchPigeanPheWAS,
     ResearchPheWAS,
@@ -705,7 +708,11 @@ export default Vue.component("pigean-gene", {
     FilterGreaterThan,
     KcCfdeLogo,
     TooltipDocumentation,
-    PigeanLocusZoom
+    PigeanLocusZoom,
+    FilterEnumerationControl: FilterEnumeration,
+    FilterGreaterControl: FilterGreaterThan,
+    ResearchPhewasPlot: ResearchPheWAS,
+    ResearchPigeanPhewasPlot: ResearchPigeanPheWAS,
   },
   props: ["gene","pigeanData","falconGeneAssociations","phenotypeMap","phenotypesInSession","hugeScores","docDetails"],
   data() {
@@ -1548,7 +1555,7 @@ export default Vue.component("pigean-gene", {
       return `${phenotype},${this.gene},${DEFAULT_SIGMA},${DEFAULT_GENESET_SIZE}`;
     },
   },
-});
+};
 </script>
 <style scoped>
   .loading {

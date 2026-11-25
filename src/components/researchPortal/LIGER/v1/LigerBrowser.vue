@@ -164,7 +164,8 @@ const LIGER_DATASET_TISSUE_MAP = Object.keys(LIGER_TISSUE_CONFIG).reduce((map, t
     return map;
 }, {});
 
-export default Vue.component('LigerBrowser', {
+export default {
+    name: "LigerBrowser",
     components: {
         CellStateInfographic,
         StateDetails,
@@ -815,7 +816,7 @@ export default Vue.component('LigerBrowser', {
         await this.initializeFromQuery();
     },
 
-    beforeDestroy() {
+    beforeUnmount() {
         if (this.geneSuggestionTimer) {
             clearTimeout(this.geneSuggestionTimer);
         }
@@ -2888,7 +2889,7 @@ export default Vue.component('LigerBrowser', {
             }
         },
     }
-});
+};
 </script>
 
 <template>
@@ -3596,9 +3597,9 @@ export default Vue.component('LigerBrowser', {
                             v-for="item in column.items"
                             :key="`${column.label}-${item}`"
                             class="expression-tooltip-chip"
-                        >
-                            {{ item }}
-                        </span>
+                        >{{
+                            " " }}{{ item }}{{ " "
+                        }}</span>
                     </div>
                     <div v-else class="expression-tooltip-value">{{ column.value }}</div>
                 </div>

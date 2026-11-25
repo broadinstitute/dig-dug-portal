@@ -78,12 +78,11 @@
                                       >Alternative names:&nbsp;</strong
                                   >
                                   <span
-                                      v-for="gene in $parent.alternateNames"
-                                      v-if="gene.source == 'alias'"
+                                      v-for="gene in ($parent.alternateNames || []).filter((gene) => gene.source == 'alias')"
                                       :key="gene.name"
-                                  >
-                                      {{ gene.name }}
-                                  </span>
+                                  >{{
+                                      " " }}{{ gene.name }}{{ " "
+                                  }}</span>
                                   &nbsp;
                               </div>
                               <div v-if="$parent.regionText">
@@ -339,6 +338,7 @@
                       class="col filter-col-md"
                   >
                       <div class="label">Transcript</div>
+                      <!-- eslint-disable-next-line vue/no-undef-components -- not loaded on this page; rendering it would be a behaviour change (latent bug, owner decision) -->
                       <transcript-selectpicker
                           v-if="
                               $store.state.geneToTranscript &&
@@ -350,7 +350,7 @@
                       >
                       </transcript-selectpicker>
                   </div>
-                  <template slot="filtered" slot-scope="{ filter }">
+                  <template v-slot:filtered="{ filter }">
                       <span class="filter-pill-collection center">
                           <b-badge
                               v-if="
@@ -601,7 +601,9 @@
                               >
                               </research-phewas-plot>
                               <unauthorized-message
-                                  :restricted="$store.state.restricted"
+                                  :restricted="
+                                      $parent.transcriptOr52kRestricted
+                                  "
                               >
                               </unauthorized-message>
                               <gene-associations-masks
@@ -632,6 +634,56 @@
     <pkb-footer></pkb-footer> 
   </div>
 </template>
+
+<script>
+import AncestrySelectpicker from "@/components/AncestrySelectPicker.vue";
+import AtacSeq from "@/portals/PanKbase/components/AtacSeq.vue";
+import CriterionFunctionGroup from "@/components/criterion/group/CriterionFunctionGroup.vue";
+import DataDownload from "@/components/DataDownload.vue";
+import Documentation from "@/components/Documentation.vue";
+import FilterEnumerationControl from "@/components/criterion/FilterEnumeration.vue";
+import FilterGreaterControl from "@/components/criterion/FilterGreaterThan.vue";
+import FilterPvalueControl from "@/components/criterion/FilterPValue.vue";
+import GeneAssociationsMasks from "@/components/GeneAssociationsMasks.vue";
+import GeneAssociationsTable from "@/components/GeneAssociationsTable.vue";
+import HugeScoresTable from "@/components/HugeScoresTable.vue";
+import PkbFooter from "@/portals/PanKbase/components/pkb-footer.vue";
+import PkbHeader from "@/portals/PanKbase/components/pkb-header.vue";
+import ResearchBarPlot from "@/components/researchPortal/ResearchBarPlot.vue";
+import ResearchBoxPlot from "@/components/researchPortal/ResearchBoxPlot.vue";
+import ResearchPhewasPlot from "@/components/researchPortal/ResearchPheWAS.vue";
+import ResearchSingleCellBrowser from "@/components/researchPortal/singleCellBrowser/ResearchSingleCellBrowser.vue";
+import ResearchSingleSearch from "@/components/researchPortal/ResearchSingleSearch.vue";
+import TooltipDocumentation from "@/components/TooltipDocumentation.vue";
+import TranslatorPredicateTable from "@/components/NCATS/old/PredicateTable.vue";
+import UnauthorizedMessage from "@/components/UnauthorizedMessage.vue";
+
+export default {
+    components: {
+        AncestrySelectpicker,
+        AtacSeq,
+        CriterionFunctionGroup,
+        DataDownload,
+        Documentation,
+        FilterEnumerationControl,
+        FilterGreaterControl,
+        FilterPvalueControl,
+        GeneAssociationsMasks,
+        GeneAssociationsTable,
+        HugeScoresTable,
+        PkbFooter,
+        PkbHeader,
+        ResearchBarPlot,
+        ResearchBoxPlot,
+        ResearchPhewasPlot,
+        ResearchSingleCellBrowser,
+        ResearchSingleSearch,
+        TooltipDocumentation,
+        TranslatorPredicateTable,
+        UnauthorizedMessage,
+    },
+};
+</script>
 <style scoped>
 .container {
     display: flex;

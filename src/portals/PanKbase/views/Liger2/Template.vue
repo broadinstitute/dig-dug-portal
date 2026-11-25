@@ -1,11 +1,15 @@
 <script>
 import LigerProgramBrowser from "./LigerProgramBrowser.vue";
+import PkbFooter from "@/portals/PanKbase/components/pkb-footer.vue";
+import PkbHeader from "@/portals/PanKbase/components/pkb-header.vue";
 
 export default {
     name: "Liger2Template",
 
     components: {
-        LigerProgramBrowser
+        LigerProgramBrowser,
+        PkbFooter,
+        PkbHeader,
     }
 };
 </script>

@@ -19,9 +19,8 @@
                 <b-col v-if="showStudy" class="feature-header-item">Study</b-col>
                 <b-col v-if="showPmid" class="feature-header-item">PMID</b-col>
             </b-row>
-            <template v-for="(mask, j) in formattedMasks">
+            <template v-for="(mask, j) in formattedMasks" :key="`features_${index}_${j}`">
                 <b-row
-                    :key="`features_${index}_${j}`"
                     class="features"
                     :class="`features_${index}_${j}`"
                 >
@@ -95,11 +94,14 @@
 </template>
 
 <script>
-import Vue from "vue";
 import Formatters from "@/utils/formatters";
 import ForestPlot from "@/components/ForestPlot";
 
-export default Vue.component("MaskTable", {
+export default {
+    name: "MaskTable",
+    components: {
+        ForestPlot,
+    },
     props: {
         maskData: Array,
         index: [String, Number],
@@ -159,7 +161,7 @@ export default Vue.component("MaskTable", {
         intFormatter: Formatters.intFormatter,
         maskFormatter: Formatters.maskFormatter,
     },
-});
+};
 </script>
 <style>
 @import url("/css/effectorGenes.css");

@@ -11,7 +11,7 @@
             :showOnFocus="true"
             @hit="onSecondaryPhenotypeSelected($event)"
         >
-            <template slot="suggestion" slot-scope="{ data, htmlText }">
+            <template v-slot:suggestion="{ data, htmlText }">
                 <span v-html="htmlText"></span>&nbsp;
                 <small class="text-secondary">{{ data.group }}</small>
             </template>
@@ -20,17 +20,13 @@
 </template>
 
 <script>
-import Vue from "vue";
-
-import { BootstrapVue, IconsPlugin } from "bootstrap-vue";
 import VueTypeaheadBootstrap from "vue-typeahead-bootstrap";
-import "bootstrap/dist/css/bootstrap.css";
-import "bootstrap-vue/dist/bootstrap-vue.css";
-Vue.use(BootstrapVue);
-Vue.use(IconsPlugin);
-Vue.component("vue-typeahead-bootstrap", VueTypeaheadBootstrap);
 
-export default Vue.component("phenotype-picker", {
+export default {
+    name: "phenotype-picker",
+    components: {
+        VueTypeaheadBootstrap,
+    },
     props: {
         phenotypes: {
             type: Array,
@@ -55,6 +51,7 @@ export default Vue.component("phenotype-picker", {
             default: false,
         },
     },
+    emits: ["secphenotypeAssociationGeneData", "updatePhenotypeList"],
 
     data() {
         return {
@@ -66,7 +63,7 @@ export default Vue.component("phenotype-picker", {
             if (!this.phenotypes) {
                 return [];
             }
-            return this.phenotypes.sort((a, b) => {
+            return [...this.phenotypes].sort((a, b) => {
                 if (a.group < b.group) return -1;
                 if (b.group < a.group) return 1;
 
@@ -109,7 +106,7 @@ export default Vue.component("phenotype-picker", {
             this.value.push(tag);
         },
     },
-});
+};
 </script>
 
 <style>
@@ -513,5 +510,4 @@ fieldset[disabled] .multiselect {
         transform: rotate(2turn);
     }
 }
-</style>
 </style>

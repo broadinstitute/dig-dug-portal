@@ -1,11 +1,11 @@
-import Vue from "vue";
+import { mountPage } from "@/utils/pageSetup";
 import store from "./store.js";
 import Template from "./Template.vue";
 import BirdsDashboard from "./components/BirdsDashboard.vue";
 import { pageMixin } from "@/mixins/pageMixin.js";
-Vue.config.productionTip = false;
 
-new Vue({
+// @vue/component
+mountPage(Template, {
     store,
     modules: {},
     components: {
@@ -41,7 +41,4 @@ new Vue({
             this.$store.dispatch("kp4cd/getFrontContents", group.name);
         },
     },
-    render(createElement, context) {
-        return createElement(Template);
-    },
-}).$mount("#app");
+});

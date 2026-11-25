@@ -11,10 +11,14 @@
     </b-tooltip>
 </template>
 <script>
-import Vue from "vue";
 import trapi from "@/components/NCATS/trapi"
+import ResolvedCurieLink from "@/components/NCATS/ResolvedCurieLink.vue";
 
-export default Vue.component("results-tooltip", {
+export default {
+    name: "results-tooltip",
+    components: {
+        ResolvedCurieLink,
+    },
     props: ['rowData', 'target', 'curie', 'query_graph'],
     data() {
         return {
@@ -43,5 +47,5 @@ export default Vue.component("results-tooltip", {
             return ''
         },
     }
-})
+}
 </script>

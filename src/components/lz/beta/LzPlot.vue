@@ -11,14 +11,13 @@
  *  plot manipulation is handled by methods that proxy to the plot. A reference to the plot is not
  *  propagated elsewhere.
  */
-import Vue from "vue"
 import LocusZoom from 'locuszoom';
 import { plotUpdatesUrl, plotWatchesUrl } from 'locuszoom/esm/ext/lz-dynamic-urls';
 import { addPanels, stateUrlMapping } from '../beta/lz-helpers';
 import "locuszoom/dist/locuszoom.css";
 
 let uid = 0; // Ensure that every component instance has a unique DOM id, for use by d3
-export default Vue.component('lz-plot',{
+export default {
     name: 'LzPlot',
     props: {
         // The initial layout and datasources used to create this LZ instance.
@@ -32,6 +31,18 @@ export default Vue.component('lz-plot',{
         // Change URL when plot updates. Only one plot on the page should use this.
         dynamic_urls: { type: Boolean, default: false },
     },
+    emits: [
+        "connected",
+        "data_rendered",
+        "data_requested",
+        "element_clicked",
+        "element_selection",
+        "layout_changed",
+        "panel_removed",
+        "region_changed",
+        "set_ldrefvar",
+        "state_changed",
+    ],
     data() {
         return {
             onload: false
@@ -79,7 +90,7 @@ export default Vue.component('lz-plot',{
     mounted() {
         this.createLZ(this.base_layout, this.base_sources);
     },
-    beforeDestroy() {
+    beforeUnmount() {
         // Clean up plot and event listeners to prevent memory leaks
         this.plot.destroy();
         delete this.plot;
@@ -163,7 +174,7 @@ export default Vue.component('lz-plot',{
             addPanels(this.plot, this.data_sources, panel_options, source_options);
         },
     },
-});
+};
 </script>
 
 <template>

@@ -1,10 +1,6 @@
-import Vue from "vue";
+import { mountPage } from "@/utils/pageSetup";
 import Template from "./Template.vue";
 import store from "./store.js";
-
-import { BootstrapVue, BootstrapVueIcons } from "bootstrap-vue";
-import "bootstrap/dist/css/bootstrap.css";
-import "bootstrap-vue/dist/bootstrap-vue.css";
 
 import PageHeader from "@/components/PageHeader.vue";
 import PageFooter from "@/components/PageFooter.vue";
@@ -30,12 +26,10 @@ import alertUtils from "@/utils/alertUtils";
 import Formatters from "@/utils/formatters";
 import dataConvert from "@/utils/dataConvert";
 import pigeanUtils from "@/utils/pigeanUtils";
+import { cloneDeep } from "@/utils/lodashUtils";
 
-Vue.config.productionTip = false;
-Vue.use(BootstrapVue);
-Vue.use(BootstrapVueIcons);
-
-new Vue({
+// @vue/component
+mountPage(Template, {
     store,
     modules: {},
     components: {
@@ -266,7 +260,7 @@ new Vue({
             return output;
         },
         inputQueryMembership(data){
-            let copy = structuredClone(data);
+            let copy = cloneDeep(data);
             let inputGenes = this.$store.state.roundTripInputGenes;
             // enum filters don't work with raw booleans
             copy.forEach(d => {
@@ -275,7 +269,7 @@ new Vue({
             return copy;
         },
         formatLabels(data){
-            let copy = structuredClone(data);
+            let copy = cloneDeep(data);
             copy.forEach(d => d.label = this.formatGroupName(d.label));
             return copy;
         },
@@ -285,8 +279,4 @@ new Vue({
             return output;
         }
     },
-
-    render(createElement, context) {
-        return createElement(Template);
-    },
-}).$mount("#app");
+});

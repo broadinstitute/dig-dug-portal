@@ -79,13 +79,13 @@
                                     @mousedown.prevent="selectPhenotype(phenotype)"
                                 >
                                     <span class="vks-welcome-suggestion-label">
-                                        {{ phenotypeSuggestionLabel(phenotype) }}
-                                    </span>
+                                        {{ phenotypeSuggestionLabel(phenotype) }}{{ " "
+                                    }}</span>
                                     <span
                                         v-if="phenotypeSuggestionMeta(phenotype)"
                                         class="vks-welcome-suggestion-meta"
-                                    >
-                                        {{ phenotypeSuggestionMeta(phenotype) }}
+                                    >{{
+                                        " " }}{{ phenotypeSuggestionMeta(phenotype) }}
                                     </span>
                                 </button>
                             </div>
@@ -261,6 +261,7 @@ export default {
             default: "Welcome to Variant Sifter",
         },
     },
+    emits: ["import-session", "start-search"],
     data() {
         welcomeFieldCounter += 1;
         const suffix = welcomeFieldCounter;
@@ -356,7 +357,7 @@ export default {
     mounted() {
         document.addEventListener("click", this.onDocumentClick);
     },
-    beforeDestroy() {
+    beforeUnmount() {
         document.removeEventListener("click", this.onDocumentClick);
         if (this.geneLookupTimer) {
             clearTimeout(this.geneLookupTimer);

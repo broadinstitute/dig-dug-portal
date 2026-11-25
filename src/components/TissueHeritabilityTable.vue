@@ -76,7 +76,8 @@ import { query } from "@/utils/bioIndexUtils";
 import Formatters from "@/utils/formatters";
 import AncestrySelectpicker from "@/components/AncestrySelectPicker.vue";
 import DataDownload from "@/components/DataDownload.vue";
-export default Vue.component("TissueHeritabilityTable", {
+export default {
+    name: "TissueHeritabilityTable",
     components: {
         DataDownload,
     },
@@ -89,6 +90,7 @@ export default Vue.component("TissueHeritabilityTable", {
             type: Object,
         },
     },
+    emits: ["topPhenotypeFound"],
     data() {
         return {
             perPage: 10,
@@ -146,7 +148,6 @@ export default Vue.component("TissueHeritabilityTable", {
             tableData: {},
             subTableData: {},
             ancestry: "Mixed",
-            dataEmpty: false,
         };
     },
     computed: {
@@ -157,15 +158,11 @@ export default Vue.component("TissueHeritabilityTable", {
             return `${this.tissue},${this.ancestry}`;
         },
         itemData() {
-            this.dataEmpty = false;
-            if (!this.tableData[this.tableKey]) {
-                return [];
-            }
-            let data = this.tableData[this.tableKey];
-            if (typeof data === "object" && data.length === 0) {
-                this.dataEmpty = true;
-            }
-            return data;
+            return this.tableData[this.tableKey] || [];
+        },
+        // false while the query is still running
+        dataEmpty() {
+            return this.tableData[this.tableKey]?.length === 0;
         },
         topPhenotype() {
             if (!this.itemData || this.itemData.length === 0) {
@@ -241,7 +238,7 @@ export default Vue.component("TissueHeritabilityTable", {
             return this.subTableData[query];
         },
     },
-});
+};
 </script>
 
 <style scoped>

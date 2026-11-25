@@ -111,7 +111,7 @@
                         >
                             <div class="label">Filter by Genes in Query</div>
                         </filter-enumeration-control>
-                        <template slot="filtered" slot-scope="{ filter }">
+                        <template v-slot:filtered="{ filter }">
                             <pigean-bayes-table
                                 :pigeanData="$parent.geneFactor"
                                 :fields="$parent.geneFields"
@@ -135,7 +135,7 @@
                         >
                             <div class="label">Filter by Factor Label</div>
                         </filter-enumeration-control>
-                        <template slot="filtered" slot-scope="{ filter }">
+                        <template v-slot:filtered="{ filter }">
                             <pigean-bayes-table
                                 :pigeanData="$parent.genesetFactor"
                                 :fields="$parent.genesetFields"
@@ -155,7 +155,7 @@
                         >
                             <div class="label">Filter by P-Value (&le;)</div>
                         </filter-less-control>
-                        <template slot="filtered" slot-scope="{ filter }">
+                        <template v-slot:filtered="{ filter }">
                             <pigean-bayes-table
                                 :pigeanData="$store.state.phenotypeData"
                                 :fields="$parent.phenotypeFields"
@@ -171,6 +171,30 @@
         <page-footer :disease-group="$parent.diseaseGroup"></page-footer>
     </div>
 </template>
+
+<script>
+import CriterionFunctionGroup from "@/components/criterion/group/CriterionFunctionGroup.vue";
+import FactorizationNetworkGraph from "@/components/FactorizationNetworkGraph.vue";
+import FilterEnumerationControl from "@/components/criterion/FilterEnumeration.vue";
+import FilterLessControl from "@/components/criterion/FilterLessThan.vue";
+import PageFooter from "@/components/PageFooter.vue";
+import PageHeader from "@/components/PageHeader.vue";
+import PigeanBayesTable from "@/components/PigeanBayesTable.vue";
+import SearchHeaderWrapper from "@/components/SearchHeaderWrapper.vue";
+
+export default {
+    components: {
+        CriterionFunctionGroup,
+        FactorizationNetworkGraph,
+        FilterEnumerationControl,
+        FilterLessControl,
+        PageFooter,
+        PageHeader,
+        PigeanBayesTable,
+        SearchHeaderWrapper,
+    },
+};
+</script>
 <style scoped>
 .card-body.pigean-plots {
     padding-bottom: 0;

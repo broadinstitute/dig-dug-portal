@@ -102,13 +102,9 @@
 </template>
 
 <script>
-import Vue from "vue";
 import $ from "jquery";
 import { cloneDeep } from "@/utils/lodashUtils";
-import { BootstrapVueIcons } from "bootstrap-vue";
 import barPlotVector from "@/components/researchPortal/vectorPlots/ResearchBarPlotVector.vue";
-
-Vue.use(BootstrapVueIcons);
 
 /* Example config:
 {
@@ -164,7 +160,8 @@ Vue.use(BootstrapVueIcons);
 
 */
 
-export default Vue.component("research-bar-in-cell-plot", {
+export default {
+    name: "research-bar-in-cell-plot",
     props: ["canvasId", "plotData", "plotConfig", "plotMargin", "utils"],
     data() {
         return {
@@ -187,7 +184,7 @@ export default Vue.component("research-bar-in-cell-plot", {
         window.addEventListener("resize", this.onResize);
         this.renderPlot();
     },
-    beforeDestroy() {
+    beforeUnmount() {
         window.removeEventListener("resize", this.onResize);
     },
     computed: {
@@ -497,7 +494,7 @@ export default Vue.component("research-bar-in-cell-plot", {
             }
         },
     },
-});
+};
 
 $(function () {});
 </script>

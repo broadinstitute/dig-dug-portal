@@ -8,7 +8,7 @@
             <div class="card mdkp-card dataset-page-header">
                 <div class="row card-body">
                     <div class="col-md-12">
-                        <h2>{{ $parent.pageInfo[0].title[0].value }}</h2>
+                        <h2 v-if="$parent.pageInfo[0]">{{ $parent.pageInfo[0].title[0].value }}</h2>
                     </div>
                 </div>
             </div>
@@ -27,3 +27,17 @@
         <page-footer :disease-group="$parent.diseaseGroup"></page-footer>
     </div>
 </template>
+
+<script>
+import PageFooter from "@/components/PageFooter.vue";
+import PageHeader from "@/components/PageHeader.vue";
+import StaticPageInfoSection from "@/components/StaticPageInfo.vue";
+
+export default {
+    components: {
+        PageFooter,
+        PageHeader,
+        StaticPageInfoSection,
+    },
+};
+</script>

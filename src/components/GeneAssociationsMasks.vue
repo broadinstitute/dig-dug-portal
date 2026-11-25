@@ -19,7 +19,7 @@
                     >CFDE Gene Sets</b-col
                 >
             </b-row>
-            <template v-for="(row, i) in paginatedAssociations">
+            <template v-for="(row, i) in paginatedAssociations" :key="row.phenotype">
                 <b-row
                     v-if="phenotypeMap[row.phenotype]"
                     :key="row.phenotype + i"
@@ -201,11 +201,8 @@
 </template>
 
 <script>
-import Vue from "vue";
 import uiUtils from "@/utils/uiUtils";
 import Formatters from "@/utils/formatters";
-import "bootstrap/dist/css/bootstrap.css";
-import "bootstrap-vue/dist/bootstrap-vue.css";
 import MaskTable from "@/components/MaskTable";
 import DataDownload from "@/components/DataDownload";
 import KcCfdeLogo from "@/components/Cfde2Kp/KcCfdeLogo.vue";
@@ -347,7 +344,8 @@ function joinMultiValues(fieldsToJoin, joinBy, row) {
     return out;
 }
 
-export default Vue.component("GeneAssociationsMasks", {
+export default {
+    name: "GeneAssociationsMasks",
     props: ["associations", "phenotypeMap", "filter"],
     components: { MaskTable, DataDownload, KcCfdeLogo },
     data() {
@@ -471,7 +469,7 @@ export default Vue.component("GeneAssociationsMasks", {
         },
         setGeneSetSubtablePage(item, page) {
             const key = this.getRowKey(item);
-            this.$set(this.geneSetSubtablePageByRow, key, page);
+            this.geneSetSubtablePageByRow[key] = page;
         },
         formatGeneSetCell(value) {
             if (value == null) return "";
@@ -507,11 +505,11 @@ export default Vue.component("GeneAssociationsMasks", {
             const key = this.getRowKey(item);
             const phenotype = item.phenotype;
             if (!phenotype) return;
-            this.$set(this.geneSetDataByRow, key, {
+            this.geneSetDataByRow[key] = {
                 loading: true,
                 data: [],
                 error: null,
-            });
+            };
             const url = this.geneSetsApi.replace(
                 "$phenotype",
                 encodeURIComponent(phenotype)
@@ -525,21 +523,21 @@ export default Vue.component("GeneAssociationsMasks", {
                 const json = await response.json();
                 const rawRows = json.data || json || [];
                 const data = this.applyGeneSetDataConvert(rawRows);
-                this.$set(this.geneSetDataByRow, key, {
+                this.geneSetDataByRow[key] = {
                     loading: false,
                     data,
                     error: null,
-                });
+                };
             } catch (err) {
-                this.$set(this.geneSetDataByRow, key, {
+                this.geneSetDataByRow[key] = {
                     loading: false,
                     data: [],
                     error: err.message || "Failed to load gene sets.",
-                });
+                };
             }
         },
     },
-});
+};
 </script>
 
 <style>

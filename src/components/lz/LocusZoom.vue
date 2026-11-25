@@ -9,7 +9,7 @@
 </template>
 
 <script>
-import Vue from "vue";
+import { markRaw } from "vue";
 import LocusZoom from "locuszoom";
 import intervalTracks from "locuszoom/esm/ext/lz-intervals-track";
 import credibleSets from "locuszoom/esm/ext/lz-credible-sets";
@@ -37,7 +37,8 @@ LocusZoom.use(toolbar_addons);
 
 LocusZoom.Widgets.add("toggleloglog", ToggleLogLog);
 
-export default Vue.component("locuszoom", {
+export default {
+    name: "locuszoom",
     props: [
         "chr",
         "start",
@@ -49,15 +50,17 @@ export default Vue.component("locuszoom", {
         "filterAssociations",
         "filterAnnotations",
     ],
+    emits: ["panelremoved", "regionchanged"],
     data() {
         return {
             locuszoommounted: false,
             salt: Math.floor(Math.random() * 10000).toString(),
             plot: null,
+            skippedFilters: [],
         };
     },
     mounted() {
-        this.dataSources = new LocusZoom.DataSources();
+        this.dataSources = markRaw(new LocusZoom.DataSources());
         Object.keys(LZDataSources).forEach((lzType) => {
             if (!!this[lzType]) {
                 this.createSource(lzType, this[lzType]);
@@ -72,7 +75,7 @@ export default Vue.component("locuszoom", {
         let widgets = [download_png];
         if (!!this.ldpop) widgets.push(ldlz2_pop_selector_menu);
 
-        this.plot = LocusZoom.populate(`#lz_${this.salt}`, this.dataSources, {
+        this.plot = markRaw(LocusZoom.populate(`#lz_${this.salt}`, this.dataSources, {
             responsive_resize: "width",
             max_region_scale: 500000, // without this, zooming out will fail (circa LocusZoom v0.13.1)
             state: {
@@ -84,7 +87,7 @@ export default Vue.component("locuszoom", {
                 // top-to-bottom in the array => right-to-left on the layout
                 widgets,
             },
-        });
+        }));
         this.locuszoommounted = true;
 
         // event listeners
@@ -111,6 +114,8 @@ export default Vue.component("locuszoom", {
                 })
             );
         }
+
+        this.applySkippedFilters();
 
         // this lets us treat "regionchanged" as a "locuszoom is ready" hook
         this.$emit("regionchanged", {
@@ -190,6 +195,18 @@ export default Vue.component("locuszoom", {
 
             // so we can figure out how to remove it later
             return panel.id;
+        },
+        applySkippedFilters() {
+            const skipped = this.skippedFilters;
+            if (skipped.length === 0) return;
+            if (skipped.includes("filter") && !!this.filter)
+                this.applyFilter(this.filter);
+            if (skipped.includes("filterAssociations") && !!this.filterAssociations)
+                this.applyFilter(this.filterAssociations, "association");
+            if (skipped.includes("filterAnnotations") && !!this.filterAnnotations)
+                this.applyFilter(this.filterAnnotations, "intervals");
+            // one refresh for all of them, as addPanels does
+            this.plot.applyState();
         },
         getDataLayers() {
             // Auxiliary method within our json query for data layers in the LocusZoom plot
@@ -379,8 +396,12 @@ export default Vue.component("locuszoom", {
             };
         },
     },
+    // Vue 3 can run a watcher before `mounted` has created the plot; Vue 2.7 never does, because it runs
+    // watchers in a later tick than the mount that creates the component. mounted starts the plot at the current
+    // region, and applies the filters that the watchers skipped.
     watch: {
         region(newRegion) {
+            if (!this.plot) return;
             this.plot.applyState({
                 chr: newRegion.chr,
                 start: newRegion.start,
@@ -388,10 +409,18 @@ export default Vue.component("locuszoom", {
             });
         },
         filter(filter) {
+            if (!this.plot) {
+                this.skippedFilters.push("filter");
+                return;
+            }
             this.applyFilter(filter);
             this.plot.applyState();
         },
         filterAssociations(associationsFilter) {
+            if (!this.plot) {
+                this.skippedFilters.push("filterAssociations");
+                return;
+            }
             this.applyFilter(associationsFilter, "association");
             // refresh the plot in place
             // this should generally imply using cached data if possible (improving the filter performance since it won't make a new network call when used)
@@ -399,13 +428,17 @@ export default Vue.component("locuszoom", {
             let data_layers = this.getDataLayers();
         },
         filterAnnotations(annotationsFilter) {
+            if (!this.plot) {
+                this.skippedFilters.push("filterAnnotations");
+                return;
+            }
             this.applyFilter(annotationsFilter, "intervals");
             // refresh the plot in place
             // this should generally imply using cached data if possible (improving the filter performance since it won't make a new network call when used)
             this.plot.applyState();
         },
     },
-});
+};
 
 const HUMAN_GENOME_BUILD_VERSION = "GRCh37";
 const LZDataSources = {

@@ -130,6 +130,7 @@ export default {
             default: () => DEFAULT_PER_PAGE_OPTIONS,
         },
     },
+    emits: ["export-csv", "export-json", "update:perPage", "update:columnVisible"],
     data() {
         return {
             open: false,

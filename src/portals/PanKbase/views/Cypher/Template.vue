@@ -55,6 +55,20 @@
       <pkb-footer></pkb-footer> 
   </div>
 </template>
+
+<script>
+import PkbFooter from "@/portals/PanKbase/components/pkb-footer.vue";
+import PkbHeader from "@/portals/PanKbase/components/pkb-header.vue";
+import ResearchSingleSearch from "@/components/researchPortal/ResearchSingleSearch.vue";
+
+export default {
+    components: {
+        PkbFooter,
+        PkbHeader,
+        ResearchSingleSearch,
+    },
+};
+</script>
 <style scoped>
   .query-table {
     margin-bottom: 50px;

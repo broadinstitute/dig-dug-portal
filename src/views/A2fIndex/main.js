@@ -1,8 +1,6 @@
-import Vue from "vue";
+import { mountPage } from "@/utils/pageSetup";
 import Template from "./Template.vue";
 import store from "./store.js";
-
-Vue.config.productionTip = false;
 
 import PageHeader from "@/components/PageHeader.vue";
 import PageFooter from "@/components/PageFooter.vue";
@@ -33,7 +31,8 @@ import Alert, {
     closeAlert,
 } from "@/components/Alert";
 
-new Vue({
+// @vue/component
+mountPage(Template, {
     store,
 
     components: {
@@ -52,7 +51,7 @@ new Vue({
         DiseaseSystems,
     },
 
-    data: {
+    data: () => ({
         selected: "",
         searches: [
             { id: "gene", name: "gene" },
@@ -67,7 +66,7 @@ new Vue({
             { icon: "curated_datasets", label: "Curated datasets" },
         ],
         oldStats: keyParams.oldstats,
-    },
+    }),
 
     computed: {
         utilsBox() {
@@ -381,8 +380,4 @@ new Vue({
             });
         },
     },
-
-    render(createElement, context) {
-        return createElement(Template);
-    },
-}).$mount("#app");
+});

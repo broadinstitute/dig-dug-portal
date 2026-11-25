@@ -1,4 +1,4 @@
-import Vue from "vue";
+import { mountPage } from "@/utils/pageSetup";
 import Template from "./Template.vue";
 import "../../assets/layout.css";
 import "../../assets/pkb-styles.css";
@@ -10,7 +10,8 @@ import CriterionFunctionGroup from "@/components/criterion/group/CriterionFuncti
 import FilterEnumeration from "@/components/criterion/FilterEnumeration.vue";
 import FilterBasic from "@/components/criterion/FilterBasic.vue";
 
-new Vue({
+// @vue/component
+mountPage(Template, {
     components: {
         CriterionFunctionGroup,
         FilterEnumeration,
@@ -72,7 +73,4 @@ new Vue({
         });
         this.publications = allPubs;
     },
-    render(createElement, context) {
-        return createElement(Template);
-    },
-}).$mount("#app");
+});

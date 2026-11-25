@@ -100,6 +100,7 @@ export default {
             }),
         },
     },
+    emits: ["update:selectedTypes"],
     data() {
         genesDrawerSelectCounter += 1;
         return {

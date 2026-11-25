@@ -7,11 +7,11 @@
 
 <script>
 import * as d3 from 'd3';
-import Vue from 'vue';
 import mouseTooltip from '@/components/researchPortal/singleCellBrowser/mouseTooltip.js';
 import {llog} from "./llog.js";
 
-export default Vue.component('research-scatter-plot', {
+export default {
+  name: "research-scatter-plot",
   props: {
     data: Array,
     xKey: String,
@@ -49,7 +49,7 @@ export default Vue.component('research-scatter-plot', {
     window.addEventListener('resize', this.handleResize);
     this.initResizeObserver();
   },
-  beforeDestroy(){
+  beforeUnmount(){
     window.removeEventListener('resize', this.handleResize);
     this.teardownResizeObserver();
   },
@@ -402,5 +402,5 @@ export default Vue.component('research-scatter-plot', {
         mouseTooltip.hide();
     },
   }
-});
+};
 </script>

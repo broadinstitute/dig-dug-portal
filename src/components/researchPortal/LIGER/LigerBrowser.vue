@@ -1,5 +1,4 @@
 <script>
-import Vue from "vue";
 import { formatMetric, formatPValue, isFiniteNumber } from "./ligerFormat";
 import { clamp, mixColor, heatColor } from "./ligerHeat";
 import CellStateInfographic from "./CellStateInfographic.vue";
@@ -164,7 +163,8 @@ const LIGER_DATASET_TISSUE_MAP = Object.keys(LIGER_TISSUE_CONFIG).reduce((map, t
     return map;
 }, {});
 
-export default Vue.component('LigerBrowser', {
+export default {
+    name: "LigerBrowser",
     components: {
         CellStateInfographic,
         StateDetails,
@@ -815,7 +815,7 @@ export default Vue.component('LigerBrowser', {
         await this.initializeFromQuery();
     },
 
-    beforeDestroy() {
+    beforeUnmount() {
         if (this.geneSuggestionTimer) {
             clearTimeout(this.geneSuggestionTimer);
         }
@@ -2121,7 +2121,7 @@ export default Vue.component('LigerBrowser', {
             try {
                 let payload = await this.fetchJson(this.buildCellStateTraitUrl(this.tissueQueryKey(this.selectedTissue), this.selectedCellType.key, stateId));
                 let rows = this.rowsFromResponse(payload);
-                this.$set(this.stateTraitRowsCache, stateId, rows);
+                this.stateTraitRowsCache[stateId] = rows;
                 return rows;
             } catch (error) {
                 return [];
@@ -2142,7 +2142,7 @@ export default Vue.component('LigerBrowser', {
                 // partition: factor IDs are namespaced per cell type.
                 let payload = await this.fetchJson(this.buildProgramTraitUrl(datasetId, this.selectedCellType.key, this.programApiFactor(programId)));
                 let rows = this.rowsFromResponse(payload);
-                this.$set(this.programTraitRowsCache, programId, rows);
+                this.programTraitRowsCache[programId] = rows;
                 return rows;
             } catch (error) {
                 return [];
@@ -2161,7 +2161,7 @@ export default Vue.component('LigerBrowser', {
             try {
                 let payload = await this.fetchJson(this.buildProgramGeneInfoUrl(datasetId, this.selectedCellType.key, this.programApiFactor(programId)));
                 let rows = this.rowsFromResponse(payload);
-                this.$set(this.programGeneRowsCache, programId, rows);
+                this.programGeneRowsCache[programId] = rows;
                 return rows;
             } catch (error) {
                 return [];
@@ -2180,7 +2180,7 @@ export default Vue.component('LigerBrowser', {
             try {
                 let payload = await this.fetchJson(this.buildProgramGeneSetInfoUrl(datasetId, this.selectedCellType.key, this.programApiFactor(programId)));
                 let rows = this.rowsFromResponse(payload);
-                this.$set(this.programGeneSetRowsCache, programId, rows);
+                this.programGeneSetRowsCache[programId] = rows;
                 return rows;
             } catch (error) {
                 return [];
@@ -2215,7 +2215,7 @@ export default Vue.component('LigerBrowser', {
 
                         return aPSort - bPSort;
                     });
-                this.$set(this.programQcRowsCache, programId, rows);
+                this.programQcRowsCache[programId] = rows;
                 return rows;
             } catch (error) {
                 return [];
@@ -2581,7 +2581,7 @@ export default Vue.component('LigerBrowser', {
                 let tissueKey = this.rowTissueKey(row);
 
                 if (datasetId && tissueKey && !this.observedDatasetIds[tissueKey]) {
-                    Vue.set(this.observedDatasetIds, tissueKey, datasetId);
+                    this.observedDatasetIds[tissueKey] = datasetId;
                 }
             });
         },
@@ -2888,7 +2888,7 @@ export default Vue.component('LigerBrowser', {
             }
         },
     }
-});
+};
 </script>
 
 <template>
@@ -2964,16 +2964,17 @@ export default Vue.component('LigerBrowser', {
                                 >
                                     No matching genes found.
                                 </div>
-                                <button
-                                    v-else
-                                    v-for="gene in geneSuggestions"
-                                    :key="normalizeGeneLabel(gene)"
-                                    type="button"
-                                    class="suggestion-item"
-                                    @click="onSuggestionSelected(gene)"
-                                >
-                                    {{ normalizeGeneLabel(gene) }}
-                                </button>
+                                <template v-else>
+                                    <button
+                                        v-for="gene in geneSuggestions"
+                                        :key="normalizeGeneLabel(gene)"
+                                        type="button"
+                                        class="suggestion-item"
+                                        @click="onSuggestionSelected(gene)"
+                                    >
+                                        {{ normalizeGeneLabel(gene) }}
+                                    </button>
+                                </template>
                             </div>
                         </div>
                         <button class="primary bold"
@@ -3596,9 +3597,9 @@ export default Vue.component('LigerBrowser', {
                             v-for="item in column.items"
                             :key="`${column.label}-${item}`"
                             class="expression-tooltip-chip"
-                        >
-                            {{ item }}
-                        </span>
+                        >{{
+                            " " }}{{ item }}{{ " "
+                        }}</span>
                     </div>
                     <div v-else class="expression-tooltip-value">{{ column.value }}</div>
                 </div>

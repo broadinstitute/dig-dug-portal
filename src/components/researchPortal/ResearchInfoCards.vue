@@ -151,11 +151,11 @@
 </template>
 
 <script>
-import Vue from "vue";
 import ResearchDataTableFeatures from "@/components/researchPortal/ResearchDataTableFeatures.vue";
 import ResearchSummaryPlot from "@/components/researchPortal/ResearchSummaryPlot.vue";
 
-export default Vue.component("research-info-cards", { 
+export default { 
+	name: "research-info-cards",
 	props: [
 		"pageID",
 		"dataset",
@@ -178,6 +178,7 @@ export default Vue.component("research-info-cards", {
 		"thumbnailWidth",
 		'openCardPreset'
 	],
+	emits: ["on-feature-rows-change", "on-star", "on-openCard", "clicked-sort"],
 	data() {
 		return {
 			currentPage: 1,
@@ -852,7 +853,7 @@ export default Vue.component("research-info-cards", {
 			}
 		},
 	},
-});
+};
 </script>
 
 <style>

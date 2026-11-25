@@ -90,9 +90,9 @@
                                     :style="{ accentColor: legendSolidColor(annotation) }"
                                 @change="onToggleAnnotation(annotation, $event)"
                             />
-                            <span class="vks-ge-legend-label">
-                                {{ overviewAnnotationLabel(annotation) }}
-                            </span>
+                            <span class="vks-ge-legend-label">{{
+                                " " }}{{ overviewAnnotationLabel(annotation) }}{{ " "
+                            }}</span>
                         </label>
                     </li>
                 </ul>
@@ -386,6 +386,20 @@ export default {
             default: null,
         },
     },
+    emits: [
+        "update:regionViewArea",
+        "update:activeAnnotation",
+        "update:selectedTissues",
+        "update:selectedAnnotations",
+        "select-plot-tissue",
+        "update:biosampleTissueRegions",
+        "update:biosampleLoading",
+        "update:biosampleFilterOptions",
+        "update:selectedBiosamples",
+        "toggle-position-marker",
+        "update:regionShiftBp",
+        "pan-end",
+    ],
     data() {
         return {
             workspacePanel: "annotations",
@@ -908,7 +922,7 @@ export default {
             }
         });
     },
-    beforeDestroy() {
+    beforeUnmount() {
         window.removeEventListener("resize", this.onResize);
         this.endPanListeners();
         if (this.resizeObserver) {

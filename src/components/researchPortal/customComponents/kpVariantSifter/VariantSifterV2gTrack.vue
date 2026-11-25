@@ -71,8 +71,8 @@
             </p>
             <p class="vks-v2g-track-info-row">
                 <span class="vks-v2g-track-info-label">Promoter</span>
-                <span>
-                    {{ hoveredHit.targetGeneStart }}–{{ hoveredHit.targetGeneEnd }}
+                <span>{{
+                    " " }}{{ hoveredHit.targetGeneStart }}–{{ hoveredHit.targetGeneEnd }}
                 </span>
             </p>
         </div>
@@ -203,6 +203,13 @@ export default {
             default: null,
         },
     },
+    emits: [
+        "update:regionViewArea",
+        "toggle-position-marker",
+        "update:selectedLinks",
+        "update:regionShiftBp",
+        "pan-end",
+    ],
     data() {
         return {
             hitRegions: [],
@@ -379,7 +386,7 @@ export default {
             }
         });
     },
-    beforeDestroy() {
+    beforeUnmount() {
         this.endPanListeners();
         if (this.resizeObserver) {
             this.resizeObserver.disconnect();

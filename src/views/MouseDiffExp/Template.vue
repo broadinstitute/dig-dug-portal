@@ -86,8 +86,8 @@
                         <h4>
                             Human Homolog 
                             <a :href="`/gene.html?gene=${$store.state.gene}`">
-                                {{ $store.state.gene }}
-                            </a>
+                                {{ $store.state.gene }}{{ " "
+                            }}</a>
                             <tooltip-documentation
                                 name="mouse.diff-exp.homolog.tooltip"
                                 :is-hover="true"
@@ -148,8 +148,7 @@
                                     <div class="label">P-Value (&le;)</div>
                                 </filter-pvalue-control>
                                 <template
-                                    slot="filtered"
-                                    slot-scope="{ filter }"
+                                    v-slot:filtered="{ filter }"
                                 >
                                     <span class="filter-pill-collection center">
                                         <b-badge
@@ -439,7 +438,7 @@
                                             </research-phewas-plot>
                                             <unauthorized-message
                                                 :restricted="
-                                                    $store.state.restricted
+                                                    $parent.transcriptOr52kRestricted
                                                 "
                                             >
                                             </unauthorized-message>
@@ -476,6 +475,52 @@
         <page-footer :disease-group="$parent.diseaseGroup"></page-footer>
     </div>
 </template>
+
+<script>
+import CriterionFunctionGroup from "@/components/criterion/group/CriterionFunctionGroup.vue";
+import Documentation from "@/components/Documentation.vue";
+import FilterEnumerationControl from "@/components/criterion/FilterEnumeration.vue";
+import FilterGreaterControl from "@/components/criterion/FilterGreaterThan.vue";
+import FilterPvalueControl from "@/components/criterion/FilterPValue.vue";
+import GeneAssociationsMasks from "@/components/GeneAssociationsMasks.vue";
+import GeneAssociationsTable from "@/components/GeneAssociationsTable.vue";
+import HugeScoresTable from "@/components/HugeScoresTable.vue";
+import MouseDiffExpTable from "@/components/MouseDiffExpTable.vue";
+import MouseGeneSelect from "@/components/MouseGeneSelect.vue";
+import MouseTissueSelect from "@/components/MouseTissueSelect.vue";
+import MouseWhiskerPlot from "@/components/MouseWhiskerPlot.vue";
+import PageFooter from "@/components/PageFooter.vue";
+import PageHeader from "@/components/PageHeader.vue";
+import ResearchPhewasPlot from "@/components/researchPortal/ResearchPheWAS.vue";
+import ResearchSingleSearch from "@/components/researchPortal/ResearchSingleSearch.vue";
+import SearchHeaderWrapper from "@/components/SearchHeaderWrapper.vue";
+import TooltipDocumentation from "@/components/TooltipDocumentation.vue";
+import UnauthorizedMessage from "@/components/UnauthorizedMessage.vue";
+
+export default {
+    components: {
+        CriterionFunctionGroup,
+        Documentation,
+        FilterEnumerationControl,
+        FilterGreaterControl,
+        FilterPvalueControl,
+        GeneAssociationsMasks,
+        GeneAssociationsTable,
+        HugeScoresTable,
+        MouseDiffExpTable,
+        MouseGeneSelect,
+        MouseTissueSelect,
+        MouseWhiskerPlot,
+        PageFooter,
+        PageHeader,
+        ResearchPhewasPlot,
+        ResearchSingleSearch,
+        SearchHeaderWrapper,
+        TooltipDocumentation,
+        UnauthorizedMessage,
+    },
+};
+</script>
 
 <style scoped>
 .row .pagination.b-pagination {

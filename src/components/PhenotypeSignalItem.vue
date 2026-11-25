@@ -12,8 +12,8 @@
 </template>
 
 <script>
-import Vue from "vue";
-export default Vue.component("phenotype-signal-item", {
+export default {
+    name: "phenotype-signal-item",
     props: {
         width: Number,
         title: String
@@ -28,5 +28,5 @@ export default Vue.component("phenotype-signal-item", {
             this.isActive = !this.isActive;
         }
     }
-});
+};
 </script>

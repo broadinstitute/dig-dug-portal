@@ -180,11 +180,11 @@
 </template>
 
 <script>
-import Vue from "vue";
 import { match } from "@/utils/bioIndexUtils";
 import { BIO_INDEX_HOST } from "@/utils/bioIndexUtils";
 
-export default Vue.component("ResearchSingleSearch", {
+export default {
+    name: "ResearchSingleSearch",
     props: ["singleSearchConfig", "phenotypes", "utils"],
     modules: {},
 
@@ -457,7 +457,7 @@ export default Vue.component("ResearchSingleSearch", {
             this.singleSearchResult.genes = matches;
         },
     },
-});
+};
 </script>
 
 <style scoped>

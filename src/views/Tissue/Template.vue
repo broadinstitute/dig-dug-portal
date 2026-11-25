@@ -86,7 +86,7 @@
                             >
                                 <div class="label">Genericity (&le;)</div>
                             </filter-less-control>
-                            <template slot="filtered" slot-scope="{ filter }">
+                            <template v-slot:filtered="{ filter }">
                                 
                                     <div>
                                         <scatterplot
@@ -206,7 +206,7 @@
                                     Adjusted p-value: strain and sex (&le;)
                                 </div>
                             </filter-pvalue-control>
-                            <template slot="filtered" slot-scope="{ filter }">
+                            <template v-slot:filtered="{ filter }">
                                 <mouse-summary-table
                                     :items="$store.state.mouseSummary.data"
                                     :filter="filter"
@@ -320,7 +320,7 @@
                                 <div class="label">Variants (&ge;)</div>
                             </filter-greater-control>
 
-                            <template slot="filtered" slot-scope="{ filter }">
+                            <template v-slot:filtered="{ filter }">
                                 <c2ct-table
                                     :c2ct-data="$parent.cs2ctData"
                                     :filter="filter"
@@ -464,7 +464,7 @@
                             >
                                 <div class="label">Search pathway</div>
                             </filter-enumeration-control>
-                            <template slot="filtered" slot-scope="{ filter }">
+                            <template v-slot:filtered="{ filter }">
                                 <div v-if="$parent.connectivityData.length > 0">
                                     <volcano-plot
                                         :renderConfig="$parent.volcanoConfig()"
@@ -654,7 +654,7 @@
                             >
                                 <div class="label">Search gene</div>
                             </filter-enumeration-control>
-                            <template slot="filtered" slot-scope="{ filter }">
+                            <template v-slot:filtered="{ filter }">
                                 <div
                                     v-if="
                                         $parent.connectivityCrisprData.length >
@@ -764,6 +764,58 @@
         <page-footer :disease-group="$parent.diseaseGroup"></page-footer>
     </div>
 </template>
+
+<script>
+import AncestrySelectpicker from "@/components/AncestrySelectPicker.vue";
+import Autocomplete from "@/components/Autocomplete.vue";
+import C2ctTable from "@/components/C2ctTable.vue";
+import CriterionFunctionGroup from "@/components/criterion/group/CriterionFunctionGroup.vue";
+import DataDownload from "@/components/DataDownload.vue";
+import Documentation from "@/components/Documentation.vue";
+import FilterEnumerationControl from "@/components/criterion/FilterEnumeration.vue";
+import FilterGreaterControl from "@/components/criterion/FilterGreaterThan.vue";
+import FilterLessControl from "@/components/criterion/FilterLessThan.vue";
+import FilterPvalueControl from "@/components/criterion/FilterPValue.vue";
+import MouseSummaryTable from "@/components/MouseSummaryTable.vue";
+import PageFooter from "@/components/PageFooter.vue";
+import PageHeader from "@/components/PageHeader.vue";
+import PhenotypeSelectpicker from "@/components/PhenotypeSelectPicker.vue";
+import ResearchSingleCellBrowser from "@/components/researchPortal/singleCellBrowser/ResearchSingleCellBrowser.vue";
+import ResearchSingleSearch from "@/components/researchPortal/ResearchSingleSearch.vue";
+import Scatterplot from "@/components/Scatterplot.vue";
+import SearchHeaderWrapper from "@/components/SearchHeaderWrapper.vue";
+import TissueExpressionTable from "@/components/TissueExpressionTable.vue";
+import TissueHeritabilityTable from "@/components/TissueHeritabilityTable.vue";
+import TooltipDocumentation from "@/components/TooltipDocumentation.vue";
+import VolcanoPlot from "@/components/eglt/VolcanoPlot.vue";
+
+export default {
+    components: {
+        AncestrySelectpicker,
+        Autocomplete,
+        C2ctTable,
+        CriterionFunctionGroup,
+        DataDownload,
+        Documentation,
+        FilterEnumerationControl,
+        FilterGreaterControl,
+        FilterLessControl,
+        FilterPvalueControl,
+        MouseSummaryTable,
+        PageFooter,
+        PageHeader,
+        PhenotypeSelectpicker,
+        ResearchSingleCellBrowser,
+        ResearchSingleSearch,
+        Scatterplot,
+        SearchHeaderWrapper,
+        TissueExpressionTable,
+        TissueHeritabilityTable,
+        TooltipDocumentation,
+        VolcanoPlot,
+    },
+};
+</script>
 
 <style scoped>
 .row .pagination.b-pagination {

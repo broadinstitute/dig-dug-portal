@@ -1,4 +1,4 @@
-import Vue from "vue";
+import { mountPage } from "@/utils/pageSetup";
 import Template from "./Template.vue";
 import store from "./store.js";
 
@@ -45,7 +45,8 @@ import { pageMixin } from "@/mixins/pageMixin.js";
 
 const DEFAULT_PHENOTYPE = "T1D";
 
-new Vue({
+// @vue/component
+mountPage(Template, {
     store,
     components: {
         AncestrySelectPicker,
@@ -282,6 +283,12 @@ new Vue({
         intFormatter: Formatters.intFormatter,
         ancestryFormatter: Formatters.ancestryFormatter,
         tissueFormatter: Formatters.tissueFormatter,
+        maFormatter(value) {
+            return value
+                .split(";")
+                .map((word) => word.charAt(0).toUpperCase() + word.slice(1))
+                .join(" + ");
+        },
         ifPhenotypeInSearch(DESCRIPTION) {
             let searchKeys = this.phenotypeSearchKey.split(" ");
             let isInPhenotype = 0;
@@ -302,8 +309,4 @@ new Vue({
             this.$store.dispatch("getCs2ct");
         }
     },
-
-    render(createElement, context) {
-        return createElement(Template);
-    },
-}).$mount("#app");
+});

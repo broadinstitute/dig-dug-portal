@@ -25,7 +25,7 @@
                         <b-td
                             style="width:200px;color:gray;white-space: nowrap;"
                             class="text-left"
-                        ><--Exome wide Significance</b-td>
+                        >&lt;--Exome wide Significance</b-td>
                     </b-tr>
                     <b-tr style="border: 3px solid white !important;">
                         <b-th style="width:150px"></b-th>
@@ -38,7 +38,7 @@
                         <b-td
                             style="width:200px;color:gray;white-space: nowrap;"
                             class="text-left"
-                        ><--Burden statistic(beta)</b-td>
+                        >&lt;--Burden statistic(beta)</b-td>
                     </b-tr>
                     <b-tr style="border: 3px solid white !important;">
                         <b-th style="width:150px" rowspan="1" class="text-right"></b-th>
@@ -50,7 +50,7 @@
                         <b-td
                             style="width:200px;color:gray;white-space: nowrap;"
                             class="text-left"
-                        ><--Prior Allelic variance</b-td>
+                        >&lt;--Prior Allelic variance</b-td>
                     </b-tr>
                 </b-tbody>
                 <!-- <hr style="padding:-20px;width:550px;text-align:right;margin-left:20px" /> -->
@@ -76,23 +76,14 @@
 </template>
         
 <script>
-import Vue from "vue";
-
-import { BootstrapVue, IconsPlugin } from "bootstrap-vue";
 import VueTypeaheadBootstrap from "vue-typeahead-bootstrap";
 import Autocomplete from "@/components/Autocomplete.vue";
-import "bootstrap/dist/css/bootstrap.css";
-import "bootstrap-vue/dist/bootstrap-vue.css";
 import { match } from "@/utils/bioIndexUtils";
 import Formatters from "@/utils/formatters";
 
-Vue.use(BootstrapVue);
-Vue.use(IconsPlugin);
 
-Vue.component("vue-typeahead-bootstrap", VueTypeaheadBootstrap);
-Vue.component("autocomplete", Autocomplete);
-
-export default Vue.component("rarevariation-exomesig-table", {
+export default {
+    name: "rarevariation-exomesig-table",
     props: {
         isExomeWideSignificant: {
             type: Boolean,
@@ -131,7 +122,7 @@ export default Vue.component("rarevariation-exomesig-table", {
         }
     },
     methods: {}
-});
+};
 </script>
 
 <style>

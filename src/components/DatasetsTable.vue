@@ -16,7 +16,7 @@
                 :per-page="perPage"
                 :current-page="currentPage"
             >
-                <template center v-slot:cell(image)="r">
+                <template v-slot:cell(image)="r">
                     <span :class="'community-icon ' + r.item.community"></span>
                 </template>
                 <template v-slot:cell(link)="r">
@@ -43,18 +43,11 @@
 </template>
 
 <script>
-import Vue from "vue";
-
-import { BootstrapVue, IconsPlugin } from "bootstrap-vue";
-Vue.use(BootstrapVue);
-Vue.use(IconsPlugin);
-
-import "bootstrap/dist/css/bootstrap.css";
-import "bootstrap-vue/dist/bootstrap-vue.css";
 import Formatters from "@/utils/formatters";
 import DataDownload from "@/components/DataDownload";
 
-export default Vue.component("datasets-table", {
+export default {
+    name: "datasets-table",
     components: { DataDownload },
     props: ["datasets", "phenotype", "filter"],
     data() {
@@ -117,7 +110,7 @@ export default Vue.component("datasets-table", {
             return dataRows;
         },
     },
-});
+};
 </script>
 
 <style>

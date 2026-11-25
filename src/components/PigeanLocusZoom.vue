@@ -37,7 +37,6 @@
   </div>
 </template>
 <script>
-import Vue from "vue";
 import uiUtils from "@/utils/uiUtils";
 import plotUtils from "@/utils/plotUtils";
 import sortUtils from "@/utils/sortUtils";
@@ -51,7 +50,8 @@ import userUtils from "@/utils/userUtils.js";
 import ResearchRegionPlot from "@/components/researchPortal/ResearchRegionPlot.vue";
 import ResearchGenesTrack from "@/components/researchPortal/ResearchGenesTrack.vue";
 import { BIO_INDEX_HOST } from "@/utils/bioIndexUtils";
-export default Vue.component("pigean-locus-zoom", {
+export default {
+  name: "pigean-locus-zoom",
   components: {
     ResearchRegionPlot,
     ResearchGenesTrack
@@ -207,7 +207,7 @@ export default Vue.component("pigean-locus-zoom", {
       this.plotLoaded = plotLoaded;
     }
   },
-});
+};
 </script>
 <style scoped>
   .loading {

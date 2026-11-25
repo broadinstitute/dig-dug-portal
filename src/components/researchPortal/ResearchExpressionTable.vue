@@ -53,11 +53,14 @@
     </div>
 </template>
 <script>
-import Vue from "vue";
 import * as d3 from "d3";
 import Formatters from "@/utils/formatters";
 import ResearchDatasetSubtable from "@/components/researchPortal/ResearchDatasetSubtable.vue";
-export default Vue.component("ResearchExpressionTable", {
+export default {
+    name: "ResearchExpressionTable",
+    components: {
+        ResearchDatasetSubtable,
+    },
     props: {
         filteredData: Array,
         plotByField: {
@@ -65,6 +68,7 @@ export default Vue.component("ResearchExpressionTable", {
             default: "tissue",
         },
     },
+    emits: ["highlight"],
     data() {
         return {
             tableConfig: {
@@ -205,5 +209,5 @@ export default Vue.component("ResearchExpressionTable", {
             this.$emit("highlight", details);
         },
     },
-});
+};
 </script>

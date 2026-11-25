@@ -49,16 +49,12 @@
 </style>
 
 <script>
-import Vue from "vue";
 import documentationParser from "@/utils/documentationUtils";
 import Documentation from "@/components/Documentation.vue";
 import uiUtils from "@/utils/uiUtils";
-import { BootstrapVue, BootstrapVueIcons } from "bootstrap-vue";
 
-Vue.use(BootstrapVue);
-Vue.use(BootstrapVueIcons);
-
-export default Vue.component("tooltip-documentation", {
+export default {
+    name: "tooltip-documentation",
     props: [
         "name",
         "group",
@@ -125,5 +121,5 @@ export default Vue.component("tooltip-documentation", {
             uiUtils.getToolTipPosition(ELEMENT);
         },
     },
-});
+};
 </script>

@@ -53,6 +53,7 @@ export default {
             default: 0,
         },
     },
+    emits: ["toggle-select"],
     data() {
         return {
             clampedX: 0,

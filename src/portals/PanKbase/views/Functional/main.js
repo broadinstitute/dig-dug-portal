@@ -1,4 +1,5 @@
-import Vue from "vue";
+import { markRaw } from "vue";
+import { mountPage } from "@/utils/pageSetup";
 import Template from "./Template.vue";
 import store from "./store.js";
 import "../../assets/layout.css";
@@ -22,6 +23,7 @@ import FunctionalViolinPlot from "../../components/FunctionalViolinPlot.vue";
 import keyParams from "@/utils/keyParams";
 import regionUtils from "@/utils/regionUtils";
 import dataConvert from "@/utils/dataConvert";
+import { cloneDeep } from "@/utils/lodashUtils";
 import BIO_INDEX_HOST from "@/utils/bioIndexUtils";
 import colors from "@/utils/colors";
 const PANKBASE_BIOINDEX = BIO_INDEX_HOST.BIO_INDEX_HOST.replace("hugeamp", "pankbase");
@@ -32,7 +34,8 @@ const dashFormatter = function(item){
     return item === '-' ? "N/A" : item;
 };
 
-new Vue({
+// @vue/component
+mountPage(Template, {
     store,
     components: {
         ResearchSingleSearch,
@@ -342,11 +345,11 @@ new Vue({
                 this.selectedDonorList.includes(d[this.fieldsObject.donorId.key])
             );
             // If the pasted-in donor list is applied, use that
-            let results = !this.useSelected ? structuredClone(this.filteredDonors) : selection;
+            let results = !this.useSelected ? cloneDeep(this.filteredDonors) : selection;
             return results;
         },
         tableFields(){
-            let fields = structuredClone(Object.values(this.fieldsObject));
+            let fields = cloneDeep(Object.values(this.fieldsObject));
             fields.forEach(f =>
                 f.formatter = dashFormatter
             );
@@ -359,7 +362,7 @@ new Vue({
             if (this.functionalTrait === null){
                 return [];
             }
-            let results = structuredClone(this.$store.state.allTraits);
+            let results = cloneDeep(this.$store.state.allTraits);
             results = results.filter(d => this.filteredAccession.includes(d.Pankbase_ID));
             results.forEach(r => {
                 let demoData = this.filteredMetadata.find(m => m.Accession === r.Pankbase_ID);
@@ -462,8 +465,6 @@ new Vue({
                 singleDonorResults.forEach(r => r.donorHasGaps = badData);
                 results = results.concat(singleDonorResults)
             });
-            this.maxTime = maxTime;
-            this.maxScore = maxScore;
             let output = {
                 results: results,
                 maxTime: maxTime,
@@ -497,7 +498,7 @@ new Vue({
             if (this.linkedFilters === null){
                 return data;
             }
-            let results = structuredClone(data);
+            let results = cloneDeep(data);
             for (let i = 0; i < this.linkedFilters.length; i++){
                 let filter = this.linkedFilters[i];
                 let field = filter.name;
@@ -535,17 +536,15 @@ new Vue({
     },
     watch: {
         insData(newData){
-            this.resultsIns = newData.results;
+            // not reactive: the plot reads every row many times (slow on Vue 3), nothing changes one
+            this.resultsIns = markRaw(newData.results);
             this.maxScoreIns = newData.maxScore;
             this.maxTimeIns = newData.maxTime;
         },
         gcgData(newData){
-            this.resultsGcg = newData.results;
+            this.resultsGcg = markRaw(newData.results);
             this.maxScoreGcg = newData.maxScore;
             this.maxTimeGcg = newData.maxTime;
         },
     },
-    render(createElement, context) {
-        return createElement(Template);
-    },
-}).$mount("#app");
+});

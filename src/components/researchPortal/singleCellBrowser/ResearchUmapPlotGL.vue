@@ -60,14 +60,13 @@
         </div>
 
         <canvas ref="umapCanvas" class="umap-canvas" @click="onClick"></canvas>
-        <canvas ref="umapLabelCanvas" class="umap-label-canvas" :style="`display:${showLabels ? 'block' : 'none'}`"></canvas>
+        <canvas ref="umapLabelCanvas" class="umap-label-canvas" :style="{ display: showLabels ? 'block' : 'none' }"></canvas>
         <canvas v-if="is3dMode" ref="axisIndicatorCanvas" class="umap-axis-indicator"></canvas>
     </div>
 </template>
 
 <script>
 import * as d3 from 'd3';
-import Vue from 'vue';
 import EventBus from "@/utils/eventBus";
 import sharedUmapData from "@/components/researchPortal/singleCellBrowser/sharedUmapData.js";
 import mouseTooltip from '@/components/researchPortal/singleCellBrowser/mouseTooltip.js';
@@ -214,7 +213,8 @@ function colorToRgba(color, alpha = 255) {
     return [rgb.r, rgb.g, rgb.b, alpha];
 }
 
-export default Vue.component('research-umap-plot-gl', {
+export default {
+    name: "research-umap-plot-gl",
     props: {
         group: {
             type: String,
@@ -440,9 +440,13 @@ export default Vue.component('research-umap-plot-gl', {
             this.updateHighlightBuffer();
             this.requestRender(true);
         },
-        highlightLabels() {
-            this.updateHighlightBuffer();
-            this.requestRender(true);
+        highlightLabels: {
+            //the selector adds and removes labels in place
+            deep: true,
+            handler() {
+                this.updateHighlightBuffer();
+                this.requestRender(true);
+            },
         },
         expression() {
             this.updateExpressionScale();
@@ -471,7 +475,7 @@ export default Vue.component('research-umap-plot-gl', {
         window.addEventListener('resize', this.handleResize);
         this.init();
     },
-    beforeDestroy() {
+    beforeUnmount() {
         EventBus.$off('view-transform-change', this.handleUpdateViewTransform);
         window.removeEventListener('resize', this.handleResize);
         this.cleanUp();
@@ -857,10 +861,12 @@ export default Vue.component('research-umap-plot-gl', {
                 return;
             }
 
+            //read once, not for every cell: a read through `this` is slow on Vue 3
+            const { expression } = this;
             let min = Infinity;
             let max = -Infinity;
-            for (let index = 0; index < this.expression.length; index++) {
-                const value = this.expression[index];
+            for (let index = 0; index < expression.length; index++) {
+                const value = expression[index];
                 if (value == null || Number.isNaN(value)) continue;
                 if (value < min) min = value;
                 if (value > max) max = value;
@@ -915,13 +921,15 @@ export default Vue.component('research-umap-plot-gl', {
             const metadataLabels = this.labels.metadata_labels[labelField];
             const colors = new Uint8Array(indices.length * 4);
             const labelColors = this.colors[labelField] || {};
+            //read once, as in updateExpressionScale
+            const { expression, expressionScale } = this;
 
             for (let drawIndex = 0; drawIndex < indices.length; drawIndex++) {
                 const index = indices[drawIndex];
 
                 let rgba;
-                if (this.expressionScale && this.expression[index] != null) {
-                    rgba = colorToRgba(this.expressionScale(this.expression[index]));
+                if (expressionScale && expression[index] != null) {
+                    rgba = colorToRgba(expressionScale(expression[index]));
                 } else {
                     const labelIndex = metadata[index];
                     const label = metadataLabels[labelIndex];
@@ -1062,6 +1070,8 @@ export default Vue.component('research-umap-plot-gl', {
             const metadata = this.labels.metadata[labelField];
             const metadataLabels = this.labels.metadata_labels[labelField];
             const hasHighlightFilter = !!this.highlightLabel || this.highlightLabels.length > 0;
+            //read once, not for every cell: a lookup in a reactive array is slow on Vue 3
+            const highlighted = new Set([...this.highlightLabels, this.highlightLabel]);
             const highlight = new Uint8Array(indices.length);
 
             for (let drawIndex = 0; drawIndex < indices.length; drawIndex++) {
@@ -1073,7 +1083,7 @@ export default Vue.component('research-umap-plot-gl', {
 
                 const labelIndex = metadata[pointIndex];
                 const label = metadataLabels[labelIndex];
-                highlight[drawIndex] = label === this.highlightLabel || this.highlightLabels.includes(label) ? 255 : 0;
+                highlight[drawIndex] = highlighted.has(label) ? 255 : 0;
             }
 
             this.buffers.points.highlight = this.makeBuffer(highlight, this.buffers.points.highlight);
@@ -1752,7 +1762,7 @@ export default Vue.component('research-umap-plot-gl', {
             link.click();
         },
     },
-});
+};
 </script>
 
 <style scoped>

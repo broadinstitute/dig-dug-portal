@@ -19,12 +19,42 @@
                     &times;
                 </button>
             </header>
-            <div class="gp2-research-body"></div>
+            <div class="gp2-research-body">
+                <template v-if="panelId === 'genePrioritization'">
+                    <div v-if="genePrioritizationState.loading" class="gp2-research-status">
+                        Loading gene prioritization data…
+                    </div>
+                    <div v-else-if="genePrioritizationState.error" class="gp2-research-status gp2-research-status-error">
+                        {{ genePrioritizationState.error }}
+                    </div>
+                    <template v-else>
+                        <GP2BrowserGenePrioritizationFilters
+                            :rows="genePrioritizationState.rows"
+                            :filters="genePrioritizationFilters"
+                            :has-search-region="Boolean(searchRegion)"
+                            @update:filters="onGenePrioritizationFiltersUpdate"
+                        />
+                        <GP2BrowserGenePrioritizationTable
+                            :rows="genePrioritizationFilteredRows"
+                            :utils="utilsBox"
+                            @navigate-region="$emit('navigate-region', $event)"
+                        />
+                    </template>
+                </template>
+            </div>
         </div>
     </div>
 </template>
 
 <script>
+import GP2BrowserGenePrioritizationFilters from "./GP2BrowserGenePrioritizationFilters.vue";
+import GP2BrowserGenePrioritizationTable from "./GP2BrowserGenePrioritizationTable.vue";
+import {
+    fetchGp2GenePrioritization,
+    gp2GenePrioritizationDefaultFilters,
+    gp2GenePrioritizationFilterRows,
+} from "./gp2BrowserGenePrioritizationApi.js";
+
 const RESEARCH_PANEL_TITLES = {
     genePrioritization: "Gene prioritization",
     associatedPhenotypes: "Associated phenotypes",
@@ -33,13 +63,44 @@ const RESEARCH_PANEL_TITLES = {
 
 export default {
     name: "GP2BrowserResearchModal",
+    components: {
+        GP2BrowserGenePrioritizationFilters,
+        GP2BrowserGenePrioritizationTable,
+    },
     props: {
         panelId: {
             type: String,
             default: null,
         },
+        utilsBox: {
+            type: Object,
+            default: null,
+        },
+        searchRegion: {
+            type: Object,
+            default: null,
+        },
+    },
+    emits: ["close", "navigate-region"],
+    data() {
+        return {
+            genePrioritizationState: {
+                loading: false,
+                loaded: false,
+                error: null,
+                rows: [],
+            },
+            genePrioritizationFilters: gp2GenePrioritizationDefaultFilters(),
+        };
     },
     computed: {
+        genePrioritizationFilteredRows() {
+            return gp2GenePrioritizationFilterRows(
+                this.genePrioritizationState.rows,
+                this.genePrioritizationFilters,
+                this.searchRegion
+            );
+        },
         open() {
             return Boolean(this.panelId && RESEARCH_PANEL_TITLES[this.panelId]);
         },
@@ -50,10 +111,20 @@ export default {
             return `gp2-research-title-${this.panelId || "panel"}`;
         },
     },
+    watch: {
+        panelId: {
+            immediate: true,
+            handler(panelId) {
+                if (panelId === "genePrioritization") {
+                    this.loadGenePrioritization();
+                }
+            },
+        },
+    },
     mounted() {
         document.addEventListener("keydown", this.onKeyDown);
     },
-    beforeDestroy() {
+    beforeUnmount() {
         document.removeEventListener("keydown", this.onKeyDown);
     },
     methods: {
@@ -63,6 +134,26 @@ export default {
             }
             if (event.key === "Escape") {
                 this.$emit("close");
+            }
+        },
+        onGenePrioritizationFiltersUpdate(filters) {
+            this.genePrioritizationFilters = filters;
+        },
+        async loadGenePrioritization() {
+            if (this.genePrioritizationState.loaded || this.genePrioritizationState.loading) {
+                return;
+            }
+            this.genePrioritizationState.loading = true;
+            this.genePrioritizationState.error = null;
+            try {
+                const rows = await fetchGp2GenePrioritization();
+                this.genePrioritizationState.rows = rows;
+                this.genePrioritizationState.loaded = true;
+            } catch (error) {
+                this.genePrioritizationState.error =
+                    error?.message || "Failed to load gene prioritization data.";
+            } finally {
+                this.genePrioritizationState.loading = false;
             }
         },
     },
@@ -126,5 +217,14 @@ export default {
     min-height: 0;
     overflow: auto;
     padding: 14px 16px 18px;
+}
+
+.gp2-research-status {
+    font-size: 13px;
+    color: var(--cfde-muted, #6b6b6b);
+}
+
+.gp2-research-status-error {
+    color: #ee3124;
 }
 </style>

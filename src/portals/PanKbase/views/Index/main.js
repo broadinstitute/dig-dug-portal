@@ -1,4 +1,4 @@
-import Vue from "vue";
+import { mountPage } from "@/utils/pageSetup";
 import Template from "./Template.vue";
 import ResearchSingleSearch from "@/components/researchPortal/ResearchSingleSearch.vue";
 import DonorSnapshot from "@/portals/PanKbase/views/Donors/DonorSnapshot.vue";
@@ -20,7 +20,8 @@ import "../../assets/pkb-styles.css";
 import { pankbaseMixin } from "../../mixins/pankbaseMixin.js";
 import { getPankbaseContent } from "@/portals/PanKbase/utils/content";
 
-new Vue({
+// @vue/component
+mountPage(Template, {
     components: {
         ResearchSingleSearch,
         DonorSnapshot
@@ -28,7 +29,7 @@ new Vue({
 
     mixins: [pankbaseMixin],
 
-    data: {
+    data: () => ({
         newsFeed: null,
         content: {
             hero: {
@@ -268,7 +269,7 @@ new Vue({
         },
 
         preparedDataset: null
-    },
+    }),
 
     computed: {
         utilsBox() {
@@ -324,8 +325,4 @@ new Vue({
             this.newsFeed = newsFeed;
         },
     },
-
-    render(createElement) {
-        return createElement(Template);
-    },
-}).$mount("#app");
+});

@@ -115,8 +115,8 @@
                                 <span
                                     :class="['score-swatch', 'score-swatch-combined', evidenceRangeClass(row.item.Combined_support)]"
                                 ></span>
-                                {{ formatScore(row.item.Combined_support) }}
-                            </span>
+                                {{ formatScore(row.item.Combined_support) }}{{ " "
+                            }}</span>
                           </span>
                     </template>
                     <template #cell(Direct_support)="row">
@@ -125,8 +125,8 @@
                           <span
                               :class="['score-swatch', 'score-swatch-part', evidenceRangeClass(row.item.Direct_support)]"
                           ></span>
-                            {{ formatScore(row.item.Direct_support) }}
-                        </span>
+                            {{ formatScore(row.item.Direct_support) }}{{ " "
+                        }}</span>
                         <b-button
                           style="margin-left: 5px;"
                           variant="outline-primary"
@@ -144,8 +144,8 @@
                           <span
                               :class="['score-swatch', 'score-swatch-part', evidenceRangeClass(row.item.Indirect_support)]"
                           ></span>
-                            {{ formatScore(row.item.Indirect_support) }}
-                        </span>
+                            {{ formatScore(row.item.Indirect_support) }}{{ " "
+                        }}</span>
                         <b-button
                           style="margin-left: 5px;"
                           variant="outline-primary"
@@ -228,7 +228,7 @@
                         <strong>HuGE Score (&ge;)</strong>
                     </div>
                 </filter-greater-control>
-                <template slot="filtered" slot-scope="{ filter }">
+                <template v-slot:filtered="{ filter }">
                     <research-pigean-phewas-plot
                         v-if="hugePhewasData.length > 0"
                         ref="hugeScorePhewasPlot"
@@ -502,7 +502,8 @@ import userUtils from "@/utils/userUtils.js";
 import { TOOLTIP_MAP } from "../utils/pigeanUtils";
 import { query, DEFAULT_SIGMA, DEFAULT_GENESET_SIZE } from "@/utils/bioIndexUtils";
 
-export default Vue.component("pigean-phenotype", {
+export default {
+  name: "pigean-phenotype",
   components: {
     DataDownload,
     FilterEnumeration,
@@ -513,7 +514,10 @@ export default Vue.component("pigean-phenotype", {
     HugeScoresTable,
     Documentation,
     TooltipDocumentation,
-    PigeanLocusZoom
+    PigeanLocusZoom,
+    FilterEnumerationControl: FilterEnumeration,
+    FilterGreaterControl: FilterGreaterThan,
+    ResearchPigeanPhewasPlot: ResearchPigeanPheWAS,
   },
   props: ["phenotypeMap", "pigeanData", "hugeScores", "falconTraitAssociatedGenes", "phenotype", "docDetails", "filter", "plotColors"],
   data() {
@@ -1053,7 +1057,7 @@ export default Vue.component("pigean-phenotype", {
       }
     },
   }
-});
+};
 </script>
 <style scoped>
   .tab-documentation {

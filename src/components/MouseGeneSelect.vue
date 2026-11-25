@@ -15,21 +15,18 @@
 </template>
 
 <script>
-import Vue from "vue";
-import { BootstrapVue, IconsPlugin } from "bootstrap-vue";
 import VueTypeaheadBootstrap from "vue-typeahead-bootstrap";
 import Autocomplete from "@/components/Autocomplete.vue";
 import keyParams from "@/utils/keyParams";
 import { match } from "@/utils/bioIndexUtils";
-import "bootstrap/dist/css/bootstrap.css";
-import "bootstrap-vue/dist/bootstrap-vue.css";
-Vue.use(BootstrapVue);
-Vue.use(IconsPlugin);
-Vue.component("vue-typeahead-bootstrap", VueTypeaheadBootstrap);
-Vue.component("autocomplete", Autocomplete);
 
-export default Vue.component("mouse-gene-select", {
+export default {
+  name: "mouse-gene-select",
+  components: {
+    Autocomplete,
+  },
   props: [],
+  emits: ["onGeneChange"],
   data() {
       return {
           gene: keyParams.gene || "",
@@ -62,5 +59,5 @@ export default Vue.component("mouse-gene-select", {
   },
   watch: {
   },
-});
+};
 </script>

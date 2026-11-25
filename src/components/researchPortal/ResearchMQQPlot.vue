@@ -139,15 +139,12 @@
 </template>
 
 <script>
-import Vue from "vue";
 import $ from "jquery";
-import { BootstrapVueIcons } from "bootstrap-vue";
 import ResearchMPlotBitmapVector from "@/components/researchPortal/vectorPlots/ResearchMPlotBitmapVector.vue";
 import ResearchQQPlotVector from "@/components/researchPortal/vectorPlots/ResearchQqPlotVector.vue";
 
-Vue.use(BootstrapVueIcons);
-
-export default Vue.component("research-m-qq-plot", {
+export default {
+	name: "research-m-qq-plot",
 	props: [
 		"plotData",
 		"renderConfig",
@@ -208,13 +205,15 @@ export default Vue.component("research-m-qq-plot", {
 	},
 	components: {
 		ResearchMPlotBitmapVector,
-		ResearchQQPlotVector
+		ResearchQQPlotVector,
+		ResearchMBitmapPlotVector: ResearchMPlotBitmapVector,
+		ResearchQqPlotVector: ResearchQQPlotVector,
 	},
 	mounted: function () {
 		this.renderPlot(this.renderData);
 		window.addEventListener("resize", this.onResize);
 	},
-	beforeDestroy() {
+	beforeUnmount() {
 		window.removeEventListener("resize", this.onResize);
 	},
 	computed: {
@@ -1124,7 +1123,7 @@ export default Vue.component("research-m-qq-plot", {
 			}
 		},
 	},
-});
+};
 
 $(function () {});
 </script>

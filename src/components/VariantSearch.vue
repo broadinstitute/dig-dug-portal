@@ -77,10 +77,9 @@
                                         "
                                     >
                                         <template
-                                            v-for="(key, value) in disablebtn"
+                                            v-for="(key, value) in disablebtn" :key="key + value"
                                         >
                                             <b-form-checkbox
-                                                :key="key + value"
                                                 v-model="filters['impacts']"
                                                 name="impact"
                                                 :disabled="key"
@@ -250,8 +249,8 @@
                         ><span v-if="!!loadingData[data.item.varId]"
                             ><b-spinner small></b-spinner>
                             <span class="sr-only">Loading...</span></span
-                        ><span v-else>
-                            {{ data.detailsShowing ? "Hide" : "Show" }}
+                        ><span v-else>{{
+                            " " }}{{ data.detailsShowing ? "Hide" : "Show" }}
                             Annotations</span
                         >
                     </b-button>
@@ -360,8 +359,10 @@ import { query } from "@/utils/bioIndexUtils";
 import Formatters from "@/utils/formatters";
 import DataDownload from "@/components/DataDownload";
 import uiUtils from "@/utils/uiUtils";
+import { cloneDeep } from "@/utils/lodashUtils";
 
-export default Vue.component("VariantSearch", {
+export default {
+    name: "VariantSearch",
     components: {
         DataDownload,
     },
@@ -543,7 +544,7 @@ export default Vue.component("VariantSearch", {
         //This works to display all data fro BI
         tableData() {
             if (this.sortByImpacts && this.variantData.length) {
-                let sortedVariants = structuredClone(this.variantData);
+                let sortedVariants = cloneDeep(this.variantData);
                 //console.log("sortedVariants", sortedVariants);
                 return sortedVariants.sort((a, b) => {
                     return this.sortImpacts(a, b);
@@ -646,7 +647,7 @@ export default Vue.component("VariantSearch", {
                     }
                 }
 
-                this.variantData = structuredClone(this.variants);
+                this.variantData = cloneDeep(this.variants);
                 //if default filters are set, filter the variants
                 if (
                     this.filters.impacts.length > 0 ||
@@ -748,7 +749,7 @@ export default Vue.component("VariantSearch", {
             return frequency?.toFixed(5) || "";
         },
     },
-});
+};
 </script>
 <style>
 @import url("/css/table.css");

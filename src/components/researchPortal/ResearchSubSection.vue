@@ -142,13 +142,14 @@
 </template>
 
 <script>
-import Vue from "vue";
 import $ from "jquery";
 import ResearchSectionVisualizers from "@/components/researchPortal/ResearchSectionVisualizers.vue";
 import ResearchSectionComponents from "@/components/researchPortal/ResearchSectionComponents.vue";
 
-export default Vue.component("research-sub-section", {
+export default {
+	name: "research-sub-section",
 	props: ["sectionId","rowId","subSectionConfig", "subSectionData","phenotypeMap","utils","colors","starItems","plotMargin","multiSectionPage"],
+	emits: ["ld-data-loaded"],
 	components: {
 		ResearchSectionVisualizers,
 		ResearchSectionComponents,
@@ -610,7 +611,7 @@ export default Vue.component("research-sub-section", {
 			this.$emit("ld-data-loaded", LD_DATA);
 		}
 	},
-});
+};
 
 $(function () { });
 </script>

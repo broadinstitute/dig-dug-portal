@@ -44,17 +44,12 @@
 </template>
 
 <script>
-import Vue from "vue";
 import $ from "jquery";
-import { BootstrapVue, IconsPlugin } from "bootstrap-vue";
-import "bootstrap/dist/css/bootstrap.css";
-import "bootstrap-vue/dist/bootstrap-vue.css";
 import Documentation from "@/components/Documentation.vue";
 import { request } from "@/utils/bioIndexUtils.js";
 import { userMixin } from "@/mixins/userMixin";
-Vue.use(BootstrapVue);
-Vue.use(IconsPlugin);
-export default Vue.component("raw-img", {
+export default {
+    name: "raw-img",
     props: ["src", "documentation", "contentFill", "customFailureMsg"],
     mixins: [userMixin],
     components: {
@@ -113,5 +108,5 @@ export default Vue.component("raw-img", {
             handler: "getImage",
         },
     },
-});
+};
 </script>

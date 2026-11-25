@@ -27,9 +27,9 @@
     </span>
 </template>
 <script>
-import Vue from "vue";
 import FilterControlTemplate from "@/components/criterion/template/FilterControlTemplate";
-export default Vue.component("filter-greater-less", {
+export default {
+    name: "filter-greater-less",
     props: {
         field: String,
         label: String,
@@ -56,7 +56,7 @@ export default Vue.component("filter-greater-less", {
             filterGreater: true,
         };
     },
-});
+};
 </script>
 <style scoped>
 select.form-control {

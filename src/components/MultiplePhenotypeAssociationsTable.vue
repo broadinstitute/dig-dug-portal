@@ -63,10 +63,10 @@
                     >
                         {{
                             r.item[`${p.name}:beta`] < 0 ? "&#9660;" : "&#9650;"
-                        }}
-                    </span>
-                    <span>
-                        {{
+                        }}{{ " "
+                    }}</span>
+                    <span>{{
+                        " " }}{{
                             effectFormatter(
                                 p.dichotomous
                                     ? Math.exp(r.item[`${p.name}:beta`])
@@ -96,21 +96,15 @@
 </template>
 
 <script>
-import Vue from "vue";
-import { BootstrapVue, IconsPlugin } from "bootstrap-vue";
 import Formatters from "@/utils/formatters";
 
 import EffectorGenesMPlot from "@/components/eglt/EffectorGenesMPlot";
 
-Vue.use(BootstrapVue);
-Vue.use(IconsPlugin);
-
-import "bootstrap/dist/css/bootstrap.css";
-import "bootstrap-vue/dist/bootstrap-vue.css";
 import Documentation from "@/components/Documentation";
 import TooltipDocumentation from "@/components/TooltipDocumentation";
 
-export default Vue.component("multiple-phenotype-associations-table", {
+export default {
+    name: "multiple-phenotype-associations-table",
     props: [
         "associations",
         "phenotypes",
@@ -273,7 +267,7 @@ export default Vue.component("multiple-phenotype-associations-table", {
             return Formatters.consequenceFormatter(consequence);
         },
     },
-});
+};
 </script>
 
 <style>

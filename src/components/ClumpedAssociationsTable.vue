@@ -130,23 +130,15 @@
 </template>
 
 <script>
-import Vue from "vue";
-
-import { BootstrapVue, IconsPlugin } from "bootstrap-vue";
 import Formatters from "@/utils/formatters";
-
-Vue.use(BootstrapVue);
-Vue.use(IconsPlugin);
-
-import "bootstrap/dist/css/bootstrap.css";
-import "bootstrap-vue/dist/bootstrap-vue.css";
 
 import Documentation from "@/components/Documentation";
 import DataDownload from "@/components/DataDownload";
 
 import { isEqual } from "@/utils/lodashUtils";
 
-export default Vue.component("ClumpedAssociationsTable", {
+export default {
+    name: "ClumpedAssociationsTable",
     components: {
         Documentation,
         DataDownload,
@@ -334,5 +326,5 @@ export default Vue.component("ClumpedAssociationsTable", {
             return Formatters.consequenceFormatter(consequence);
         },
     },
-});
+};
 </script>

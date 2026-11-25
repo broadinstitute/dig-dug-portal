@@ -51,12 +51,13 @@
     </div>
 </template>
 <script>
-import Vue from "vue";
+import { markRaw } from "vue";
 import { BIO_INDEX_HOST, DEFAULT_SIGMA, DEFAULT_GENESET_SIZE } from "@/utils/bioIndexUtils";
 import { Network } from "vis-network";
 import { DataSet } from "vis-data";
 
-export default Vue.component("NetworkGraph", {
+export default {
+    name: "NetworkGraph",
     props: {
         phenotype: {
             type: [Object, String],
@@ -79,12 +80,16 @@ export default Vue.component("NetworkGraph", {
             loading: false,
             stabilizing: false,
             stabilizationProgress: 0,
-            nodes: new DataSet({
-                queue: true, // Enable queue mode for batch updates
-            }),
-            edges: new DataSet({
-                queue: true,
-            }),
+            nodes: markRaw(
+                new DataSet({
+                    queue: true, // Enable queue mode for batch updates
+                })
+            ),
+            edges: markRaw(
+                new DataSet({
+                    queue: true,
+                })
+            ),
             physicsEnabled: !this.isEmbed || false,
             error: null,
             showNavigation: false,
@@ -134,7 +139,7 @@ export default Vue.component("NetworkGraph", {
             }
         });
     },
-    beforeDestroy() {
+    beforeUnmount() {
         if (this.network) {
             this.network.destroy();
         }
@@ -308,8 +313,8 @@ export default Vue.component("NetworkGraph", {
                 this.network.destroy();
                 this.network = null;
             }
-            this.nodes = new DataSet({ queue: true });
-            this.edges = new DataSet({ queue: true });
+            this.nodes = markRaw(new DataSet({ queue: true }));
+            this.edges = markRaw(new DataSet({ queue: true }));
         },
 
         async refreshGraph() {
@@ -356,7 +361,7 @@ export default Vue.component("NetworkGraph", {
             const options = this.getNetworkOptions();
 
             // In the network initialization code
-            this.network = new Network(container, data, options);
+            this.network = markRaw(new Network(container, data, options));
 
             // Add multiple event listeners for proper stabilization and fitting
             this.network.on("stabilizationStart", () => {
@@ -453,7 +458,7 @@ export default Vue.component("NetworkGraph", {
             }
         },
     },
-});
+};
 </script>
 
 <style scoped>

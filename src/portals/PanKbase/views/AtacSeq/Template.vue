@@ -34,6 +34,22 @@
         <pkb-footer></pkb-footer>
     </div>
 </template>
+
+<script>
+import AtacSeq from "@/portals/PanKbase/components/AtacSeq.vue";
+import PkbFooter from "@/portals/PanKbase/components/pkb-footer.vue";
+import PkbHeader from "@/portals/PanKbase/components/pkb-header.vue";
+import ResearchSingleSearch from "@/components/researchPortal/ResearchSingleSearch.vue";
+
+export default {
+    components: {
+        AtacSeq,
+        PkbFooter,
+        PkbHeader,
+        ResearchSingleSearch,
+    },
+};
+</script>
 <style scoped>
 .pkb-body {
     max-width: 2000px;

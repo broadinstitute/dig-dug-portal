@@ -37,8 +37,8 @@
                 <strong>{{ tip.row.id }}</strong
                 ><span>{{ xLabel }}: {{ format(tip.row[xKey]) }}</span
                 ><span>{{ yLabel }}: {{ format(tip.row[yKey]) }}</span>
-                <span v-if="colorKey">
-                    {{ colorLabel }}: {{ format(tip.row[colorKey]) }}
+                <span v-if="colorKey">{{
+                    " " }}{{ colorLabel }}: {{ format(tip.row[colorKey]) }}
                 </span>
             </div>
         </div>
@@ -77,6 +77,7 @@ export default {
         pointRadius: { type: Number, default: 3 },
         labelQuadrants: { type: Boolean, default: false}
     },
+    emits: ["select"],
     data: () => ({ height: 425, tip: null, width: 600 }),
     computed: {
         points() {
@@ -142,7 +143,7 @@ export default {
         this.observer.observe(this.$refs.host);
         this.draw();
     },
-    beforeDestroy() {
+    beforeUnmount() {
         if (this.observer) this.observer.disconnect();
     },
     methods: {

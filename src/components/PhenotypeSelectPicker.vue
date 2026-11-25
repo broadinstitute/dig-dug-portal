@@ -10,7 +10,7 @@
 		:showOnFocus="true"
 		@hit="onPhenotypeSelected($event)"
 	>
-		<template slot="suggestion" slot-scope="{ data, htmlText }">
+		<template v-slot:suggestion="{ data, htmlText }">
 			<span v-html="htmlText"></span>&nbsp;
 			<small class="text-secondary">{{ data.group }}</small>
 		</template>
@@ -18,17 +18,13 @@
 </template>
 
 <script>
-import Vue from "vue";
-
-import { BootstrapVue, IconsPlugin } from "bootstrap-vue";
 import VueTypeaheadBootstrap from "vue-typeahead-bootstrap";
-import "bootstrap/dist/css/bootstrap.css";
-import "bootstrap-vue/dist/bootstrap-vue.css";
-Vue.use(BootstrapVue);
-Vue.use(IconsPlugin);
-Vue.component("vue-typeahead-bootstrap", VueTypeaheadBootstrap);
 
-export default Vue.component("phenotype-selectpicker", {
+export default {
+	name: "phenotype-selectpicker",
+	components: {
+		VueTypeaheadBootstrap,
+	},
 	props: [
 		"phenotypes",
 		"clearOnSelected",
@@ -49,7 +45,7 @@ export default Vue.component("phenotype-selectpicker", {
 				return [];
 			}
 
-			return this.phenotypes.sort((a, b) => {
+			return [...this.phenotypes].sort((a, b) => {
 				if (a.group < b.group) return -1;
 				if (b.group < a.group) return 1;
 
@@ -98,5 +94,5 @@ export default Vue.component("phenotype-selectpicker", {
 			}
 		},
 	},
-});
+};
 </script>

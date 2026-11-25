@@ -1,4 +1,4 @@
-import Vue from "vue";
+import { mountPage } from "@/utils/pageSetup";
 import Template from "./Template.vue";
 import store from "./store.js";
 
@@ -23,7 +23,8 @@ import regionUtils from "@/utils/regionUtils";
 import { BIO_INDEX_HOST } from "@/utils/bioIndexUtils";
 import { pageMixin } from "@/mixins/pageMixin.js";
 
-new Vue({
+// @vue/component
+mountPage(Template, {
     store,
     components: {
         PhenotypeSelectPicker,
@@ -37,7 +38,7 @@ new Vue({
     },
     mixins: [pageMixin],
 
-    data: {
+    data: () => ({
         selected: "",
         searches: [
             { id: "gene", name: "gene" },
@@ -152,7 +153,7 @@ new Vue({
                 },
             ],
         },
-    },
+    }),
 
     computed: {
         utilsBox() {
@@ -450,8 +451,4 @@ new Vue({
             this.$store.dispatch("phenotypesInSession", output);
         }
     },
-
-    render(createElement, context) {
-        return createElement(Template);
-    },
-}).$mount("#app");
+});

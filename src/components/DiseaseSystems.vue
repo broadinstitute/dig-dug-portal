@@ -47,8 +47,8 @@
 		</div>
 		<div v-if="page == 'front'" class="row disease-systems-front">
 			<div class="disease-systems-tree col-md-12">
-				<template v-for="system in diseaseSystems">
-					<div class="disease-system col-md-2" :key="system">
+				<template v-for="system in diseaseSystems" :key="system">
+					<div class="disease-system col-md-2">
 						<img
 							class="disease-systems-icon"
 							:src="
@@ -349,7 +349,7 @@
 						></phenotype-selectpicker>
 					</div>
 					<div class="col filter-col-sm">
-						<div class="label">P-Value(<=)</div>
+						<div class="label">P-Value(&lt;=)</div>
 
 						<input
 							type="text"
@@ -468,16 +468,17 @@
 </template>
 
 <script>
-import Vue from "vue";
 import uiUtils from "@/utils/uiUtils.js";
 import keyParams from "@/utils/keyParams";
 import userUtils from "@/utils/userUtils.js";
 import sessionUtils from "@/utils/sessionUtils.js";
 import sortUtils from "@/utils/sortUtils.js";
+import { orderBy } from "@/utils/lodashUtils";
 import Formatters from "@/utils/formatters";
 import PhenotypeSelectPicker from "@/components/PhenotypeSelectPicker.vue";
 
-export default Vue.component("disease-systems", {
+export default {
+	name: "disease-systems",
 	props: [
 		"page",
 		"phenotypes",
@@ -500,7 +501,7 @@ export default Vue.component("disease-systems", {
 			PBuilderDSystem: null,
 		};
 	},
-	components: { PhenotypeSelectPicker },
+	components: { PhenotypeSelectPicker, PhenotypeSelectpicker: PhenotypeSelectPicker },
 	mounted() {
 		this.setDiseaseSystems();
 		this.getCustomPhenotypes();
@@ -683,7 +684,13 @@ export default Vue.component("disease-systems", {
 
 			let phList = [];
 
-			this.phenotypes.map((p) => {
+			// the order of the phenotype picker, where there is one
+			let phenotypes =
+				TYPE == "correlation"
+					? orderBy(this.phenotypes, ["group", "description"])
+					: this.phenotypes;
+
+			phenotypes.map((p) => {
 				phenotypeIds.map((id) => {
 					if (p.name == id) {
 						phList.push(p);
@@ -900,7 +907,7 @@ export default Vue.component("disease-systems", {
 			return kps;
 		},
 	},
-});
+};
 </script>
 <style scoped>
 .ph-builder-filters-wrapper {

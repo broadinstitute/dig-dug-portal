@@ -1,4 +1,4 @@
-import Vue from "vue";
+import { mountPage } from "@/utils/pageSetup";
 import Template from "./Template.vue";
 import "../../assets/layout.css";
 import "../../assets/pkb-styles.css";
@@ -37,7 +37,8 @@ import {
     createSearchResetState
 } from "./ligerState";
 
-new Vue({
+// @vue/component
+mountPage(Template, {
     mixins: [pankbaseMixin],
 
     data() {
@@ -84,7 +85,7 @@ new Vue({
         this.injectScript("https://cdn.jsdelivr.net/npm/d3@7");
     },
 
-    beforeDestroy() {
+    beforeUnmount() {
         if (this.browserCanvasAnimationTimer) {
             clearTimeout(this.browserCanvasAnimationTimer);
             this.browserCanvasAnimationTimer = null;
@@ -542,7 +543,7 @@ new Vue({
         },
         async toggleGroup(groupKey, loader = null) {
             const nextExpandedState = !this.isGroupExpanded(groupKey);
-            this.$set(this.expandedGroups, groupKey, nextExpandedState);
+            this.expandedGroups[groupKey] = nextExpandedState;
 
             if (nextExpandedState && loader) {
                 await loader();
@@ -571,7 +572,7 @@ new Vue({
             }
 
             try {
-                this.$set(this.modelFactorLoading, factorContextKey, true);
+                this.modelFactorLoading[factorContextKey] = true;
 
                 // Progressive loading note: only fetch factor summaries once the
                 // user opens a specific model branch. That keeps the first result
@@ -582,10 +583,10 @@ new Vue({
                     return lookup;
                 }, {});
 
-                this.$set(this.modelFactorDetails, factorContextKey, factorMap);
+                this.modelFactorDetails[factorContextKey] = factorMap;
                 return factorMap;
             } finally {
-                this.$set(this.modelFactorLoading, factorContextKey, false);
+                this.modelFactorLoading[factorContextKey] = false;
             }
         },
         resetSearchState() {
@@ -719,8 +720,4 @@ new Vue({
         },
 
     },
-
-    render(createElement, context) {
-        return createElement(Template);
-    },
-}).$mount("#app");
+});

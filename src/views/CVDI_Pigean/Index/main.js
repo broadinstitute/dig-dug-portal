@@ -1,4 +1,4 @@
-import Vue from "vue";
+import { mountPage } from "@/utils/pageSetup";
 import Template from "./Template.vue";
 import store from "./store.js";
 
@@ -23,7 +23,8 @@ import regionUtils from "@/utils/regionUtils";
 import { BIO_INDEX_HOST, getPhecodeMap, getAllGenesets } from "../utils/cvdiBioIndexUtils";
 import { pageMixin } from "@/mixins/pageMixin.js";
 
-new Vue({
+// @vue/component
+mountPage(Template, {
     store,
     components: {
         PhenotypeSelectPicker,
@@ -37,7 +38,7 @@ new Vue({
     },
     mixins: [pageMixin],
 
-    data: {
+    data: () => ({
         pigeanPhenotypeMap: {},
         genesetSearchOptions: [],
         selected: "",
@@ -155,7 +156,7 @@ new Vue({
             ],
             "showTraitGroup": true
         },
-    },
+    }),
 
     computed: {
         utilsBox() {
@@ -440,8 +441,4 @@ new Vue({
             });
         },
     },
-
-    render(createElement, context) {
-        return createElement(Template);
-    },
-}).$mount("#app");
+});

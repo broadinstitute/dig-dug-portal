@@ -73,7 +73,6 @@
     </b-row>
 </template>
 <script>
-import Vue from "vue";
 import jsonQuery from "json-query";
 import queryString from "query-string";
 import ResolvedCurie from "@/components/NCATS/ResolvedCurieLink";
@@ -84,7 +83,12 @@ import DataDownload from "@/components/DataDownload";
 
 const myGeneAPI = "https://mygene.info/v3";
 
-export default Vue.component("translator-predicate-table", {
+export default {
+    name: "translator-predicate-table",
+    components: {
+        DataDownload,
+        ResolvedCurieLink: ResolvedCurie,
+    },
     props: ["title", "geneSymbol", "field", "filter"],
     component: {
         ResolvedCurie,
@@ -257,5 +261,5 @@ export default Vue.component("translator-predicate-table", {
             return item.pubmed;
         }
     },
-});
+};
 </script>

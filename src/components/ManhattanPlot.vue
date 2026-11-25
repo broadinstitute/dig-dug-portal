@@ -5,13 +5,14 @@
 </template>
 
 <script>
-import Vue from "vue";
+import { markRaw } from "vue";
 import c3 from "c3";
 import Colors from "@/utils/colors";
 import Formatters from "@/utils/formatters";
 import { difference } from "@/utils/lodashUtils";
 
-export default Vue.component("ManhattanPlot", {
+export default {
+    name: "ManhattanPlot",
     props: ["associations", "colorByPhenotype", "phenotypes", "phenotypeMap"],
 
     data() {
@@ -99,8 +100,7 @@ export default Vue.component("ManhattanPlot", {
                 names[p] = this.phenotypeMap[p]?.description;
             }
 
-            // attach to the dom
-            this.chart = c3.generate({
+            const config = {
                 bindto: "#manhattan",
                 size: {
                     height: 300,
@@ -199,10 +199,12 @@ export default Vue.component("ManhattanPlot", {
                         label: "-log10(p)",
                     },
                 },
-            });
+            };
+            // attach to the dom
+            this.chart = markRaw(c3.generate(config));
         },
     },
-});
+};
 
 let chromosomeLength = {
     //chromosome name, length

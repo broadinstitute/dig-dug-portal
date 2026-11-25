@@ -80,9 +80,9 @@
                         class="vks-session-param-phenotype-bubble"
                         role="listitem"
                     >
-                        <span class="vks-session-param-phenotype-bubble-label">
-                            {{ bubble.label }}
-                        </span>
+                        <span class="vks-session-param-phenotype-bubble-label">{{
+                            " " }}{{ bubble.label }}{{ " "
+                        }}</span>
                         <button
                             v-if="canRemovePanelPhenotype"
                             type="button"
@@ -274,6 +274,7 @@ export default {
             default: "",
         },
     },
+    emits: ["remove-phenotype", "apply-search"],
     data() {
         paramFieldCounter += 1;
         const suffix = paramFieldCounter;
@@ -437,7 +438,7 @@ export default {
         document.addEventListener("click", this.onDocumentClick, true);
         document.addEventListener("keydown", this.onDocumentKeydown);
     },
-    beforeDestroy() {
+    beforeUnmount() {
         document.removeEventListener("click", this.onDocumentClick, true);
         document.removeEventListener("keydown", this.onDocumentKeydown);
         if (this.geneLookupTimer) {

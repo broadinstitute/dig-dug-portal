@@ -1,0 +1,8 @@
+{
+  "url": "https://hugeampkpncms.org/rest/byor_content?id=pankbase_databrowser",
+  "status": 200,
+  "headers": {
+    "content-type": "application/json"
+  },
+  "body": "[{\"title\":\"Data Browser\",\"field_data_points\":false,\"field_data_table_format\":false,\"body\":\"\\u003Ch2\\u003EData Browser\\u003C\\/h2\\u003E\\n\\u003Cp style=\\u0022font-size:18px;margin-bottom:40px;\\u0022\\u003EThrough the PanKbase Data Library, explore a rich assortment of resources curated by field experts. The Data Library includes donor details from ~3500 human pancreatic islet donors, biosamples and their corresponding raw and experimental data, and processed data derived from bioinformatics pipelines. Moreover, the library includes metadata, curated pipelines and workflows, and data and metadata standards. Toggle between listings of donors, assays, analyses, and processed results. For more information, click an Accession ID to link to our \\u003Ca href=\\u0022https:\\/\\/pankbase-ui-dev.demo.pankbase.org\\/search\\/?type=Donor\\u0022 target=\\u0022blank\\u0022\\u003EDonor Catalog\\u003C\\/a\\u003E.\\u003C\\/p\\u003E\\n\",\"field_page_style\":false}]"
+}

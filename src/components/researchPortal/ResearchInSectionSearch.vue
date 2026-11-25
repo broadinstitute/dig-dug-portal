@@ -72,8 +72,8 @@
 								? 'display:none !important;'
 								: ''
 								">
-							<template v-for="option in listOptions[parameter.parameter]">
-								<a href="javascript:;" v-html="option.label" :key="option.value" @click="setListValue(
+							<template v-for="option in listOptions[parameter.parameter]" :key="option.value">
+								<a href="javascript:;" v-html="option.label" @click="setListValue(
 									option.value,
 									parameter.parameter,
 									paramIndex,
@@ -104,11 +104,10 @@
 										: ''
 									"
 							>
-								<template v-for="gene in kpGenes">
+								<template v-for="gene in kpGenes" :key="gene">
 									<a
 										href="javascript:;"
 										v-html="gene"
-										:key="gene"
 										@click="
 											parameter['convert to region'] &&
 												parameter['convert to region'] ==
@@ -174,11 +173,11 @@
 </template>
 
 <script>
-import Vue from "vue";
 //import uiUtils from "@/utils/uiUtils";
 //import alertUtils from "@/utils/alertUtils";
 
-export default Vue.component("research-in-section-search", {
+export default {
+	name: "research-in-section-search",
 	props: [
 		"searchParameters",
 		"phenotypesInUse",
@@ -216,7 +215,7 @@ export default Vue.component("research-in-section-search", {
 			}
 		})
 	},
-	beforeDestroy() {
+	beforeUnmount() {
 		window.removeEventListener("scroll", this.onScroll);
 	},
 	computed: {
@@ -460,7 +459,7 @@ export default Vue.component("research-in-section-search", {
 			}
 		},
 	},
-});
+};
 </script>
 
 <style>

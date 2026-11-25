@@ -1,5 +1,4 @@
 <script>
-import Vue from "vue";
 import InfoTip from "./InfoTip.vue";
 
 // The source-data tab: metadata for the single-cell dataset the programs in the
@@ -12,7 +11,8 @@ import InfoTip from "./InfoTip.vue";
 // dataset the portal has and the rows are not uniform, so an empty field is normal
 // -- printing a label with nothing after it would read as missing data rather than
 // as a field this dataset does not carry.
-export default Vue.component("DatasetInfo", {
+export default {
+    name: "DatasetInfo",
     components: {
         InfoTip
     },
@@ -153,7 +153,7 @@ export default Vue.component("DatasetInfo", {
             return label === "Email";
         }
     }
-});
+};
 </script>
 
 <template>
@@ -199,16 +199,16 @@ export default Vue.component("DatasetInfo", {
 
                 <div v-if="hasAnyFields" class="info-columns">
                     <dl v-if="provenanceFields.length" class="info-fields">
-                        <template v-for="fieldItem in provenanceFields">
-                            <dt :key="fieldItem.label + '-label'">{{ fieldItem.label }}</dt>
-                            <dd :key="fieldItem.label + '-value'">{{ fieldItem.value }}</dd>
+                        <template v-for="fieldItem in provenanceFields" :key="fieldItem.label">
+                            <dt>{{ fieldItem.label }}</dt>
+                            <dd>{{ fieldItem.value }}</dd>
                         </template>
                     </dl>
 
                     <dl v-if="methodFields.length" class="info-fields">
-                        <template v-for="fieldItem in methodFields">
-                            <dt :key="fieldItem.label + '-label'">{{ fieldItem.label }}</dt>
-                            <dd :key="fieldItem.label + '-value'">
+                        <template v-for="fieldItem in methodFields" :key="fieldItem.label">
+                            <dt>{{ fieldItem.label }}</dt>
+                            <dd>
                                 <a v-if="isEmail(fieldItem.label)" :href="'mailto:' + fieldItem.value">{{ fieldItem.value }}</a>
                                 <template v-else>{{ fieldItem.value }}</template>
                             </dd>
@@ -226,8 +226,8 @@ export default Vue.component("DatasetInfo", {
             <div class="section-head">
                 <h5 class="section-title">Cell types</h5>
                 <span v-if="cellTypes.length" class="section-count">{{ cellTypes.length }}</span>
-                <span class="section-note">
-                    {{ cellTypeGene || "Gene" }} expression, log10_cpk
+                <span class="section-note">{{
+                    " " }}{{ cellTypeGene || "Gene" }} expression, log10_cpk
                 </span>
             </div>
 

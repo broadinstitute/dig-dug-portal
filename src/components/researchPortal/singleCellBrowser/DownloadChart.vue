@@ -7,7 +7,6 @@
   </b-dropdown>
 </template>
 <script>
-import Vue from "vue";
 import uiUtils from "@/utils/uiUtils";
 import EventBus from "@/utils/eventBus";
 import { llog } from "./llog.js";
@@ -17,7 +16,8 @@ import { llog } from "./llog.js";
 const MAX_CANVAS_SIDE = 65535;
 const MAX_CANVAS_AREA = 268435456;
 const EMPTY_DATA_URL_LENGTH = "data:,".length;
-export default Vue.component("DownloadChart", {
+export default {
+    name: "DownloadChart",
     props: {
       chartId: {
         type: String,
@@ -408,7 +408,7 @@ export default Vue.component("DownloadChart", {
         document.body.removeChild(newDiv);
       }
     },
-});
+};
 </script>
 <style>
   .download-chart {

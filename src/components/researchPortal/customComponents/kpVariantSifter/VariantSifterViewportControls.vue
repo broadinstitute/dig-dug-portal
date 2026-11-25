@@ -127,6 +127,14 @@ export default {
             default: false,
         },
     },
+    emits: [
+        "update:dataTableOpen",
+        "toggle-assistant",
+        "toggle-settings",
+        "zoom-slider-commit",
+        "update:regionZoom",
+        "update:regionZoomOut",
+    ],
     data() {
         zoomInputCounter += 1;
         return {
@@ -202,7 +210,7 @@ export default {
             }
         },
     },
-    beforeDestroy() {
+    beforeUnmount() {
         this.endZoomDragListeners();
     },
     methods: {

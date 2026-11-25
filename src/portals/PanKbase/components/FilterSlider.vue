@@ -11,26 +11,19 @@
             :displayLabel="field"
             :values="cleanupValues"
             :totalRowCount="cleanupValues.length"
-            :value="presetRange"
+            :modelValue="presetRange"
             :customStep="customStep"
-            @input="(e) => updateFilter(e)"
+            @update:modelValue="(e) => updateFilter(e)"
         ></numeric-range-filter>
     </div>
 </template>
 
 <script>
-import Vue from "vue";
 import NumericRangeFilter from "../views/Donors/NumericRangeFilter.vue";
 import { parseNumericValue } from "../views/Donors/datasetUtils";
-import { BootstrapVue, IconsPlugin } from "bootstrap-vue";
 
-Vue.use(BootstrapVue);
-Vue.use(IconsPlugin);
-
-import "bootstrap/dist/css/bootstrap.css";
-import "bootstrap-vue/dist/bootstrap-vue.css";
-
-export default Vue.component("filter-slider", {
+export default {
+    name: "filter-slider",
     props: {
         value: Object,
         field: String,
@@ -129,5 +122,5 @@ export default Vue.component("filter-slider", {
             }
         },
     },
-});
+};
 </script>

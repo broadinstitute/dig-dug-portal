@@ -25,8 +25,8 @@
 						@change="applyFilter()"
 					>
 						<option value="" selected>All</option>
-						<template v-for="collection in processedCollection">
-							<option :value="collection" :key="collection">
+						<template v-for="collection in processedCollection" :key="collection">
+							<option :value="collection">
 								{{ collection }}
 							</option>
 						</template>
@@ -41,8 +41,8 @@
 						:disabled="!diseases.length"
 					>
 						<option value="" selected>All</option>
-						<template v-for="diseaseName in diseases">
-							<option :value="diseaseName" :key="diseaseName">
+						<template v-for="diseaseName in diseases" :key="diseaseName">
+							<option :value="diseaseName">
 								{{ tissueFormatter(diseaseName) }}
 							</option>
 						</template>
@@ -53,12 +53,13 @@
 	</div>
 </template>
 <script>
-import Vue from "vue";
 import * as d3 from "d3";
 import uiUtils from "@/utils/uiUtils";
 import Formatters from "@/utils/formatters";
-export default Vue.component("ResearchExpressionFilter", {
+export default {
+	name: "ResearchExpressionFilter",
 	props: ["rawData", "filter", "plotByField", "skipSort"],
+	emits: ["dataReady"],
 	data() {
 		return {
 			logScale: true,
@@ -165,5 +166,5 @@ export default Vue.component("ResearchExpressionFilter", {
 			this.$emit("dataReady", processedData);
 		},
 	},
-});
+};
 </script>

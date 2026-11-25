@@ -1,5 +1,4 @@
 <script>
-import Vue from "vue";
 import { formatMetric, formatPValue } from "./ligerFormat";
 import HeatTable from "./HeatTable.vue";
 
@@ -28,7 +27,8 @@ const PREVIEW_TRAIT_ROWS = 4;
 // only thing in the API that speaks to whether the program is worth reading
 // biologically. It does not assert a quality class -- the panel used to show one
 // ("Exploratory biological") that no endpoint returns.
-export default Vue.component("ProgramDetails", {
+export default {
+    name: "ProgramDetails",
     components: {
         HeatTable
     },
@@ -47,6 +47,7 @@ export default Vue.component("ProgramDetails", {
             default: false
         }
     },
+    emits: ["open-state"],
 
     data() {
         return {
@@ -225,7 +226,7 @@ export default Vue.component("ProgramDetails", {
                 : `${row.rank}. ${row.gene}`;
         },
     },
-});
+};
 </script>
 
 <template>
@@ -244,9 +245,9 @@ export default Vue.component("ProgramDetails", {
                  this record, opposite the name. -->
             <div class="detail-curation-summary">
                 <dl v-if="summaryFields.length" class="detail-field-grid">
-                    <template v-for="field in summaryFields">
-                        <dt :key="`${field.label}-dt`">{{ field.label }}</dt>
-                        <dd :key="`${field.label}-dd`">{{ field.value }}</dd>
+                    <template v-for="field in summaryFields" :key="field.label">
+                        <dt>{{ field.label }}</dt>
+                        <dd>{{ field.value }}</dd>
                     </template>
                 </dl>
                 <div v-else class="empty-state">No program metadata reported.</div>
@@ -284,9 +285,9 @@ export default Vue.component("ProgramDetails", {
                                     v-for="row in previewGenes"
                                     :key="`preview-gene-${row.gene}`"
                                     class="detail-marker"
-                                >
-                                    {{ geneLoadingText(row) }}
-                                </span>
+                                >{{
+                                    " " }}{{ geneLoadingText(row) }}{{ " "
+                                }}</span>
                             </div>
                             <button type="button" class="detail-link-button" @click="selectTab('genes')">
                                 View top {{ topGenes.rows.length }} genes

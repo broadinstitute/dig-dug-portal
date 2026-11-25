@@ -126,6 +126,14 @@ export default {
             default: () => [],
         },
     },
+    emits: [
+        "update:regionViewArea",
+        "set-reference-variant",
+        "toggle-star-variant",
+        "toggle-position-marker",
+        "update:regionShiftBp",
+        "pan-end",
+    ],
     data() {
         return {
             dotPositions: [],
@@ -243,7 +251,7 @@ export default {
             }
         });
     },
-    beforeDestroy() {
+    beforeUnmount() {
         window.removeEventListener("resize", this.onResize);
         document.removeEventListener("mousedown", this.onDocumentMouseDown);
         this.endPanListeners();

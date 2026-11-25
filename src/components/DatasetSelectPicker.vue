@@ -13,9 +13,13 @@
 </template>
 
 <script>
-import Vue from "vue";
+import VueTypeaheadBootstrap from "vue-typeahead-bootstrap";
 
-export default Vue.component("dataset-selectpicker", {
+export default {
+    name: "dataset-selectpicker",
+    components: {
+        VueTypeaheadBootstrap,
+    },
     props: ["datasets"],
 
     data() {
@@ -29,7 +33,7 @@ export default Vue.component("dataset-selectpicker", {
                 return [];
             }
 
-            return this.datasets.sort((a, b) => {
+            return [...this.datasets].sort((a, b) => {
                 if (a.description < b.description) return -1;
                 if (b.description < a.description) return 1;
 
@@ -52,5 +56,5 @@ export default Vue.component("dataset-selectpicker", {
             });
         },
     },
-});
+};
 </script>

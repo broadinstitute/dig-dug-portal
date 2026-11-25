@@ -29,10 +29,11 @@
     </div>
 </template>
 <script>
-import Vue from "vue";
 import Formatters from "@/utils/formatters";
-export default Vue.component("ResearchDatasetSubtable", {
+export default {
+    name: "ResearchDatasetSubtable",
     props: ["row", "fields", "plotByField"],
+    emits: ["highlight"],
     data() {
         return {
             perPage: 10,
@@ -80,7 +81,7 @@ export default Vue.component("ResearchDatasetSubtable", {
             });
         },
     },
-});
+};
 </script>
 <style scoped>
 .row {

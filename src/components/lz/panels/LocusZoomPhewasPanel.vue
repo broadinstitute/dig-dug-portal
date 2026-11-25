@@ -1,11 +1,11 @@
 <script>
 
-import Vue from "vue";
 import LzPanel from "./LzPanel"
 import { LZBioIndexSource } from "@/utils/lzUtils"
 import { LzLayout, LzPanelClass, LzDataSource, bioIndexParams } from "@/components/lz/beta/lzConfiguration";
 
-export default Vue.component('lz-phewas-panel', {
+export default {
+    name: "lz-phewas-panel",
     components: {
         LzPanel
     },
@@ -23,6 +23,7 @@ export default Vue.component('lz-phewas-panel', {
             required: true,
         },
     },
+    emits: ["input", "resolve", "error"],
     created() {
         this.panelClass = makePhewasPanel(
             this.id, 
@@ -53,7 +54,7 @@ export default Vue.component('lz-phewas-panel', {
         },
     },
     
-});
+};
 
 export function makePhewasPanel(varOrGeneId, idType, phenotypeMap, onLoad, onResolve, onError, initialData) {
     const index = ({ gene: 'gene-associations', variant: 'phewas-associations' })[idType];

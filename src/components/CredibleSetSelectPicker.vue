@@ -9,7 +9,7 @@
         :minMatchingChars="0"
         :maxMatches="1000"
         @hit="onCredibleSetSelected($event)">
-        <template slot="suggestion" slot-scope="{ data, htmlText }">
+        <template v-slot:suggestion="{ data, htmlText }">
             <span v-html="htmlText"></span>&nbsp;
             <small class="text-secondary">
                 {{ data.credibleSetId === 'computed' ? 'from current associations' : `${data.dataset}` }}
@@ -20,18 +20,13 @@
 </template>
 
 <script>
-import Vue from "vue";
-
-import { BootstrapVue, IconsPlugin } from "bootstrap-vue";
 import VueTypeaheadBootstrap from "vue-typeahead-bootstrap";
-import "bootstrap/dist/css/bootstrap.css";
-import "bootstrap-vue/dist/bootstrap-vue.css";
 
-Vue.use(BootstrapVue);
-Vue.use(IconsPlugin);
-Vue.component("vue-typeahead-bootstrap", VueTypeaheadBootstrap);
-
-export default Vue.component("credible-sets-selectpicker", {
+export default {
+    name: "credible-sets-selectpicker",
+    components: {
+        VueTypeaheadBootstrap,
+    },
     props: {
         credibleSets: {
             type: Array,
@@ -46,6 +41,7 @@ export default Vue.component("credible-sets-selectpicker", {
             required: false,
         }
     },
+    emits: ["credibleset"],
     data() {
         return {
             userText: this.defaultSet || null
@@ -56,15 +52,15 @@ export default Vue.component("credible-sets-selectpicker", {
             if (!this.credibleSets) {
                 return [];
             }
-            this.credibleSets.sort((a, b) => {
+            let options = [...this.credibleSets].sort((a, b) => {
                 if (a.credibleSetId < b.credibleSetId) return -1;
                 if (b.credibleSetId < a.credibleSetId) return 1;
                 return 0;
             });
-            this.credibleSets.unshift({
+            options.unshift({
                 credibleSetId: 'computed',
             })
-            return this.credibleSets;
+            return options;
         }
     },
     methods: {
@@ -80,5 +76,5 @@ export default Vue.component("credible-sets-selectpicker", {
             });
         }
     }
-});
+};
 </script>

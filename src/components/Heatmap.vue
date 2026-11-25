@@ -46,16 +46,13 @@
 </template>
 
 <script>
-import Vue from "vue";
 import $ from "jquery";
 import uiUtils from "@/utils/uiUtils";
 import plotUtils from "@/utils/plotUtils";
-import { BootstrapVueIcons } from "bootstrap-vue";
 import Formatters from "@/utils/formatters.js";
 
-Vue.use(BootstrapVueIcons);
-
-export default Vue.component("heatmap", {
+export default {
+    name: "heatmap",
     props: {
         heatmapData: {
             type: Array,
@@ -78,9 +75,6 @@ export default Vue.component("heatmap", {
             phenotypeMap: this.$store.state.bioPortal.phenotypeMap,
             colors: {},
             separator: "___",
-            lo: null,
-            mid: null,
-            hi: null,
         };
     },
     modules: {
@@ -92,7 +86,7 @@ export default Vue.component("heatmap", {
         this.renderHeatmap();
         this.renderScaleLegend();
     },
-    beforeDestroy() {},
+    beforeUnmount() {},
     computed: {
         renderData() {
             if (this.heatmapData.length === 0) {
@@ -101,11 +95,6 @@ export default Vue.component("heatmap", {
                     rows: [],
                     empty: true,
                 };
-            }
-            this.hideHeatmap = false;
-            if (!!this.renderConfig.colorByPhenotype) {
-                // Automatically rather than manually get the extremes.
-                this.getExtremes();
             }
             let massagedData = {};
 
@@ -156,6 +145,18 @@ export default Vue.component("heatmap", {
                 }
             });
             return massagedData;
+        },
+        // Automatically rather than manually get the extremes.
+        extremes() {
+            let mainField = this.renderConfig.main.field;
+            let max = this.heatmapData[0][mainField];
+            this.heatmapData.forEach((d) => {
+                if (d[mainField] > max) {
+                    max = d[mainField];
+                }
+            });
+            // Always start at 0 or not?
+            return { lo: 0, hi: max };
         },
         boxSize() {
             return this.renderConfig.fontSize * 1.5;
@@ -578,7 +579,8 @@ export default Vue.component("heatmap", {
             if (phenotype === undefined) {
                 return undefined;
             }
-            let alpha = (255 * (mainValue - this.lo)) / (this.hi - this.lo);
+            let { lo, hi } = this.extremes;
+            let alpha = (255 * (mainValue - lo)) / (hi - lo);
             let group = this.getGroup(phenotype);
             let outputString = `${this.colors[group]}${this.alphaToHex(alpha)}`;
             return outputString;
@@ -591,23 +593,6 @@ export default Vue.component("heatmap", {
             let firstPlace = (alphaInt - lastPlace) / 16;
             let firstDigit = hexDigits[firstPlace];
             return `${firstDigit}${lastDigit}`;
-        },
-        getExtremes() {
-            let mainField = this.renderConfig.main.field;
-            let max = this.heatmapData[0][mainField];
-            let min = this.heatmapData[0][mainField];
-            this.heatmapData.forEach((d) => {
-                if (d[mainField] > max) {
-                    max = d[mainField];
-                }
-                if (d[mainField] < min) {
-                    min = d[mainField];
-                }
-            });
-            // Always start at 0 or not?
-            this.lo = 0;
-            this.hi = max;
-            this.mid = (this.lo + this.hi) / 2;
         },
         truncateColumn(longString) {
             if (!this.renderConfig.truncateColumns) {
@@ -634,7 +619,7 @@ export default Vue.component("heatmap", {
             return rowName.slice(index + this.separator.length);
         },
     },
-});
+};
 
 $(function () {});
 </script>

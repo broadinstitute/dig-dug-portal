@@ -1,10 +1,7 @@
+import { mountPage } from "@/utils/pageSetup";
 import Vue from "vue";
 import Template from "./Template.vue";
 import store from "./store.js";
-
-import { BootstrapVue, BootstrapVueIcons } from "bootstrap-vue";
-import "bootstrap/dist/css/bootstrap.css";
-import "bootstrap-vue/dist/bootstrap-vue.css";
 
 import PageHeader from "@/components/PageHeader.vue";
 import PageFooter from "@/components/PageFooter.vue";
@@ -34,11 +31,8 @@ import Alert, {
 import { query } from "@/utils/bioIndexUtils";
 import { isEqual, difference } from "@/utils/lodashUtils";
 
-Vue.config.productionTip = false;
-Vue.use(BootstrapVue);
-Vue.use(BootstrapVueIcons);
-
-new Vue({
+// @vue/component
+mountPage(Template, {
     store,
     modules: {},
     components: {
@@ -64,7 +58,6 @@ new Vue({
             geneFinderFilterCriterion: [],
             geneFinderAssociationsMap: {},
             geneFinderRareVariantMap: {},
-            minMaxTPM: null,
             pThresholdVal: "2.5e-6, 1e-5, 0.001",
             rarePThresholdVal: "2.5e-6, 1e-5, 0.001",
             onlyEgl: false,
@@ -351,7 +344,8 @@ new Vue({
             return data;
         },
 
-        combined() {
+        // the TPM range is that of the rows before the TPM filter, so it comes out of the same pass
+        combinedContent() {
             let combinedData = Object.entries(
                 this.geneFinderAssociationsMap
             ).flatMap((geneFinderItem) => geneFinderItem[1]);
@@ -360,6 +354,7 @@ new Vue({
             ).flatMap((geneFinderItem) => geneFinderItem[1]);
 
             let grouped = {};
+            let minMaxTPM = null;
 
             if (combinedData.length > 0) {
                 combinedData.map((r) => {
@@ -660,7 +655,7 @@ new Vue({
                                 d.maxTPM > minMax.max ? d.maxTPM : minMax.max;
                         });
 
-                        this.minMaxTPM = minMax;
+                        minMaxTPM = minMax;
 
                         if (this.tpmFilter) {
                             for (const [gKey, gValue] of Object.entries(
@@ -674,17 +669,21 @@ new Vue({
                                 }
                             }
                         }
-                    } else {
-                        this.minMaxTPM = null;
                     }
-                } else {
-                    this.minMaxTPM = null;
                 }
             }
 
             let filteredCombined = Object.values(grouped);
 
-            return filteredCombined;
+            return { rows: filteredCombined, minMaxTPM };
+        },
+
+        combined() {
+            return this.combinedContent.rows;
+        },
+
+        minMaxTPM() {
+            return this.combinedContent.minMaxTPM;
         },
     },
 
@@ -1010,12 +1009,4 @@ new Vue({
             });
         },
     },
-
-    render(createElement, context) {
-        return createElement(Template);
-    },
-
-    render(createElement, context) {
-        return createElement(Template);
-    },
-}).$mount("#app");
+});

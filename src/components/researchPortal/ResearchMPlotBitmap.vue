@@ -67,14 +67,11 @@
 </template>
 
 <script>
-import Vue from "vue";
 import $ from "jquery";
-import { BootstrapVueIcons } from "bootstrap-vue";
 import ResearchMPlotBitmapVector from "@/components/researchPortal/vectorPlots/ResearchMPlotBitmapVector.vue";
 
-Vue.use(BootstrapVueIcons);
-
-export default Vue.component("research-m-bitmap-plot", {
+export default {
+	name: "research-m-bitmap-plot",
 	props: [
 		"plotData",
 		"renderConfig",
@@ -134,13 +131,14 @@ export default Vue.component("research-m-bitmap-plot", {
 	modules: {
 	},
 	components: {
-		ResearchMPlotBitmapVector
+		ResearchMPlotBitmapVector,
+		ResearchMBitmapPlotVector: ResearchMPlotBitmapVector,
 	},
 	mounted: function () {
 		this.renderPlot(this.renderData);
 		window.addEventListener("resize", this.onResize);
 	},
-	beforeDestroy() {
+	beforeUnmount() {
 		window.removeEventListener("resize", this.onResize);
 	},
 	computed: {
@@ -729,7 +727,7 @@ export default Vue.component("research-m-bitmap-plot", {
 			}
 		},
 	},
-});
+};
 
 $(function () {});
 </script>

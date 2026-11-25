@@ -1,11 +1,17 @@
 <template>
     <div class="single-gene-view-wrapper">
         <div
-            v-for="(value, key) in this.geneData"
+            v-for="
+                [value, key] in Object.keys(this.geneData || {})
+                    .map((k) => [geneData[k], k])
+                    .filter(
+                        ([value, key]) =>
+                            !!renderConfig && !!renderConfig.topLevelRender[key]
+                    )
+            "
             class="single-gene-view-info-box"
             :class="key"
             :key="key"
-            v-if="!!renderConfig && !!renderConfig.topLevelRender[key]"
         >
             <div v-html="renderConfig.topLevelRender[key]" class="key"></div>
             <div
@@ -16,14 +22,11 @@
     </div>
 </template>
 <script>
-import Vue from "vue";
 import $ from "jquery";
 import uiUtils from "@/utils/uiUtils";
-import { BootstrapVueIcons } from "bootstrap-vue";
 
-Vue.use(BootstrapVueIcons);
-
-export default Vue.component("single-gene-view", {
+export default {
+    name: "single-gene-view",
     props: ["geneViewData", "renderConfig", "geneOfInterest"],
     data() {
         return {};
@@ -59,7 +62,7 @@ export default Vue.component("single-gene-view", {
     methods: {
         ...uiUtils,
     },
-});
+};
 
 $(function () {});
 </script>

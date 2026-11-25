@@ -8,15 +8,12 @@
 </template>
 
 <script>
-import Vue from "vue";
 import $ from "jquery";
 import * as d3 from "d3";
 import { cloneDeep } from "@/utils/lodashUtils";
-import { BootstrapVueIcons } from "bootstrap-vue";
 
-Vue.use(BootstrapVueIcons);
-
-export default Vue.component("research-volcano-plot-vector", {
+export default {
+    name: "research-volcano-plot-vector",
     props: ["renderData", "renderConfig", "margin", "sectionId", "utils"],
     data() {
         return {};
@@ -27,7 +24,7 @@ export default Vue.component("research-volcano-plot-vector", {
     mounted: function () {
         //this.renderVolcanoPlot()
     },
-    beforeDestroy() {},
+    beforeUnmount() {},
     computed: {
         canvasId() {
             let canvasId = this.sectionId.replaceAll("_", "-").toLowerCase();
@@ -388,7 +385,7 @@ export default Vue.component("research-volcano-plot-vector", {
             });
         },
     },
-});
+};
 
 $(function () {});
 </script>

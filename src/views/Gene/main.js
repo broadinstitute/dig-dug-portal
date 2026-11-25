@@ -1,4 +1,4 @@
-import Vue from "vue";
+import { mountPage } from "@/utils/pageSetup";
 import Template from "./Template.vue";
 import store from "./store.js";
 import {
@@ -56,9 +56,8 @@ import dataConvert from "@/utils/dataConvert";
 import keyParams from "@/utils/keyParams";
 import { pageMixin } from "@/mixins/pageMixin.js";
 
-Vue.config.productionTip = false;
-
-new Vue({
+// @vue/component
+mountPage(Template, {
     store,
     modules: {},
     components: {
@@ -262,15 +261,22 @@ new Vue({
                 .map((phenotype) => phenotype.name);
         },
 
-        transcriptOr52k() {
-            let endpoint = !this.$store.state.selectedTranscript
+        transcriptOr52kEndpoint() {
+            return !this.$store.state.selectedTranscript
                 ? this.$store.state.associations52k
                 : this.$store.state.transcriptAssoc;
-            this.$store.state.restricted = endpoint.restricted;
+        },
+
+        transcriptOr52kRestricted() {
+            return this.transcriptOr52kEndpoint.restricted;
+        },
+
+        transcriptOr52k() {
+            let data = this.transcriptOr52kEndpoint.data;
 
             if (!!this.diseaseInSession && this.diseaseInSession != "") {
-                endpoint.data = sessionUtils.getInSession(
-                    endpoint.data,
+                data = sessionUtils.getInSession(
+                    data,
                     this.phenotypesInSession,
                     "phenotype"
                 );
@@ -278,8 +284,8 @@ new Vue({
 
             let assocMap = {};
 
-            for (let i in endpoint.data) {
-                const assoc = endpoint.data[i];
+            for (let i in data) {
+                const assoc = data[i];
 
                 // skip associations not part of the disease group
                 if (!this.phenotypeMap[assoc.phenotype]) {
@@ -292,13 +298,11 @@ new Vue({
                 }
             }
 
-            endpoint.data.sort(
+            return [...data].sort(
                 (a, b) =>
                     this.pValueFormatter(a.pValue) -
                     this.pValueFormatter(b.pValue)
             );
-
-            return endpoint.data;
         },
 
         geneassociations() {
@@ -342,7 +346,7 @@ new Vue({
         },
         hugeScores() {
             let data = sortUtils.sortArrOfObjects(
-                this.$store.state.hugeScores.data,
+                [...this.$store.state.hugeScores.data],
                 "huge",
                 "number",
                 "desc"
@@ -362,17 +366,19 @@ new Vue({
                 const score = data[i];
                 let phenotypeEntity =
                     this.$store.state.bioPortal.phenotypeMap[score.phenotype];
-                score["group"] = phenotypeEntity
-                    ? phenotypeEntity.group
-                    : "No group info";
-                score["renderScore"] = Math.log(data[i].huge);
 
                 // skip associations not part of the disease group
                 if (!this.phenotypeMap[score.phenotype]) {
                     continue;
                 }
 
-                hugeMap[score.phenotype] = score;
+                hugeMap[score.phenotype] = {
+                    ...score,
+                    group: phenotypeEntity
+                        ? phenotypeEntity.group
+                        : "No group info",
+                    renderScore: Math.log(score.huge),
+                };
             }
 
             // convert to an array, sorted by p-value
@@ -750,8 +756,4 @@ new Vue({
             }
         },
     },
-
-    render(createElement, context) {
-        return createElement(Template);
-    },
-}).$mount("#app");
+});

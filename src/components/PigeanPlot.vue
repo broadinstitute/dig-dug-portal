@@ -13,21 +13,22 @@
   </div>
 </template>
 <script>
-import Vue from "vue";
 import * as d3 from "d3";
 import DownloadChart from "./DownloadChart.vue";
 import plotUtils from "@/utils/plotUtils";
 import bioIndexUtils from "@/utils/bioIndexUtils";
 import Formatters from "@/utils/formatters";
-import { BootstrapVueIcons } from "bootstrap-vue";
-Vue.use(BootstrapVueIcons);
-export default Vue.component("pigean-plot", {
+import { cloneDeep } from "@/utils/lodashUtils";
+export default {
+  name: "pigean-plot",
   components: {
+    DownloadChart,
   },
   props: [
     "pigeanData", "config", "phenotypeMap", "filter", 
     "genesetSize", "traitGroup", "matchingHoverDots", "pigeanColors"
   ],
+  emits: ["dotsHovered"],
   data() {
       return {
         plotId: `pigean-plot-${Math.floor(Math.random() * 10e9)}`,
@@ -57,7 +58,7 @@ export default Vue.component("pigean-plot", {
   },
   computed: {
     chartData(){
-      let data = structuredClone(this.pigeanData);
+      let data = cloneDeep(this.pigeanData);
       if (this.filter){
         data = data.filter(this.filter);
       }
@@ -313,7 +314,7 @@ export default Vue.component("pigean-plot", {
       this.drawChart();
     }
   }
-});
+};
 </script>
 <style>
   @import url("/css/effectorGenes.css");

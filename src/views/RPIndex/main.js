@@ -1,24 +1,18 @@
-import Vue from "vue";
-import { BootstrapVue, BootstrapVueIcons } from "bootstrap-vue";
-import "bootstrap/dist/css/bootstrap.css";
-import "bootstrap-vue/dist/bootstrap-vue.css";
+import { mountPage } from "@/utils/pageSetup";
 
-Vue.use(BootstrapVueIcons);
 import Template from "./Template.vue";
 import store from "./store.js";
-
-Vue.use(BootstrapVue);
-Vue.config.productionTip = false;
 
 import ResearchByorProjects from "@/components/researchPortal/ResearchByorProjects.vue";
 
 
-new Vue({
+// @vue/component
+mountPage(Template, {
     store,
 
-    data: {
+    data: () => ({
 
-    },
+    }),
 
     components: {
         ResearchByorProjects,
@@ -26,10 +20,6 @@ new Vue({
 
     created() {
 
-    },
-
-    render(createElement, context) {
-        return createElement(Template);
     },
 
     methods: {
@@ -43,4 +33,4 @@ new Vue({
     watch: {
 
     }
-}).$mount("#app");
+});

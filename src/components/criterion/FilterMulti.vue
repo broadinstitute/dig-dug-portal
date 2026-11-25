@@ -16,9 +16,9 @@
   </filter-control-template>
 </template>
 <script>
-import Vue from "vue";
 import FilterControlTemplate from "@/components/criterion/template/FilterControlTemplate";
-export default Vue.component("filter-multi-control", {
+export default {
+  name: "filter-multi-control",
   props: {
     field: String,
     computedField: Function,
@@ -42,8 +42,9 @@ export default Vue.component("filter-multi-control", {
       default: (string, selection) => string === selection,
     },
   },
+  emits: ["input-change"],
   components: {
     FilterControlTemplate,
   },
-});
+};
 </script>

@@ -63,8 +63,8 @@
                             >{{ $parent.varId }}
                             <span v-if="$parent.dbSNP">
                                 <span style="color: gray">/</span>
-                                {{ $parent.dbSNP }}
-                            </span>
+                                {{ $parent.dbSNP }}{{ " "
+                            }}</span>
                         </span>
                     </div>
                     <div class="col-md-3 gene-page-header-body">
@@ -229,7 +229,7 @@
                             <div class="label">Effect (+/-)</div>
                         </filter-effect-direction-control>
 
-                        <template slot="filtered" slot-scope="{ filter }">
+                        <template v-slot:filtered="{ filter }">
                             <b-tabs content-class="mt-3" align="center">
                                 <b-tab title="PheWAS plot" active>
                                     <b-button
@@ -397,3 +397,45 @@
         <page-footer :disease-group="$parent.diseaseGroup"></page-footer>
     </div>
 </template>
+
+<script>
+import AncestrySelectpicker from "@/components/AncestrySelectPicker.vue";
+import CriterionFunctionGroup from "@/components/criterion/group/CriterionFunctionGroup.vue";
+import Documentation from "@/components/Documentation.vue";
+import FilterEffectDirectionControl from "@/components/criterion/FilterEffectDirection.vue";
+import FilterEnumerationControl from "@/components/criterion/FilterEnumeration.vue";
+import FilterPvalueControl from "@/components/criterion/FilterPValue.vue";
+import ForestPlotHtml from "@/components/ForestPlotHtml.vue";
+import PageFooter from "@/components/PageFooter.vue";
+import PageHeader from "@/components/PageHeader.vue";
+import PhewasDatasets from "@/components/PheWASDatasets.vue";
+import ResearchPhewasPlot from "@/components/researchPortal/ResearchPheWAS.vue";
+import ResearchSingleSearch from "@/components/researchPortal/ResearchSingleSearch.vue";
+import SearchHeaderWrapper from "@/components/SearchHeaderWrapper.vue";
+import TooltipDocumentation from "@/components/TooltipDocumentation.vue";
+import TranscriptConsequenceTable from "@/components/TranscriptConsequenceTable.vue";
+import TranscriptionFactorsTable from "@/components/TranscriptionFactorsTable.vue";
+import UnauthorizedMessage from "@/components/UnauthorizedMessage.vue";
+
+export default {
+    components: {
+        AncestrySelectpicker,
+        CriterionFunctionGroup,
+        Documentation,
+        FilterEffectDirectionControl,
+        FilterEnumerationControl,
+        FilterPvalueControl,
+        ForestPlotHtml,
+        PageFooter,
+        PageHeader,
+        PhewasDatasets,
+        ResearchPhewasPlot,
+        ResearchSingleSearch,
+        SearchHeaderWrapper,
+        TooltipDocumentation,
+        TranscriptConsequenceTable,
+        TranscriptionFactorsTable,
+        UnauthorizedMessage,
+    },
+};
+</script>

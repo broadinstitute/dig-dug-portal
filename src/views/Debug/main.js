@@ -1,8 +1,6 @@
-import Vue from "vue";
+import { mountPage } from "@/utils/pageSetup";
 import Template from "./Template.vue";
 import store from "./store.js";
-
-Vue.config.productionTip = false;
 
 import Alert, {
     postAlert,
@@ -11,15 +9,16 @@ import Alert, {
     closeAlert,
 } from "@/components/Alert";
 
-new Vue({
+// @vue/component
+mountPage(Template, {
     store,
 
     components: {
     },
 
-    data: {
+    data: () => ({
 
-    },
+    }),
 
     computed: {
 
@@ -36,8 +35,4 @@ new Vue({
     methods: {
 
     },
-
-    render(createElement, context) {
-        return createElement(Template);
-    },
-}).$mount("#app");
+});

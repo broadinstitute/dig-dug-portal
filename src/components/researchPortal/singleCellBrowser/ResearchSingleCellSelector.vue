@@ -83,7 +83,6 @@
   
 <script>
 import * as d3 from 'd3';
-import Vue from 'vue';
 import {llog} from "./llog.js";
 
 /*
@@ -117,7 +116,8 @@ selectedField: "field1"
 
 */
 
-export default Vue.component('research-single-cell-selector', {
+export default {
+    name: "research-single-cell-selector",
     props: {
         data: {                           
             type: (Object, Array, null),
@@ -168,6 +168,7 @@ export default Vue.component('research-single-cell-selector', {
             default: true,
         },
     },
+    emits: ["on-update", "on-hover"],
     data() {
         return {
             selectedOption: '',
@@ -316,7 +317,7 @@ export default Vue.component('research-single-cell-selector', {
             }
         }
     },
-});
+};
 </script>
 
 <style scoped>
@@ -399,13 +400,11 @@ select {
     height: 0;
     overflow-y: hidden;
 }
-.accordion-group.selected{
-    .accordion-content{
-        height: auto;
-    }
-    .arrow svg{
-        transform: rotate(90deg);
-    }
+.accordion-group.selected .accordion-content{
+    height: auto;
+}
+.accordion-group.selected .arrow svg{
+    transform: rotate(90deg);
 }
 button.colorize-option{
     border:0;
@@ -417,31 +416,21 @@ button.colorize-option{
 .colorize-option{
     display: flex;
     cursor: pointer;
-    path{
-        opacity: .25;
-    }
 }
-.colorize-option.on{
-    path{
-        opacity: 1;
-    }
+.colorize-option path{
+    opacity: .25;
 }
-.colorize-option:not(.on):hover{
-    path{
-        opacity: .5;
-    }
+.colorize-option.on path{
+    opacity: 1;
 }
-.accordion-group.colored {
-    .accordion-control .colorize-option{
-        path{
-            opacity: 1;
-        }
-    }
-    .accordion-content .colorize-option.on{
-        path{
-            opacity: 1;
-        }
-    }
+.colorize-option:not(.on):hover path{
+    opacity: .5;
+}
+.accordion-group.colored .accordion-control .colorize-option path{
+    opacity: 1;
+}
+.accordion-group.colored .accordion-content .colorize-option.on path{
+    opacity: 1;
 }
 .select-option{
     display:flex; 

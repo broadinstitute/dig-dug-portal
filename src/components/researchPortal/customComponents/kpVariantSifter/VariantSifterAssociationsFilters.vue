@@ -150,6 +150,7 @@ export default {
             default: false,
         },
     },
+    emits: ["filtered", "update:filtersIndex"],
     computed: {
         resolvedFilters() {
             if (Array.isArray(this.filters) && this.filters.length) {

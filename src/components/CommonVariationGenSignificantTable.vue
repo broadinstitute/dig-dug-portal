@@ -30,7 +30,7 @@
                         <b-td
                             style="width:200px;color:gray;white-space: nowrap;"
                             class="text-left"
-                        ><--GWAS Evidence</b-td>
+                        >&lt;--GWAS Evidence</b-td>
                     </b-tr>
                 </b-tbody>
                 <!-- <hr style="padding:-20px;width:550px;text-align:right;margin-left:20px" /> -->
@@ -56,23 +56,14 @@
 </template>
         
 <script>
-import Vue from "vue";
-
-import { BootstrapVue, IconsPlugin } from "bootstrap-vue";
 import VueTypeaheadBootstrap from "vue-typeahead-bootstrap";
 import Autocomplete from "@/components/Autocomplete.vue";
-import "bootstrap/dist/css/bootstrap.css";
-import "bootstrap-vue/dist/bootstrap-vue.css";
 import { match } from "@/utils/bioIndexUtils";
 import Formatters from "@/utils/formatters";
 
-Vue.use(BootstrapVue);
-Vue.use(IconsPlugin);
 
-Vue.component("vue-typeahead-bootstrap", VueTypeaheadBootstrap);
-Vue.component("autocomplete", Autocomplete);
-
-export default Vue.component("commonvariation-genomesig-table", {
+export default {
+    name: "commonvariation-genomesig-table",
     props: {
         isGenomeWideSignificant: {
             type: Boolean,
@@ -115,7 +106,7 @@ export default Vue.component("commonvariation-genomesig-table", {
         }
     },
     methods: {}
-});
+};
 </script>
 
 <style>

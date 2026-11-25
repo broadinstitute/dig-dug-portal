@@ -29,10 +29,11 @@
     </div>
 </template>
 <script>
-import Vue from "vue";
 import Formatters from "@/utils/formatters";
-export default Vue.component("TissueExpressionSubtable", {
+export default {
+    name: "TissueExpressionSubtable",
     props: ["datasets"],
+    emits: ["highlight"],
     data() {
         return {
             perPage: 10,
@@ -129,7 +130,7 @@ export default Vue.component("TissueExpressionSubtable", {
             });
         },
     },
-});
+};
 </script>
 <style scoped>
 .row {

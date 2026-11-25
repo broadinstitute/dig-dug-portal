@@ -8,15 +8,12 @@
 </template>
 
 <script>
-import Vue from "vue";
 import $ from "jquery";
 import * as d3 from "d3";
 import { cloneDeep } from "@/utils/lodashUtils";
-import { BootstrapVueIcons } from "bootstrap-vue";
 
-Vue.use(BootstrapVueIcons);
-
-export default Vue.component("research-qq-plot-vector", {
+export default {
+    name: "research-qq-plot-vector",
     props: [
         "renderData",
         "renderConfig",
@@ -35,7 +32,7 @@ export default Vue.component("research-qq-plot-vector", {
     mounted: function () {
         //this.renderPlot('default')
     },
-    beforeDestroy() {},
+    beforeUnmount() {},
     computed: {
         canvasId() {
             let canvasId = this.sectionId.replaceAll("_", "-").toLowerCase();
@@ -319,7 +316,7 @@ export default Vue.component("research-qq-plot-vector", {
 			})*/
         },
     },
-});
+};
 
 $(function () {});
 </script>

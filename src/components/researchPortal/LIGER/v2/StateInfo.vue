@@ -1,5 +1,4 @@
 <script>
-import Vue from "vue";
 import InfoTip from "./InfoTip.vue";
 import { pathValue, firstPathValue } from "../ligerApi";
 import InfoTabs from "./InfoTabs.vue";
@@ -26,7 +25,8 @@ import TraitTable from "./TraitTable.vue";
 // - `quality.quality_badges[]` and `summary.portal_primary_badges[]` -- constants,
 //   and identical to each other. The four curation constants collapse into one
 //   provenance line instead of six badges.
-export default Vue.component("StateInfo", {
+export default {
+    name: "StateInfo",
     components: {
         InfoTabs,
         InfoTip,
@@ -64,6 +64,7 @@ export default Vue.component("StateInfo", {
             default: ""
         }
     },
+    emits: ["select-program"],
 
     data() {
         return {
@@ -204,7 +205,7 @@ export default Vue.component("StateInfo", {
             return (marker.citations || []).filter((citation) => !!citation.url);
         }
     }
-});
+};
 </script>
 
 <template>
@@ -280,9 +281,9 @@ export default Vue.component("StateInfo", {
                         <span v-if="topTraits.length" class="section-note">Top {{ topTraits.length }} by |beta|</span>
                     </h5>
                     <dl v-if="topTraits.length" class="pair-list">
-                        <template v-for="trait in topTraits">
-                            <dt :key="trait.key + '-l'">{{ trait.label }}</dt>
-                            <dd :key="trait.key + '-v'">{{ trait.group }}</dd>
+                        <template v-for="trait in topTraits" :key="trait.key">
+                            <dt>{{ trait.label }}</dt>
+                            <dd>{{ trait.group }}</dd>
                         </template>
                     </dl>
                     <div v-else-if="loadingTraits" class="section-empty">Loading…</div>
@@ -295,9 +296,9 @@ export default Vue.component("StateInfo", {
                     Interpreting <template v-if="geneLabel">{{ geneLabel }}</template><template v-else>a gene</template> in this state
                 </h5>
                 <dl class="guidance">
-                    <template v-for="row in geneGuidance">
-                        <dt :key="row.label + '-l'">{{ row.label }}</dt>
-                        <dd :key="row.label + '-v'">{{ row.value }}</dd>
+                    <template v-for="row in geneGuidance" :key="row.label">
+                        <dt>{{ row.label }}</dt>
+                        <dd>{{ row.value }}</dd>
                     </template>
                 </dl>
             </section>
@@ -305,9 +306,9 @@ export default Vue.component("StateInfo", {
             <section v-if="stateGuidance.length" class="info-section">
                 <h5 class="section-title">How to read this state</h5>
                 <dl class="guidance">
-                    <template v-for="row in stateGuidance">
-                        <dt :key="row.label + '-l'">{{ row.label }}</dt>
-                        <dd :key="row.label + '-v'">{{ row.value }}</dd>
+                    <template v-for="row in stateGuidance" :key="row.label">
+                        <dt>{{ row.label }}</dt>
+                        <dd>{{ row.value }}</dd>
                     </template>
                 </dl>
             </section>
@@ -394,9 +395,9 @@ export default Vue.component("StateInfo", {
             <h5 class="section-title">Scoring and methods</h5>
 
             <dl v-if="methodRows.length" class="guidance">
-                <template v-for="row in methodRows">
-                    <dt :key="row.label + '-l'">{{ row.label }}</dt>
-                    <dd :key="row.label + '-v'">{{ row.value }}</dd>
+                <template v-for="row in methodRows" :key="row.label">
+                    <dt>{{ row.label }}</dt>
+                    <dd>{{ row.value }}</dd>
                 </template>
             </dl>
 

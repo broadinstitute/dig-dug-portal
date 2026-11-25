@@ -1,11 +1,11 @@
 <template>
   <div>
-    <download-chart
+    <download-chart v-if="showFrame"
         :chartId="`${plotId}_svg`"
         :filename="`${plotId}_differential_expression`"
         >
     </download-chart>
-    <div style="display:flex; gap:5px" class="legends">
+    <div v-if="showFrame" style="display:flex; gap:5px" class="legends">
         <div style="display:inline-block; width:65%;" class="legend">
             <strong>RUV-normalized counts</strong>
             <div style="display:flex; margin-top:10px" class="marks">
@@ -31,15 +31,16 @@
   </div>
 </template>
 <script>
-import Vue from "vue";
 import * as d3 from 'd3';
 const BIO_INDEX_HOST = "https://bioindex.pankbase.org";
 import sortUtils from "@/utils/sortUtils";
+import { cloneDeep } from "@/utils/lodashUtils";
 import "../assets/pkb-styles.css";
 import mouseTooltip from "../../../components/researchPortal/singleCellBrowser/mouseTooltip.js";
 import DownloadChart from "@/components/DownloadChart.vue";
 
-export default Vue.component("bulk-heatmap", {
+export default {
+    name: "bulk-heatmap",
     components: {
         DownloadChart
     },
@@ -54,6 +55,7 @@ export default Vue.component("bulk-heatmap", {
         "plotId",
         "diseaseData",
     ],
+    emits: ["highlight"],
     data() {
         return {
           chart: null,
@@ -66,6 +68,7 @@ export default Vue.component("bulk-heatmap", {
           maxExp: null,
           colorScaleArray: [],
           compField: null,
+          drawn: false,
           sampleCharacters: ["▒", "█"], // for additional visual data besides color
           sampleColors: [
                 "rgb(092 174 000)",
@@ -80,10 +83,19 @@ export default Vue.component("bulk-heatmap", {
             return this.zNormData;
         },
         sampleGroups(){
-            return this.diseaseData.diseaseLabels;
+            // none while no dataset or comparison is selected
+            return this.diseaseData.diseaseLabels || [];
+        },
+        canDraw(){
+            // no rows or no samples: the answers are missing or failed
+            return this.plotData.length > 0 && this.samplesColumns.length > 0;
+        },
+        showFrame(){
+            // the download button and the legend, once there is something to draw or something drawn
+            return this.canDraw || this.drawn;
         },
         sortedSamples(){
-            let samples = structuredClone(this.samplesColumns);
+            let samples = cloneDeep(this.samplesColumns);
             samples.sort((a,b) => this.diseaseMap[a].groupIndex - this.diseaseMap[b].groupIndex);
             return samples;
         },
@@ -116,6 +128,9 @@ export default Vue.component("bulk-heatmap", {
     methods: {
         ...sortUtils,
       async drawHeatMap(){
+        // leave what is drawn as it is (nothing at all, if nothing was)
+        if (!this.canDraw) return;
+        this.drawn = true;
         //empty the wrapper first
         document.getElementById(this.plotId).innerHTML = "";
 
@@ -319,7 +334,7 @@ export default Vue.component("bulk-heatmap", {
     watch: {
       plotData:{
             handler(newData, oldData){
-                if(newData !== oldData){
+                if(newData !== oldData && this.canDraw){
                     this.compField = newData[0].comparison_field;
                     this.drawHeatMap();
                 }
@@ -340,7 +355,7 @@ export default Vue.component("bulk-heatmap", {
         this.chartWidth = this.chart.clientWidth;
         this.drawHeatMap();
     }
-});
+};
 </script>
 <style scoped>
 .legends {

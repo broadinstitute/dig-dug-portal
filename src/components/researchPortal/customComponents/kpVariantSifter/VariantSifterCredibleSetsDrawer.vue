@@ -69,9 +69,9 @@
                             @click="$emit('remove-set', selectionKeyForEntry(entry))"
                         >
                             <span>{{ pillLabel(entry) }}</span>
-                            <span v-if="entry.loaded > 0" class="vks-cs-pill-count">
-                                {{ entry.inRegion }}/{{ entry.loaded }}
-                            </span>
+                            <span v-if="entry.loaded > 0" class="vks-cs-pill-count">{{
+                                " " }}{{ entry.inRegion }}/{{ entry.loaded }}{{ " "
+                            }}</span>
                             <span class="vks-cs-pill-remove" aria-hidden="true">&times;</span>
                         </button>
                     </div>
@@ -138,7 +138,7 @@
                             </div>
                             <div class="vks-cs-filter-field">
                                 <label class="vks-cs-filter-label" for="vks-cs-filter-pvalue">
-                                    P-Value (<=)
+                                    P-Value (&lt;=)
                                 </label>
                                 <input
                                     id="vks-cs-filter-pvalue"
@@ -264,6 +264,7 @@ export default {
             default: () => [],
         },
     },
+    emits: ["remove-set", "toggle-star-variant", "update:panelFilters", "add-set"],
     data() {
         return {
             activeControlTab: "credible-sets",

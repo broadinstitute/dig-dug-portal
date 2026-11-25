@@ -13,17 +13,10 @@
 </template>
 
 <script>
-import Vue from "vue";
 import Autocomplete from "@/components/Autocomplete.vue";
-import { BootstrapVue, IconsPlugin } from "bootstrap-vue";
 
-Vue.use(BootstrapVue);
-Vue.use(IconsPlugin);
-
-import "bootstrap/dist/css/bootstrap.css";
-import "bootstrap-vue/dist/bootstrap-vue.css";
-
-export default Vue.component("new-style-select", {
+export default {
+    name: "new-style-select",
     props: {
         value: Object,
         field: String,
@@ -150,5 +143,5 @@ export default Vue.component("new-style-select", {
             }
         },
     },
-});
+};
 </script>

@@ -100,7 +100,7 @@ export default {
             this.renderPlot();
         });
     },
-    beforeDestroy() {
+    beforeUnmount() {
         if (this.resizeObserver) {
             this.resizeObserver.disconnect();
         }

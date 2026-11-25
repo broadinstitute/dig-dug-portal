@@ -90,13 +90,10 @@
 </template>
 
 <script>
-import Vue from "vue";
 import $ from "jquery";
-import { BootstrapVueIcons } from "bootstrap-vue";
 
-Vue.use(BootstrapVueIcons);
-
-export default Vue.component("research-score-plot", {
+export default {
+	name: "research-score-plot",
 	props: [
 		"region",
 		"plotData",
@@ -177,7 +174,7 @@ export default Vue.component("research-score-plot", {
 		this.renderPlot();
 		window.addEventListener("resize", this.onResize);
 	},
-	beforeDestroy() {
+	beforeUnmount() {
 		window.removeEventListener("resize", this.onResize);
 	},
 	computed: {
@@ -1030,7 +1027,7 @@ export default Vue.component("research-score-plot", {
 			}
 		},
 	},
-});
+};
 
 $(function () {});
 </script>

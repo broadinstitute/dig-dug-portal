@@ -132,8 +132,8 @@
                                     :class="`is-${stepStatus(step.id)}`"
                                     :aria-label="stepStatusLabel(step.id)"
                                 />
-                                <span class="vks-assistant-step-label">
-                                    {{ index + 1 }}. {{ step.label }}
+                                <span class="vks-assistant-step-label">{{
+                                    " " }}{{ index + 1 }}. {{ step.label }}
                                 </span>
                             </div>
                             <button
@@ -258,8 +258,8 @@
                                         )
                                     "
                                 />
-                                <span>
-                                    {{ option.label }}
+                                <span>{{
+                                    " " }}{{ option.label }}
                                     <span class="vks-assistant-star-option-meta">
                                         ({{ option.variants.length }} SNP{{
                                             option.variants.length === 1 ? "" : "s"
@@ -449,13 +449,13 @@
                         aria-live="polite"
                     >
                         <span class="vks-assistant-suggest-preview-label">
-                            {{ previewSuggestionLabel }}
-                        </span>
+                            {{ previewSuggestionLabel }}{{ " "
+                        }}</span>
                         <span
                             v-if="previewSuggestionHint"
                             class="vks-assistant-suggest-preview-hint"
-                        >
-                            {{ previewSuggestionHint }}
+                        >{{
+                            " " }}{{ previewSuggestionHint }}
                         </span>
                     </div>
                     <ul
@@ -489,8 +489,8 @@
                                         'vks-assistant-suggest-hint--phrase':
                                             item.kind === 'phrase',
                                     }"
-                                >
-                                    {{ item.hint }}
+                                >{{
+                                    " " }}{{ item.hint }}
                                 </span>
                             </button>
                         </li>
@@ -586,6 +586,19 @@ export default {
             default: () => VKS_ASSISTANT_ACTION_CATALOG_SECTIONS,
         },
     },
+    emits: [
+        "close",
+        "update:activeTab",
+        "execute-step",
+        "open-correlated-phenotype",
+        "dismiss-cs2ct-star",
+        "dismiss-understudied-star",
+        "confirm-understudied-star",
+        "execute-catalog-action",
+        "confirm-cs2ct-star",
+        "execute-all",
+        "plan-request",
+    ],
     data() {
         return {
             draft: "",

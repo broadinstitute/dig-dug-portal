@@ -76,14 +76,16 @@
     </div>
 </template>
 <script>
-import Vue from "vue";
+import { markRaw } from "vue";
 import * as d3 from "d3";
 import uiUtils from "@/utils/uiUtils";
+import { cloneDeep } from "@/utils/lodashUtils";
 
 const SAFE_BLUE = "#2F67B1"; // colorblind safe blue from UCSB
 const SAFE_RED = "#BF2C23"; // colorblind safe red from UCSB,
 
-export default Vue.component("time-series-line-plot", {
+export default {
+    name: "time-series-line-plot",
     components: {},
     props: [
         "plotData",
@@ -93,6 +95,7 @@ export default Vue.component("time-series-line-plot", {
         "yAxisLabels",
         "isletTab"
     ],
+    emits: ["showContent"],
     data() {
         return {
             chart: null,
@@ -234,7 +237,7 @@ export default Vue.component("time-series-line-plot", {
             return output;
         },
         computeChartData(inputData, filterDonors) {
-            let data = structuredClone(inputData);
+            let data = cloneDeep(inputData);
             let output = [];
             let donors = filterDonors
                 ? this.donors
@@ -336,15 +339,20 @@ export default Vue.component("time-series-line-plot", {
                 .range([0, width]);
 
             this.chart.innerHTML = "";
-            this.svg = d3
-                .select(`#${this.plotId}`)
-                .append("svg")
-                .attr("width", width + margin.left + margin.right)
-                .attr("height", height + margin.top + margin.bottom)
-                .attr("id", `chart_${this.plotId}`)
-                .on("mouseleave", () => this.resetTooltip())
-                .append("g")
-                .attr("transform", `translate(${margin.left},${margin.top})`);
+            this.svg = markRaw(
+                d3
+                    .select(`#${this.plotId}`)
+                    .append("svg")
+                    .attr("width", width + margin.left + margin.right)
+                    .attr("height", height + margin.top + margin.bottom)
+                    .attr("id", `chart_${this.plotId}`)
+                    .on("mouseleave", () => this.resetTooltip())
+                    .append("g")
+                    .attr(
+                        "transform",
+                        `translate(${margin.left},${margin.top})`
+                    )
+            );
             let timepointBars = this.extractTimepoints(
                 this.timepoints,
                 this.xScale,
@@ -565,7 +573,7 @@ export default Vue.component("time-series-line-plot", {
             let ycoord = mouseEvent.clientY - tooltipHeight;
 
             
-            this.tooltip = plot.append("div")
+            this.tooltip = markRaw(plot.append("div")
                  .style("position", "fixed")
                  .style("top", `${ycoord}px`)
                  .style("left", `${xcoord}px`)
@@ -576,7 +584,7 @@ export default Vue.component("time-series-line-plot", {
                  .style("max-width", `${tooltipWidth}px`)
                  .style("border-radius", "5px")
                  .style("font-size", "smaller")
-                 .html(this.tooltipDonorData);
+                 .html(this.tooltipDonorData));
             this.tooltip.style("opacity", 1);
         },
     },
@@ -597,7 +605,7 @@ export default Vue.component("time-series-line-plot", {
             this.drawChart();
         }
     },
-});
+};
 </script>
 <style scoped>
 @import url("/css/effectorGenes.css");

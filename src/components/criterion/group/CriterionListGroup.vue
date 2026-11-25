@@ -2,8 +2,8 @@
     <criterion-group-template
         :ref="Math.floor(Math.random() * 10000).toString()"
         
-        :value="value"
-        @input="emitInput"
+        :modelValue="value"
+        @update:modelValue="emitInput"
 
         :hide="hide"
         :filterType="'list'"
@@ -16,17 +16,17 @@
         @update:filter-list="emitFilterList"
     >
         <slot></slot>
-        <template slot="filtered" slot-scope="{ filter }">
+        <template v-slot:filtered="{ filter }">
             <slot name="filtered" :filter="filter"></slot>
         </template>
     </criterion-group-template>
 </template>
 
 <script>
-import Vue from "vue";
 import CriterionGroupTemplate from "@/components/criterion/template/CriterionGroupTemplate.vue";
 
-export default Vue.component("criterion-list-group", {
+export default {
+    name: "criterion-list-group",
     props: {
         hide: Boolean,
         value: {
@@ -57,6 +57,7 @@ export default Vue.component("criterion-list-group", {
         },
         header: String,
     },
+    emits: ["input", "update-filter-list", "update-filter-function"],
     components: { CriterionGroupTemplate },
     methods: {
         emitInput(value) {
@@ -69,5 +70,5 @@ export default Vue.component("criterion-list-group", {
             this.$emit("update-filter-function", value);
         },
     },
-});
+};
 </script>

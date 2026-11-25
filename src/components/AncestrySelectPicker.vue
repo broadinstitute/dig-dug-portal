@@ -8,19 +8,15 @@
 </template>
 
 <script>
-import Vue from "vue";
 import Autocomplete from "@/components/Autocomplete.vue";
-import { BootstrapVue, IconsPlugin } from "bootstrap-vue";
 import VueTypeaheadBootstrap from "vue-typeahead-bootstrap";
-import "bootstrap/dist/css/bootstrap.css";
-import "bootstrap-vue/dist/bootstrap-vue.css";
 import Formatters from "@/utils/formatters";
 
-Vue.use(BootstrapVue);
-Vue.use(IconsPlugin);
-Vue.component("vue-typeahead-bootstrap", VueTypeaheadBootstrap);
-
-export default Vue.component("ancestry-selectpicker", {
+export default {
+    name: "ancestry-selectpicker",
+    components: {
+        Autocomplete,
+    },
     props: ["ancestries", "defaultMixed", "pageLevel"],
 
     data() {
@@ -69,5 +65,5 @@ export default Vue.component("ancestry-selectpicker", {
             return Formatters.ancestryFormatter(ancestry);
         }
     },
-});
+};
 </script>

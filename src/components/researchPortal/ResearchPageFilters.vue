@@ -33,7 +33,7 @@
 							class="custom-select custom-select-search"
 							v-if="parameter.type == 'list'"
 						>
-							<template v-for="param in parameter.values">
+							<template v-for="param in parameter.values" :key="param.trim()">
 								<option
 									:value="param.trim()"
 									v-html="
@@ -42,7 +42,6 @@
 											parameter.parameter
 										)
 									"
-									:key="param.trim()"
 								></option>
 							</template>
 						</select>
@@ -153,11 +152,10 @@
 										: ''
 								"
 							>
-								<template v-for="gene in kpGenes">
+								<template v-for="gene in kpGenes" :key="gene">
 									<a
 										href="javascript:;"
 										v-html="gene"
-										:key="gene"
 										@click="
 											parameter['convert to region'] &&
 											parameter['convert to region'] ==
@@ -365,25 +363,28 @@
 						>
 							<ul>
 								<template
-									v-for="suggestion in suggestions.suggestions"
 									v-if="
 										suggestions.field == filter.field &&
 										suggestions.suggestions.length > 0
 									"
 								>
-									<li
-										@click="
-											filterData(
-												$event,
-												filter.field,
-												filter.type,
-												'',
-												suggestion
-											)
-										"
-										v-html="suggestion"
-										:title="suggestion"
-									></li>
+									<template
+										v-for="suggestion in suggestions.suggestions"
+									>
+										<li
+											@click="
+												filterData(
+													$event,
+													filter.field,
+													filter.type,
+													'',
+													suggestion
+												)
+											"
+											v-html="suggestion"
+											:title="suggestion"
+										></li>
+									</template>
 								</template>
 							</ul>
 						</div>
@@ -461,24 +462,25 @@
 				:class="'search-field f-' + index"
 				:key="name"
 			>
-				<b-badge
-					pill
-					v-if="value.search.length > 0"
-					v-for="(v, i) in value.search.filter(
-						(v, i, arr) => arr.indexOf(v) == i
-					)"
-					:key="v"
-					:class="'btn search-bubble ' + i"
-					@click="removeFilter(value.field, i)"
-					v-html="
-						value['label in bubble'] == true
-							? value.field +
-							  ': ' +
-							  v +
-							  '&nbsp;<span class=\'remove\'>X</span>'
-							: v + '&nbsp;<span class=\'remove\'>X</span>'
-					"
-				></b-badge>
+				<template v-if="value.search.length > 0">
+					<span
+						class="badge badge-secondary badge-pill"
+						v-for="(v, i) in value.search.filter(
+							(v, i, arr) => arr.indexOf(v) == i
+						)"
+						:key="v"
+						:class="'btn search-bubble ' + i"
+						@click="removeFilter(value.field, i)"
+						v-html="
+							value['label in bubble'] == true
+								? value.field +
+								  ': ' +
+								  v +
+								  '&nbsp;<span class=\'remove\'>X</span>'
+								: v + '&nbsp;<span class=\'remove\'>X</span>'
+						"
+					></span>
+				</template>
 			</div>
 			<b-badge
 				v-if="this.numberOfSearches() > 1"
@@ -492,11 +494,11 @@
 </template>
 
 <script>
-import Vue from "vue";
 
 //import alertUtils from "@/utils/alertUtils";
 
-export default Vue.component("research-page-filters", {
+export default {
+	name: "research-page-filters",
 	props: [
 		"apiParameters",
 		"dataComparisonConfig",
@@ -1816,7 +1818,7 @@ export default Vue.component("research-page-filters", {
 			//this.applyFilters();
 		},
 	},
-});
+};
 </script>
 
 <style>

@@ -388,6 +388,12 @@ let pages = {
         template: "public/index.html",
         title: "Bird Methods",
         chunks: ["chunk-vendors", "chunk-common", "birds"]
+    },
+    t2d_assays: {
+        entry: "src/views/T2DAssays/main.js",
+        template: "public/index.html",
+        title: "Physiological Assays for T2D Research",
+        chunks: ["chunk-vendors", "chunk-common", "t2d_assays"]
     }
 };
 
@@ -483,6 +489,21 @@ module.exports = {
         }
     },
     chainWebpack: (config) => {
+        // Vue 3 under @vue/compat: one Vue module for our code and for the Vue 2 packages, templates compiled as Vue 2's
+        config.resolve.alias.set("vue$", require.resolve("./src/utils/vueCompat.js"));
+        // BootstrapVue, installed on that Vue
+        config.resolve.alias.set("bootstrap-vue$", require.resolve("./src/utils/bootstrapVueCompat.js"));
+        config.module
+            .rule("vue")
+            .use("vue-loader")
+            .tap((options) => ({ ...options, compilerOptions: { compatConfig: { MODE: 2 } } }));
+        // vue-typeahead-bootstrap 2.12 is written for Vue 2: ours is a copy of it for Vue 3
+        config.resolve.alias.set(
+            "vue-typeahead-bootstrap$",
+            require.resolve("./src/components/typeahead/VueTypeaheadBootstrap.vue")
+        );
+        // Vuex 4's `browser` field, which webpack 4 takes first, is its development build
+        config.resolve.alias.set("vuex$", "vuex/dist/vuex.esm-bundler.js");
         // Optimize CSS extraction to prevent ordering conflicts in multi-page builds
         // when the same component CSS is used across multiple entry points
         if (config.plugins.has("extract-css")) {

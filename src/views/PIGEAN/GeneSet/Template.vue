@@ -101,7 +101,7 @@
                         >
                             <div class="label">{{ filterField.label }}</div>
                         </filter-greater-less>
-                        <template slot="filtered" slot-scope="{ filter }">
+                        <template v-slot:filtered="{ filter }">
                             <div class="row pigean-plots">
                                 <div class="col-md-8">
                                     <research-phewas-plot
@@ -154,6 +154,36 @@
         <page-footer :disease-group="$parent.diseaseGroup"></page-footer>
     </div>
 </template>
+
+<script>
+import CriterionFunctionGroup from "@/components/criterion/group/CriterionFunctionGroup.vue";
+import FilterEnumerationControl from "@/components/criterion/FilterEnumeration.vue";
+import FilterGreaterLess from "@/components/criterion/FilterGreaterLess.vue";
+import GenesetSelectpicker from "@/components/GenesetSelectPicker.vue";
+import PageFooter from "@/components/PageFooter.vue";
+import PageHeader from "@/components/PageHeader.vue";
+import PigeanPlot from "@/components/PigeanPlot.vue";
+import PigeanTable from "@/components/PigeanTable.vue";
+import ResearchPhewasPlot from "@/components/researchPortal/ResearchPheWAS.vue";
+import SearchHeaderWrapper from "@/components/SearchHeaderWrapper.vue";
+import TraitGroupSelectpicker from "@/components/TraitGroupSelectPicker.vue";
+
+export default {
+    components: {
+        CriterionFunctionGroup,
+        FilterEnumerationControl,
+        FilterGreaterLess,
+        GenesetSelectpicker,
+        PageFooter,
+        PageHeader,
+        PigeanPlot,
+        PigeanTable,
+        ResearchPhewasPlot,
+        SearchHeaderWrapper,
+        TraitGroupSelectpicker,
+    },
+};
+</script>
 <style scoped>
 .card-body.pigean-plots {
     padding-bottom: 0;

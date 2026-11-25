@@ -77,10 +77,10 @@
     </div>
 </template>
 <script>
-import Vue from "vue";
 import Formatters from "@/utils/formatters";
 import DataDownload from "@/components/DataDownload.vue";
-export default Vue.component("c2ct-table", {
+export default {
+    name: "c2ct-table",
     components: {
         DataDownload,
     },
@@ -188,7 +188,7 @@ export default Vue.component("c2ct-table", {
             );
         },
     },
-});
+};
 </script>
 <style scoped>
 @import url("/css/table.css");

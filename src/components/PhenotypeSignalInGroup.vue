@@ -22,8 +22,8 @@
                         <div class="legend-scale">
                             <span class="legend-left">0</span>
                             <span class="legend-center">-log10(p)</span>
-                            <span class="legend-right" v-if="phenotypes[0]">
-                                {{ getEvalue(phenotypes[0]["pValue"]) }}
+                            <span class="legend-right" v-if="phenotypes[0]">{{
+                                " " }}{{ getEvalue(phenotypes[0]["pValue"]) }}
                             </span>
                         </div>
                         <div class="legend"></div>
@@ -48,7 +48,7 @@
                     </div>
                     <div class="pws-phenotype-group-wrapper">
                         <template
-                            v-for="(item, i) in topAssociationsGrouped[key]"
+                            v-for="(item, i) in topAssociationsGrouped[key]" :key="i"
                         >
                             <template v-if="i != 0">
                                 <div
@@ -82,7 +82,6 @@
                             <div
                                 class="pws-phenotype-row"
                                 :class="i != 0 ? key2id(key) + ' hidden' : ''"
-                                :key="i"
                             >
                                 <div
                                     class="pws-progress-bar"
@@ -166,15 +165,12 @@
 </template>
 
 <script>
-import Vue from "vue";
 import { groupBy } from "@/utils/lodashUtils";
-import { BootstrapVueIcons } from "bootstrap-vue";
 import uiUtils from "@/utils/uiUtils";
 import Formatters from "@/utils/formatters";
 
-Vue.use(BootstrapVueIcons);
-
-export default Vue.component("phenotype-signal-in-group", {
+export default {
+    name: "phenotype-signal-in-group",
     modules: {
         uiUtils,
     },
@@ -307,7 +303,7 @@ export default Vue.component("phenotype-signal-in-group", {
             window.location.href = "#associations-table";
         },
     },
-});
+};
 </script>
 
 <style>

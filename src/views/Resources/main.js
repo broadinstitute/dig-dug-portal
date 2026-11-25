@@ -1,11 +1,12 @@
-import Vue from "vue";
+import { mountPage } from "@/utils/pageSetup";
 import Template from "./Template.vue";
 import store from "./store.js";
 import Resources from "@/components/Resources.vue";
 import keyParams from "@/utils/keyParams";
 import { pageMixin } from "@/mixins/pageMixin.js";
 
-new Vue({
+// @vue/component
+mountPage(Template, {
     store,
     components: {
         Resources,
@@ -37,8 +38,4 @@ new Vue({
     created() {
         this.$store.dispatch("bioPortal/getDiseaseGroups");
     },
-
-    render(createElement, context) {
-        return createElement(Template);
-    },
-}).$mount("#app");
+});

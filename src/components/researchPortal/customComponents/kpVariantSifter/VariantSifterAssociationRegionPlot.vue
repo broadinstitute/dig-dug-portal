@@ -191,6 +191,14 @@ export default {
             default: () => [],
         },
     },
+    emits: [
+        "update:regionViewArea",
+        "toggle-position-marker",
+        "set-reference-variant",
+        "toggle-star-variant",
+        "update:regionShiftBp",
+        "pan-end",
+    ],
     data() {
         return {
             loading: false,
@@ -329,7 +337,7 @@ export default {
             }
         });
     },
-    beforeDestroy() {
+    beforeUnmount() {
         window.removeEventListener("resize", this.onResize);
         document.removeEventListener("mousedown", this.onDocumentMouseDown);
         this.endPanListeners();

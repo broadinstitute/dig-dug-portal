@@ -137,15 +137,12 @@
 </template>
 
 <script>
-import Vue from "vue";
 import $ from "jquery";
 import { cloneDeep } from "@/utils/lodashUtils";
-import { BootstrapVueIcons } from "bootstrap-vue";
 import barPlotVector from "@/components/researchPortal/vectorPlots/ResearchBarPlotVector.vue";
 
-Vue.use(BootstrapVueIcons);
-
-export default Vue.component("research-bar-plot", {
+export default {
+    name: "research-bar-plot",
     props: [
         "canvasId",
         "phenotypeMap",
@@ -167,12 +164,12 @@ export default Vue.component("research-bar-plot", {
             spaceBy: 7,
             trigger: 0,
             hoverItems: {},
-            showCanvas: true,
         };
     },
     modules: {},
     components: {
         barPlotVector,
+        ResearchBarPlotVector: barPlotVector,
     },
     created: function () {
         this.renderBarPlot();
@@ -181,7 +178,7 @@ export default Vue.component("research-bar-plot", {
         window.addEventListener("resize", this.onResize);
         this.renderBarPlot();
     },
-    beforeDestroy() {
+    beforeUnmount() {
         window.removeEventListener("resize", this.onResize);
     },
     computed: {
@@ -220,7 +217,6 @@ export default Vue.component("research-bar-plot", {
             }
         },
         renderData() {
-            this.showCanvas = true;
             let content = {};
             content["data"] = [];
 
@@ -256,9 +252,11 @@ export default Vue.component("research-bar-plot", {
             if (!!content.data && content.data.length > 0) {
                 return content;
             } else {
-                this.showCanvas = false;
                 return null;
             }
+        },
+        showCanvas() {
+            return !!this.renderData;
         },
     },
     watch: {
@@ -929,7 +927,7 @@ export default Vue.component("research-bar-plot", {
             });
         },
     },
-});
+};
 
 $(function () {});
 </script>

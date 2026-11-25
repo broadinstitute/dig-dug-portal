@@ -95,10 +95,10 @@
                                     ? "&#9660;"
                                     : "&#9650;"
                                 : ""
-                        }}
-                    </span>
-                    <span>
-                        {{
+                        }}{{ " "
+                    }}</span>
+                    <span>{{
+                        " " }}{{
                             effectFormatter(
                                 p.dichotomous
                                     ? Math.exp(r.item[`${p.name}:beta`])
@@ -140,22 +140,16 @@ div.assoc-table-bottom-line >>> table.table-sm td:first-child {
 </style>
 
 <script>
-import Vue from "vue";
 import $ from "jquery";
 
-import { BootstrapVue, IconsPlugin } from "bootstrap-vue";
 import Formatters from "@/utils/formatters";
 import { isEqual } from "@/utils/lodashUtils";
-Vue.use(BootstrapVue);
-Vue.use(IconsPlugin);
-
-import "bootstrap/dist/css/bootstrap.css";
-import "bootstrap-vue/dist/bootstrap-vue.css";
 
 import DataDownload from "@/components/DataDownload";
 import Chi from "chi-squared";
 
-export default Vue.component("AssociationsTable", {
+export default {
+    name: "AssociationsTable",
     components: {
         DataDownload,
     },
@@ -267,7 +261,8 @@ export default Vue.component("AssociationsTable", {
         groupedAssociations() {
             let data = [];
             let groups = {};
-            let associations = this.tableData;
+            // by p-value, the table's order until the user sorts it
+            let associations = this.sortedAssociations;
 
             for (let i in associations) {
                 let r = associations[i];
@@ -316,7 +311,7 @@ export default Vue.component("AssociationsTable", {
             return data;
         },
         sortedAssociations() {
-            return this.tableData.sort((a, b) => a.pValue - b.pValue);
+            return [...this.tableData].sort((a, b) => a.pValue - b.pValue);
         },
         tableData() {
             let dataRows = this.associations;
@@ -403,5 +398,5 @@ export default Vue.component("AssociationsTable", {
                 : "";
         },
     },
-});
+};
 </script>

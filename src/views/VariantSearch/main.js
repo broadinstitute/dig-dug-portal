@@ -1,12 +1,12 @@
-import Vue from "vue";
+import { mountPage } from "@/utils/pageSetup";
 import Template from "./Template.vue";
 import store from "./store.js";
 import { pageMixin } from "@/mixins/pageMixin";
 import { match, query } from "@/utils/bioIndexUtils";
 import VariantSearch from "@/components/VariantSearch";
-Vue.config.productionTip = false;
 
-new Vue({
+// @vue/component
+mountPage(Template, {
     store,
     mixins: [pageMixin],
 
@@ -25,9 +25,6 @@ new Vue({
         this.$store.dispatch("bioPortal/getDatasets");
     },
 
-    render(createElement, context) {
-        return createElement(Template);
-    },
     computed: {
         selectedGene() {
             return this.searchCriteria
@@ -52,4 +49,4 @@ new Vue({
             }
         },
     },
-}).$mount("#app");
+});

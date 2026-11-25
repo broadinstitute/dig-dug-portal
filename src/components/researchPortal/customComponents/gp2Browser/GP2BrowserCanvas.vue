@@ -13,7 +13,7 @@
                 @import-session="$emit('import-session')"
             />
             <div v-if="canvasActive" class="vks-canvas-tracks">
-                <template v-for="section in canvasTrackSections">
+                <template v-for="section in canvasTrackSections" :key="section.id">
                     <GP2BrowserAssociationsPlot
                         v-if="section.id === 'associations'"
                         :key="section.id"
@@ -325,6 +325,33 @@ export default {
             default: false,
         },
     },
+    emits: [
+        "start-search",
+        "import-session",
+        "update:regionShiftBp",
+        "update:regionViewArea",
+        "update:viewingCenterBp",
+        "commit-viewing-region",
+        "pan-end",
+        "toggle-position-marker",
+        "toggle-star-variant",
+        "toggle-qtl-star-variant",
+        "set-reference-variant",
+        "update:geSelectedBiosamples",
+        "update:geActiveAnnotation",
+        "update:geSelectedTissues",
+        "update:geSelectedAnnotations",
+        "select-ge-plot-tissue",
+        "update:geBiosampleFilterOptions",
+        "update:geBiosampleTissueRegions",
+        "update:geBiosampleLoading",
+        "update:v2gSelectedLinks",
+        "update:s2gSelectedLinks",
+        "close-data-table",
+        "update:mappingState",
+        "update:workspaceFilterActive",
+        "remove-mapping-category",
+    ],
     computed: {
         starredVariantIds() {
             return (this.plotMarkers?.starredVariants || []).map(

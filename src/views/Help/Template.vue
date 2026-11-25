@@ -66,9 +66,9 @@
 								</h4>
 								<ol>
 									<template
-										v-for="value in $parent.searchResults"
+										v-for="value in $parent.searchResults" :key="value.nid"
 									>
-										<li :key="value.nid">
+										<li>
 											<a
 												:href="
 													'/help.html?page=' +
@@ -102,8 +102,7 @@
 									></span>
 									<ol>
 										<li
-											v-for="page in value.pages"
-											v-if="page.title != chapter"
+											v-for="page in (value.pages || []).filter((page) => page.title != chapter)"
 											:key="page.nid"
 											v-html="page.title"
 											@click="
@@ -126,6 +125,18 @@
 		<page-footer :disease-group="$parent.diseaseGroup"></page-footer>
 	</div>
 </template>
+
+<script>
+import PageFooter from "@/components/PageFooter.vue";
+import PageHeader from "@/components/PageHeader.vue";
+
+export default {
+    components: {
+        PageFooter,
+        PageHeader,
+    },
+};
+</script>
 <style scoped>
 .chapter {
 	font-weight: 400;

@@ -166,7 +166,7 @@ export default {
         await this.ensureDatasetMetadataLoaded();
     },
 
-    beforeDestroy() {
+    beforeUnmount() {
         if (this.searchDebounceTimer) {
             clearTimeout(this.searchDebounceTimer);
             this.searchDebounceTimer = null;
@@ -330,7 +330,7 @@ export default {
                     return lookup;
                 }, {});
 
-                this.$set(this.factorSummaries, factorContextKey, factorMap);
+                this.factorSummaries[factorContextKey] = factorMap;
             }));
 
             return searchHierarchy.map((datasetGroup) => {
@@ -458,7 +458,7 @@ export default {
                 return null;
             }
 
-            this.$set(this.factorDetailLoading, factor.key, true);
+            this.factorDetailLoading[factor.key] = true;
 
             try {
                 const detailScores = await fetchLigerFactorDetailScores({
@@ -475,18 +475,18 @@ export default {
                     }
                 });
 
-                this.$set(this.factorDetailScores, factor.key, detailScores);
+                this.factorDetailScores[factor.key] = detailScores;
                 return detailScores;
             } catch (error) {
                 console.error("Unable to load factor detail scores:", error);
-                this.$set(this.factorDetailScores, factor.key, {
+                this.factorDetailScores[factor.key] = {
                     topGenes: [],
                     topTraits: [],
                     topGeneSets: []
-                });
+                };
                 return this.factorDetailScores[factor.key];
             } finally {
-                this.$set(this.factorDetailLoading, factor.key, false);
+                this.factorDetailLoading[factor.key] = false;
             }
         }
     }

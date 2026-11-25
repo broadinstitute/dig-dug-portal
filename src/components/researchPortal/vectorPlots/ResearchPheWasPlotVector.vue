@@ -8,15 +8,12 @@
 </template>
 
 <script>
-import Vue from "vue";
 import $ from "jquery";
 import * as d3 from "d3";
 import { cloneDeep } from "@/utils/lodashUtils";
-import { BootstrapVueIcons } from "bootstrap-vue";
 
-Vue.use(BootstrapVueIcons);
-
-export default Vue.component("research-phewas-plot-vector", {
+export default {
+    name: "research-phewas-plot-vector",
     props: [
         "renderData",
         "renderConfig",
@@ -35,7 +32,7 @@ export default Vue.component("research-phewas-plot-vector", {
     mounted: function () {
         //this.renderPlot()
     },
-    beforeDestroy() {},
+    beforeUnmount() {},
     computed: {
         canvasId() {
             let canvasId = this.sectionId.replaceAll("_", "-").toLowerCase();
@@ -376,7 +373,7 @@ export default Vue.component("research-phewas-plot-vector", {
             });
         },
     },
-});
+};
 
 $(function () {});
 </script>

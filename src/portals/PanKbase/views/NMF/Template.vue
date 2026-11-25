@@ -99,7 +99,7 @@
                         <div v-if="$parent.factorsData" class="f-col" style="flex:1; gap: 4px;">
                             <div class="f-row spread-out">
                                 <div style="font-weight: bold;">
-                                    NMF Factors <span class="tooltip-bg"><b-icon icon="question-circle-fill" style="color:var(--pkb-primary-green)" v-b-tooltip.hover.right="`NMF (Non-negative Matrix Factorization) identifies coordinated gene expression patterns (“factors”) within this cell type. Each factor represents a gene program whose activity varies across cells.`"/></span>
+                                    NMF Factors <span class="tooltip-bg"><b-icon icon="question-circle-fill" style="color:var(--pkb-primary-green)" v-b-tooltip.hover.right="{ title: `NMF (Non-negative Matrix Factorization) identifies coordinated gene expression patterns (“factors”) within this cell type. Each factor represents a gene program whose activity varies across cells.`, customClass: 'nmf-tooltip' }"/></span>
                                 </div>
                                 <div>{{ $parent.factorsData.length.toLocaleString() }} total</div>
                             </div>
@@ -113,12 +113,12 @@
                             >
                                 <template #head(label)="{ field }">
                                     <div style="white-space: nowrap;">
-                                        {{ field.label }} <span class="tooltip-bg"><b-icon icon="question-circle-fill" style="color:var(--pkb-primary-green)" v-b-tooltip.hover.right="`An NMF-derived gene program. Each factor consists of a weighted set of genes and corresponding loadings across cells.`"/></span>
+                                        {{ field.label }} <span class="tooltip-bg"><b-icon icon="question-circle-fill" style="color:var(--pkb-primary-green)" v-b-tooltip.hover.right="{ title: `An NMF-derived gene program. Each factor consists of a weighted set of genes and corresponding loadings across cells.`, customClass: 'nmf-tooltip' }"/></span>
                                     </div>
                                 </template>
                                 <template #head(importance)="{ field }">
                                     <div style="white-space: nowrap;">
-                                        {{ field.label }} <span class="tooltip-bg"><b-icon icon="question-circle-fill" style="color:var(--pkb-primary-green)" v-b-tooltip.hover.right="`Relative contribution of this factor within the selected cell type. Higher values indicate greater overall influence in the NMF model.`"/></span>
+                                        {{ field.label }} <span class="tooltip-bg"><b-icon icon="question-circle-fill" style="color:var(--pkb-primary-green)" v-b-tooltip.hover.right="{ title: `Relative contribution of this factor within the selected cell type. Higher values indicate greater overall influence in the NMF model.`, customClass: 'nmf-tooltip' }"/></span>
                                     </div>
                                 </template>
                                 <!-- TOP CELLS PILLS -->
@@ -128,9 +128,9 @@
                                             v-for="cell in $parent.splitValues(row.item.top_cells)"
                                             :key="cell"
                                             :style="`background-color: ${$parent.SC.labelColors[$parent.SC.colorByField][$parent.SC.highlightLabel]};`"
-                                        >
-                                            {{ cell }}
-                                        </b-badge>
+                                        >{{
+                                            " " }}{{ cell }}{{ " "
+                                        }}</b-badge>
                                     </div>
                                 </template>
             
@@ -141,9 +141,9 @@
                                             v-for="gene in $parent.splitValues(row.item.top_genes)"
                                             :key="gene"
                                             style="background-color: #fff; color: #000;"
-                                        >
-                                            {{ gene }}
-                                        </b-badge>
+                                        >{{
+                                            " " }}{{ gene }}{{ " "
+                                        }}</b-badge>
                                     </div>
                                 </template>
 
@@ -200,7 +200,7 @@
                                             >
                                                 <template #head(value)="{ field }">
                                                     <div style="white-space: nowrap;">
-                                                        {{ field.label }} <span class="tooltip-bg"><b-icon icon="question-circle-fill" style="color:var(--pkb-primary-green)" v-b-tooltip.hover.right="`Factor loading quantifies how strongly a cell expresses this gene program. Higher values indicate stronger program activity.`"/></span>
+                                                        {{ field.label }} <span class="tooltip-bg"><b-icon icon="question-circle-fill" style="color:var(--pkb-primary-green)" v-b-tooltip.hover.right="{ title: `Factor loading quantifies how strongly a cell expresses this gene program. Higher values indicate stronger program activity.`, customClass: 'nmf-tooltip' }"/></span>
                                                     </div>
                                                 </template>
                                                 <template #cell(value)="row">
@@ -232,7 +232,7 @@
                                             >
                                                 <template #head(value)="{ field }">
                                                     <div style="white-space: nowrap;">
-                                                        {{ field.label }} <span class="tooltip-bg"><b-icon icon="question-circle-fill" style="color:var(--pkb-primary-green)" v-b-tooltip.hover.right="`Weight of this gene within the factor. Higher values indicate stronger contribution to the gene program.`"/></span>
+                                                        {{ field.label }} <span class="tooltip-bg"><b-icon icon="question-circle-fill" style="color:var(--pkb-primary-green)" v-b-tooltip.hover.right="{ title: `Weight of this gene within the factor. Higher values indicate stronger contribution to the gene program.`, customClass: 'nmf-tooltip' }"/></span>
                                                     </div>
                                                 </template>
                                                 <template #cell(value)="row">
@@ -261,6 +261,22 @@
     </div>
 </template>
 
+<script>
+import PkbFooter from "@/portals/PanKbase/components/pkb-footer.vue";
+import PkbHeader from "@/portals/PanKbase/components/pkb-header.vue";
+import ResearchSingleCellInfo from "@/components/researchPortal/singleCellBrowser/ResearchSingleCellInfo.vue";
+import ResearchUmapPlotGl from "@/components/researchPortal/singleCellBrowser/ResearchUmapPlotGL.vue";
+
+export default {
+    components: {
+        PkbFooter,
+        PkbHeader,
+        ResearchSingleCellInfo,
+        ResearchUmapPlotGl,
+    },
+};
+</script>
+
 <style scoped>
 #histogram:empty + .histogram-note{
     display:none !important;
@@ -276,12 +292,6 @@
     background-color: white;
     display: inline-flex;
     vertical-align: text-top;
-}
-
-::v-deep .tooltip-inner{
-    font-size: 12px;
-    text-align: left;
-    padding: 10px;
 }
 
 ::v-deep .b-table-sticky-header > .table.b-table > thead > tr > th {
@@ -326,4 +336,12 @@
     outline: 2px solid #ffd10c;
 }
 */
+</style>
+<style>
+/* a tooltip is outside this component's scope */
+.nmf-tooltip .tooltip-inner{
+    font-size: 12px;
+    text-align: left;
+    padding: 10px;
+}
 </style>

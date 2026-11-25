@@ -1,10 +1,10 @@
 <script>
-import Vue from "vue";
 
 // The gene autocomplete for the header band. Presentational plus keyboard
 // navigation: the parent owns the debounce and the /api/bio/match/gene fetch, and
 // passes suggestions down, so this component never talks to the network.
-export default Vue.component("GeneSearch", {
+export default {
+    name: "GeneSearch",
     props: {
         // the raw text in the input
         value: {
@@ -38,6 +38,7 @@ export default Vue.component("GeneSearch", {
             default: () => []
         }
     },
+    emits: ["input", "submit", "select"],
 
     data() {
         return {
@@ -73,7 +74,7 @@ export default Vue.component("GeneSearch", {
         }
     },
 
-    beforeDestroy() {
+    beforeUnmount() {
         this.unbindDocument();
     },
 
@@ -163,7 +164,7 @@ export default Vue.component("GeneSearch", {
             this.$emit("select", label);
         }
     }
-});
+};
 </script>
 
 <template>

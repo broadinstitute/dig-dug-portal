@@ -52,6 +52,7 @@ export default {
             validator: (value) => value === "recomb" || value === "track",
         },
     },
+    emits: ["update:regionViewArea"],
     data() {
         return {
             trackWidthPx: 0,
@@ -91,7 +92,7 @@ export default {
             }
         }
     },
-    beforeDestroy() {
+    beforeUnmount() {
         window.removeEventListener("resize", this.measureTrack);
         this.endDrag();
         if (this.resizeObserver) {

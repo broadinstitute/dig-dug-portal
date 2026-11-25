@@ -143,8 +143,8 @@
                                     </tr>
                                 </thead>
                                 <tbody>
-                                    <template v-for="(row, rowIndex) in pagedRows">
-                                        <tr :key="row['Variant ID'] + '-' + rowIndex">
+                                    <template v-for="(row, rowIndex) in pagedRows" :key="row['Variant ID'] + '-' + rowIndex">
+                                        <tr>
                                             <td v-if="starColumn">
                                                 <b-icon
                                                     :icon="isStarred(row) ? 'star-fill' : 'star'"
@@ -388,6 +388,13 @@ export default {
             default: null,
         },
     },
+    emits: [
+        "toggle-star-variant",
+        "set-reference-variant",
+        "toggle-ancestry",
+        "update:filtersIndex",
+        "update:mappingState",
+    ],
     data() {
         return {
             tableFormat: ASSOCIATIONS_TABLE_FORMAT,

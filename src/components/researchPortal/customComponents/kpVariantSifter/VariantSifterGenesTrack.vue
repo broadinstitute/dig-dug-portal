@@ -102,6 +102,7 @@ export default {
             default: () => ({}),
         },
     },
+    emits: ["track-layout"],
     data() {
         return {
             geneHitRegions: [],
@@ -195,7 +196,7 @@ export default {
             }
         });
     },
-    beforeDestroy() {
+    beforeUnmount() {
         window.removeEventListener("resize", this.onResize);
         if (this.resizeObserver) {
             this.resizeObserver.disconnect();

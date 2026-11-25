@@ -11,8 +11,7 @@
                 </template>-->
 
                 <div
-                    v-for="(row, i) in topAssociations2nd"
-                    v-if="row.pValue > 5e-8 && i <= 30"
+                    v-for="(row, i) in (topAssociations2nd || []).filter((row, i) => row.pValue > 5e-8 && i <= 30)"
                     class="bubble phenotype-with-signal"
                     :class="row.pValue <= 5e-3 ? 'moderate' : 'none'"
                 >
@@ -53,8 +52,7 @@
                 style="height: auto !important"
             >
                 <div
-                    v-for="(row, i) in topAssociations"
-                    v-if="row.pValue > 5e-8 && i > 30"
+                    v-for="(row, i) in (topAssociations || []).filter((row, i) => row.pValue > 5e-8 && i > 30)"
                     class="bubble phenotype-with-signal"
                     :class="row.pValue <= 5e-3 ? 'moderate' : 'none'"
                 >
@@ -227,14 +225,11 @@
 </template>
 
 <script>
-import Vue from "vue";
 import { groupBy } from "@/utils/lodashUtils";
-import { BootstrapVueIcons } from "bootstrap-vue";
 import uiUtils from "@/utils/uiUtils";
 
-Vue.use(BootstrapVueIcons);
-
-export default Vue.component("phenotype-signal-multiple", {
+export default {
+    name: "phenotype-signal-multiple",
     modules: {
         uiUtils,
     },
@@ -343,7 +338,7 @@ export default Vue.component("phenotype-signal-multiple", {
             uiUtils.showHideByClass(CLASS);
         },
     },
-});
+};
 </script>
 
 <style>

@@ -52,8 +52,8 @@
 								? 'display:none !important;'
 								: ''
 								">
-							<template v-for="option in listOptions[parameter.parameter]">
-								<a href="javascript:;" v-html="option.label" :key="option.value" @click="setListValue(
+							<template v-for="option in listOptions[parameter.parameter]" :key="option.value">
+								<a href="javascript:;" v-html="option.label" @click="setListValue(
 									option.value,
 									parameter.parameter,
 									paramIndex,
@@ -83,8 +83,8 @@
 								? 'display:none !important;'
 								: ''
 								">
-								<template v-for="gene in kpGenes">
-									<a href="javascript:;" v-html="gene" :key="gene" @click="
+								<template v-for="gene in kpGenes" :key="gene">
+									<a href="javascript:;" v-html="gene" @click="
 										parameter['convert to region'] &&
 											parameter['convert to region'] ==
 											'true'
@@ -140,10 +140,10 @@
 </template>
 
 <script>
-import Vue from "vue";
 import ResearchContextSearch from "@/components/researchPortal/ResearchContextSearch.vue";
 
-export default Vue.component("research-multi-sections-search", {
+export default {
+	name: "research-multi-sections-search",
 	props: [
 		"searchParameters",
 		"phenotypesInUse",
@@ -192,7 +192,7 @@ export default Vue.component("research-multi-sections-search", {
 		})
 
 	},
-	beforeDestroy() {
+	beforeUnmount() {
 		window.removeEventListener("scroll", this.onScroll);
 	},
 	computed: {
@@ -564,7 +564,7 @@ export default Vue.component("research-multi-sections-search", {
 			}
 		},
 	},
-});
+};
 </script>
 
 <style>

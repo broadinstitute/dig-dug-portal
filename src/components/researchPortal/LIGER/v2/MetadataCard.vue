@@ -1,5 +1,4 @@
 <script>
-import Vue from "vue";
 import DatasetInfo from "./DatasetInfo.vue";
 import EntityList from "./EntityList.vue";
 import ProgramInfo from "./ProgramInfo.vue";
@@ -15,7 +14,8 @@ import StateInfo from "./StateInfo.vue";
 // Only the Source data tab is built. The other two are declared so the shape of the
 // card is visible and so their selection state can already be threaded through, but
 // their bodies are placeholders.
-export default Vue.component("MetadataCard", {
+export default {
+    name: "MetadataCard",
     components: {
         DatasetInfo,
         EntityList,
@@ -148,6 +148,7 @@ export default Vue.component("MetadataCard", {
             default: ""
         }
     },
+    emits: ["update:active-tab", "select-state", "select-program", "clear-program", "clear-state"],
 
     computed: {
         tabs() {
@@ -228,17 +229,16 @@ export default Vue.component("MetadataCard", {
             this.$emit("update:active-tab", "program");
         }
     }
-});
+};
 </script>
 
 <template>
     <div class="metadata-card">
         <div class="tab-band" role="tablist">
-            <template v-for="(tab, index) in tabs">
+            <template v-for="(tab, index) in tabs" :key="tab.key">
                 <div v-if="index > 0" :key="tab.key + '-divider'" class="band-divider" aria-hidden="true"></div>
 
                 <button
-                    :key="tab.key"
                     type="button"
                     class="tab"
                     :class="{ active: activeTab === tab.key }"

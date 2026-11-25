@@ -1,0 +1,8 @@
+{
+  "url": "https://hugeampkpncms.org/rest/byor_content?id=pankbase_tools_pipelines",
+  "status": 200,
+  "headers": {
+    "content-type": "application/json"
+  },
+  "body": "[{\"title\":\"Tools and Pipelines\",\"field_data_points\":false,\"field_data_table_format\":false,\"body\":\"\\u003Cp\\u003EPanKbase data processing and analyses use a standard set of pipelines, outlined here:\\u003C\\/p\\u003E\\n\\u003Cul\\u003E\\n\\u003Cli\\u003EPanKbase data library:\\n\\u003Cul\\u003E\\n\\u003Cli\\u003E\\u003Ca href=\\u0022https:\\/\\/data.pankbase.org\\/search\\/?type=Workflow\\u0022 target=\\u0022blank\\u0022\\u003EPipelines for data processing\\u003C\\/a\\u003E\\u003C\\/li\\u003E\\n\\u003C\\/ul\\u003E\\n\\u003C\\/li\\u003E\\n\\u003Cli\\u003EPanKbase GitHub repositories:\\n\\u003Cul\\u003E\\n\\u003Cli\\u003E\\u003Ca href=\\u0022https:\\/\\/github.com\\/topics\\/pankbase-pipeline\\u0022 target=\\u0022blank\\u0022\\u003EPipelines for data processing and analysis\\u003C\\/a\\u003E\\u003C\\/li\\u003E\\n\\u003Cli\\u003E\\u003Ca href=\\u0022https:\\/\\/github.com\\/topics\\/pankbase-platform\\u0022 target=\\u0022blank\\u0022\\u003EPlatform code\\u003C\\/a\\u003E\\u003C\\/li\\u003E\\n\\u003C\\/ul\\u003E\\n\\u003C\\/li\\u003E\\n\\u003C\\/ul\\u003E\\n\\u003Cp\\u003EFor Data Submitters:\\u003C\\/p\\u003E\\n\\u003Cul\\u003E\\n\\u003Cli\\u003EIf you wish to submit data to PanKbase, please follow our \\u003Ca href=\\u0022https:\\/\\/pankbase.org\\/metadata-data-standards.html\\u0022 target=\\u0022blank\\u0022\\u003EData Processing Standards\\u003C\\/a\\u003E\\u003C\\/li\\u003E\\n\\u003C\\/ul\\u003E\\n\",\"field_page_style\":false}]"
+}

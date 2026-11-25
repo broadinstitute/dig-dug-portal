@@ -5,7 +5,7 @@
                 <span style="color: #3fb54a">{{ data.label }}</span>
             </template>
 
-            <template slot="bottom-row" slot-scope="data">
+            <template v-slot:bottom-row="data">
                 <td style="white-space: nowrap">Set prior</td>
                 <td>
                     <input
@@ -36,23 +36,14 @@
 </template>
 
 <script>
-import Vue from "vue";
-
-import { BootstrapVue, IconsPlugin } from "bootstrap-vue";
 import VueTypeaheadBootstrap from "vue-typeahead-bootstrap";
 import Autocomplete from "@/components/Autocomplete.vue";
-import "bootstrap/dist/css/bootstrap.css";
-import "bootstrap-vue/dist/bootstrap-vue.css";
 import { match } from "@/utils/bioIndexUtils";
 import Formatters from "@/utils/formatters";
 
-Vue.use(BootstrapVue);
-Vue.use(IconsPlugin);
 
-Vue.component("vue-typeahead-bootstrap", VueTypeaheadBootstrap);
-Vue.component("autocomplete", Autocomplete);
-
-export default Vue.component("hugecal-table", {
+export default {
+    name: "hugecal-table",
     props: {
         hugeScore: {
             type: Number,
@@ -138,7 +129,7 @@ export default Vue.component("hugecal-table", {
             return ppa;
         },
     },
-});
+};
 </script>
 
 <style scoped>

@@ -1,11 +1,12 @@
-import Vue from "vue";
+import { mountPage } from "@/utils/pageSetup";
 import Template from "./Template.vue";
 import "../../assets/layout.css";
 import "../../assets/pkb-styles.css";
 import { pankbaseMixin } from "@/portals/PanKbase/mixins/pankbaseMixin.js";
 import { getPankbaseContent } from "@/portals/PanKbase/utils/content";
 
-new Vue({
+// @vue/component
+mountPage(Template, {
     components: {
     },
     mixins: [pankbaseMixin],
@@ -20,8 +21,4 @@ new Vue({
         let content = await getPankbaseContent(this.pageId);
         this.people = content;
     },
-
-    render(createElement, context) {
-        return createElement(Template);
-    },
-}).$mount("#app");
+});

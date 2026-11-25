@@ -1,0 +1,906 @@
+import { test } from 'node:test';
+import assert from 'node:assert/strict';
+import { mkdirSync, mkdtempSync, rmSync, writeFileSync } from 'node:fs';
+import { tmpdir } from 'node:os';
+import { dirname, join } from 'node:path';
+import { analyzeSources, pageEntries, scriptSetupFiles, toKebab } from './component-graph.mjs';
+import { REASONS, planRegistrations, undefinedTags } from './register-plan.mjs';
+
+// ---- planRegistrations: a synthetic graph, no files on disk ------------------------------------
+
+const definition = (file, name) => ({ file, name, kind: 'definition' });
+const alias = (file, name, source) => ({ file, name, kind: 'alias', source });
+const use = (tag, line = 1) => ({ tag, line });
+
+/** Registrations in the shape `analyzeSources` returns: a map keyed by `toKebab(name)`. */
+function registry(...list) {
+  const map = new Map();
+  for (const registration of list) {
+    const key = toKebab(registration.name);
+    map.set(key, [...(map.get(key) ?? []), registration]);
+  }
+  return map;
+}
+
+/** `planRegistrations` with plain objects for the maps and arrays for the sets. */
+function plan({ uses, registrations = [], imports = {}, pages = [], scriptSetup = [] }) {
+  return planRegistrations({
+    uses: new Map(Object.entries(uses)),
+    registrations: registry(...registrations),
+    imports: new Map(Object.entries(imports)),
+    pages,
+    scriptSetupFiles: new Set(scriptSetup),
+  });
+}
+
+const PAGE = 'src/views/P/Template.vue';
+const COMP_A = 'src/components/CompA.vue';
+
+test('a tag with exactly one definition is registered from that file', () => {
+  const { edits, unresolved } = plan({
+    uses: { [PAGE]: [use('comp-a', 4)] },
+    registrations: [definition(COMP_A, 'comp-a')],
+  });
+  assert.deepEqual([...edits], [[PAGE, [{ tag: 'comp-a', key: 'CompA', source: '@/components/CompA.vue' }]]]);
+  assert.deepEqual(unresolved, []);
+});
+
+test('a PascalCase tag finds the registration of its kebab-case name', () => {
+  const { edits } = plan({
+    uses: { [PAGE]: [use('CompA')] },
+    registrations: [definition(COMP_A, 'comp-a')],
+  });
+  assert.deepEqual(edits.get(PAGE), [{ tag: 'CompA', key: 'CompA', source: '@/components/CompA.vue' }]);
+});
+
+test('a tag nothing registers is no-registration, with the tag as the lint rule spelled it and its line', () => {
+  const { edits, unresolved } = plan({
+    uses: { [PAGE]: [use('center', 9), use('Strong', 12)] },
+    registrations: [definition(COMP_A, 'comp-a')],
+  });
+  assert.equal(edits.size, 0);
+  assert.deepEqual(unresolved, [
+    { file: PAGE, line: 9, tag: 'center', reason: 'no-registration' },
+    { file: PAGE, line: 12, tag: 'Strong', reason: 'no-registration' },
+  ]);
+});
+
+test('aliases that share one package source register from that package', () => {
+  const { edits, unresolved } = plan({
+    uses: { [PAGE]: [use('vue-typeahead-bootstrap')] },
+    registrations: [
+      alias('src/components/GeneSelectPicker.vue', 'vue-typeahead-bootstrap', 'vue-typeahead-bootstrap'),
+      alias('src/components/PhenotypePicker.vue', 'vue-typeahead-bootstrap', 'vue-typeahead-bootstrap'),
+    ],
+  });
+  assert.deepEqual(edits.get(PAGE), [
+    { tag: 'vue-typeahead-bootstrap', key: 'VueTypeaheadBootstrap', source: 'vue-typeahead-bootstrap' },
+  ]);
+  assert.deepEqual(unresolved, []);
+});
+
+test('an alias with a relative source is resolved against the aliasing file and written as @/ with its extension', () => {
+  const sources = new Map([
+    ['src/components/picker/Picker.vue', '<script>\nimport Fancy from "../Fancy";\nVue.component("fancy-thing", Fancy);\n</script>'],
+    ['src/components/Fancy.vue', '<script>export default {};</script>'],
+    [PAGE, '<template><fancy-thing /></template>'],
+  ]);
+  const { registrations, imports } = analyzeSources(sources);
+  const { edits, unresolved } = planRegistrations({
+    uses: new Map([[PAGE, [use('fancy-thing', 1)]]]),
+    registrations,
+    imports,
+    pages: [],
+    scriptSetupFiles: new Set(),
+  });
+  assert.deepEqual(edits.get(PAGE), [{ tag: 'fancy-thing', key: 'FancyThing', source: '@/components/Fancy.vue' }]);
+  assert.deepEqual(unresolved, []);
+});
+
+test('an alias whose source is not imported, or does not resolve to a file, is no-registration', () => {
+  const { edits, unresolved } = plan({
+    uses: { [PAGE]: [use('local-thing', 2), use('gone-thing', 3)] },
+    registrations: [
+      alias('src/components/A.vue', 'local-thing', null),
+      alias('src/components/B.vue', 'gone-thing', '@/components/Missing.vue'),
+    ],
+    imports: { 'src/components/A.vue': [], 'src/components/B.vue': [] },
+  });
+  assert.equal(edits.size, 0);
+  assert.deepEqual(
+    unresolved.map(({ tag, reason }) => [tag, reason]),
+    [['local-thing', 'no-registration'], ['gone-thing', 'no-registration']],
+  );
+});
+
+test('aliases that disagree on the source are ambiguous, listing the sources', () => {
+  const { edits, unresolved } = plan({
+    uses: { [PAGE]: [use('multi', 5)] },
+    registrations: [alias('src/a.js', 'multi', 'pkg-b'), alias('src/b.js', 'multi', 'pkg-a'), alias('src/c.js', 'multi', 'pkg-b')],
+  });
+  assert.equal(edits.size, 0);
+  assert.deepEqual(unresolved, [{ file: PAGE, line: 5, tag: 'multi', reason: 'ambiguous', candidates: ['pkg-a', 'pkg-b'] }]);
+});
+
+test('an alias of the one definition, under the same name, is not a second candidate', () => {
+  const { edits } = plan({
+    uses: { [PAGE]: [use('autocomplete')] },
+    registrations: [
+      definition('src/components/Autocomplete.vue', 'autocomplete'),
+      alias('src/components/GeneSelectPicker.vue', 'autocomplete', '@/components/Autocomplete.vue'),
+      alias('src/components/PhenotypePicker.vue', 'autocomplete', './Autocomplete'),
+    ],
+    imports: {
+      'src/components/Autocomplete.vue': [],
+      'src/components/GeneSelectPicker.vue': ['src/components/Autocomplete.vue'],
+      'src/components/PhenotypePicker.vue': ['src/components/Autocomplete.vue'],
+    },
+  });
+  assert.deepEqual(edits.get(PAGE), [{ tag: 'autocomplete', key: 'Autocomplete', source: '@/components/Autocomplete.vue' }]);
+});
+
+const DUP_X = 'src/components/x/DownloadChart.vue';
+const DUP_Y = 'src/components/y/DownloadChart.vue';
+const dupes = [definition(DUP_X, 'download-chart'), definition(DUP_Y, 'download-chart')];
+
+test('a duplicate name is settled when every page that reaches the file reaches the same one candidate', () => {
+  const { edits, unresolved } = plan({
+    uses: { [PAGE]: [use('download-chart')] },
+    registrations: dupes,
+    imports: {
+      'src/views/P/main.js': [PAGE, DUP_X],
+      'src/views/Q/main.js': [PAGE, DUP_X],
+      'src/views/R/main.js': [DUP_Y], // does not reach PAGE, so it is no evidence
+    },
+    pages: ['src/views/P/main.js', 'src/views/Q/main.js', 'src/views/R/main.js'],
+  });
+  assert.deepEqual(edits.get(PAGE), [{ tag: 'download-chart', key: 'DownloadChart', source: '@/components/x/DownloadChart.vue' }]);
+  assert.deepEqual(unresolved, []);
+});
+
+test('a duplicate name stays ambiguous when two pages that reach the file reach different candidates', () => {
+  const { edits, unresolved } = plan({
+    uses: { [PAGE]: [use('download-chart', 8)] },
+    registrations: [dupes[1], dupes[0]],
+    imports: { 'src/views/P/main.js': [PAGE, DUP_X], 'src/views/Q/main.js': [PAGE, DUP_Y] },
+    pages: ['src/views/P/main.js', 'src/views/Q/main.js'],
+  });
+  assert.equal(edits.size, 0);
+  assert.deepEqual(unresolved, [
+    { file: PAGE, line: 8, tag: 'download-chart', reason: 'ambiguous', candidates: [DUP_X, DUP_Y] },
+  ]);
+});
+
+test('a duplicate name stays ambiguous when a page reaches both candidates, or neither', () => {
+  for (const reached of [[DUP_X, DUP_Y], []]) {
+    const { edits, unresolved } = plan({
+      uses: { [PAGE]: [use('download-chart')] },
+      registrations: dupes,
+      imports: { 'src/views/P/main.js': [PAGE, ...reached] },
+      pages: ['src/views/P/main.js'],
+    });
+    assert.equal(edits.size, 0);
+    assert.deepEqual(
+      unresolved.map(({ reason, candidates }) => [reason, candidates]),
+      [['ambiguous', [DUP_X, DUP_Y]]],
+    );
+  }
+});
+
+test('a duplicate name is ambiguous when no page reaches the using file, because there is no evidence', () => {
+  const { edits, unresolved } = plan({
+    uses: { [PAGE]: [use('download-chart')] },
+    registrations: dupes,
+    imports: { 'src/views/P/main.js': [DUP_X] },
+    pages: ['src/views/P/main.js'],
+  });
+  assert.equal(edits.size, 0);
+  assert.equal(unresolved[0].reason, 'ambiguous');
+  assert.deepEqual(unresolved[0].candidates, [DUP_X, DUP_Y]);
+});
+
+test('a file that uses the tag of its own definition is self', () => {
+  const { edits, unresolved } = plan({
+    uses: { [COMP_A]: [use('comp-a', 21)] },
+    registrations: [definition(COMP_A, 'comp-a')],
+  });
+  assert.equal(edits.size, 0);
+  assert.deepEqual(unresolved, [{ file: COMP_A, line: 21, tag: 'comp-a', reason: 'self' }]);
+});
+
+test('self is decided before script-setup, and a duplicate name is ambiguous before it is self', () => {
+  const self = plan({
+    uses: { [COMP_A]: [use('comp-a')] },
+    registrations: [definition(COMP_A, 'comp-a')],
+    scriptSetup: [COMP_A],
+  });
+  assert.equal(self.unresolved[0].reason, 'self');
+
+  const ambiguous = plan({
+    uses: { [DUP_X]: [use('download-chart')] },
+    registrations: dupes,
+    scriptSetup: [DUP_X],
+  });
+  assert.equal(ambiguous.unresolved[0].reason, 'ambiguous');
+});
+
+// ---- phase-2-present: phase 2 output (`export default { name: "x", ... }`) is in the tree ---------------
+
+const named = (file, name) => ({ file, name, kind: 'named' });
+
+test('a tag whose only registration is named is phase-2-present, listing the named file', () => {
+  const { edits, unresolved } = plan({
+    uses: { [PAGE]: [use('comp-a', 4)] },
+    registrations: [named(COMP_A, 'comp-a')],
+  });
+  assert.equal(edits.size, 0);
+  assert.deepEqual(unresolved, [{ file: PAGE, line: 4, tag: 'comp-a', reason: 'phase-2-present', candidates: [COMP_A] }]);
+});
+
+// The radiant shape: a portal-only file still defines the name, and master's file of that name is already
+// unwrapped. Without the named file, rule 2 would see one definition and pick the portal file unchecked.
+test('a definition beside a named file of the same name is phase-2-present, not the one definition', () => {
+  const portal = 'src/portals/Radiant/components/VariantSearch.vue';
+  const master = 'src/components/VariantSearch.vue';
+  const { edits, unresolved } = plan({
+    uses: { [PAGE]: [use('variant-search', 2)] },
+    registrations: [definition(portal, 'variant-search'), named(master, 'variant-search'), alias('src/a.js', 'variant-search', 'pkg')],
+  });
+  assert.equal(edits.size, 0);
+  assert.deepEqual(unresolved, [{ file: PAGE, line: 2, tag: 'variant-search', reason: 'phase-2-present', candidates: [master, portal] }]);
+});
+
+test('phase-2-present is decided right after no-registration: before ambiguous, self and script-setup', () => {
+  const both = plan({
+    uses: { [COMP_A]: [use('comp-a')], [DUP_X]: [use('download-chart')] },
+    registrations: [definition(COMP_A, 'comp-a'), named('src/components/Other.vue', 'comp-a'), ...dupes, named('src/z/Z.vue', 'download-chart')],
+    scriptSetup: [COMP_A],
+  });
+  assert.deepEqual(both.unresolved.map(({ reason }) => reason), ['phase-2-present', 'phase-2-present']);
+  // A name nothing registers stays no-registration, named files elsewhere notwithstanding.
+  const none = plan({ uses: { [PAGE]: [use('ghost')] }, registrations: [named(COMP_A, 'comp-a')] });
+  assert.deepEqual(none.unresolved.map(({ reason }) => reason), ['no-registration']);
+});
+
+// ---- not-loaded: a page renders the file but never loads a file that registers the name --------------
+
+const PAGE_P1 = 'src/views/P1/main.js';
+const PAGE_P2 = 'src/views/P2/main.js';
+const FILE_F = 'src/components/F.vue';
+const COMP_T = 'src/components/T.vue';
+
+test('a tag a page never loads is not-loaded, listing that page; the page that loads it is not listed', () => {
+  const { edits, unresolved } = plan({
+    uses: { [FILE_F]: [use('comp-t', 7)] },
+    registrations: [definition(COMP_T, 'comp-t')],
+    imports: { [PAGE_P1]: [FILE_F, COMP_T], [PAGE_P2]: [FILE_F], [FILE_F]: [], [COMP_T]: [] },
+    pages: [PAGE_P1, PAGE_P2],
+  });
+  assert.equal(edits.size, 0);
+  assert.deepEqual(unresolved, [{ file: FILE_F, line: 7, tag: 'comp-t', reason: 'not-loaded', pages: [PAGE_P2] }]);
+});
+
+test('a tag every page that renders the file loads is registered as before', () => {
+  const { edits, unresolved } = plan({
+    uses: { [FILE_F]: [use('comp-t', 7)] },
+    registrations: [definition(COMP_T, 'comp-t')],
+    imports: { [PAGE_P1]: [FILE_F, COMP_T], [PAGE_P2]: [FILE_F, COMP_T], [FILE_F]: [], [COMP_T]: [] },
+    pages: [PAGE_P1, PAGE_P2],
+  });
+  assert.deepEqual(edits.get(FILE_F), [{ tag: 'comp-t', key: 'CompT', source: '@/components/T.vue' }]);
+  assert.deepEqual(unresolved, []);
+});
+
+test('a file reached only through other files counts for the page, and so does the registering file', () => {
+  const wrapper = 'src/components/Wrapper.vue';
+  const { edits, unresolved } = plan({
+    uses: { [FILE_F]: [use('comp-t')] },
+    registrations: [definition(COMP_T, 'comp-t')],
+    imports: { [PAGE_P1]: [wrapper], [wrapper]: [FILE_F, COMP_T], [FILE_F]: [], [COMP_T]: [] },
+    pages: [PAGE_P1],
+  });
+  assert.equal(edits.get(FILE_F).length, 1);
+  assert.deepEqual(unresolved, []);
+});
+
+test('a file no page reaches keeps its entry: it never renders, so registering it changes nothing', () => {
+  const { edits, unresolved } = plan({
+    uses: { [FILE_F]: [use('comp-t')] },
+    registrations: [definition(COMP_T, 'comp-t')],
+    imports: { [PAGE_P1]: [COMP_T], [PAGE_P2]: [], [FILE_F]: [] },
+    pages: [PAGE_P1, PAGE_P2],
+  });
+  assert.deepEqual(edits.get(FILE_F), [{ tag: 'comp-t', key: 'CompT', source: '@/components/T.vue' }]);
+  assert.deepEqual(unresolved, []);
+
+  // With no pages at all there is nothing to render the file either.
+  const bare = plan({ uses: { [FILE_F]: [use('comp-t')] }, registrations: [definition(COMP_T, 'comp-t')] });
+  assert.equal(bare.edits.get(FILE_F).length, 1);
+});
+
+test('a page that is itself the file counts as reaching it', () => {
+  const { unresolved } = plan({
+    uses: { [PAGE_P1]: [use('comp-t', 3)] },
+    registrations: [definition(COMP_T, 'comp-t')],
+    imports: { [PAGE_P1]: [] },
+    pages: [PAGE_P1],
+  });
+  assert.deepEqual(unresolved, [{ file: PAGE_P1, line: 3, tag: 'comp-t', reason: 'not-loaded', pages: [PAGE_P1] }]);
+});
+
+test('an alias registration counts as registering the name, wherever the page loads it from', () => {
+  const picker = 'src/components/Picker.vue';
+  const fancy = 'src/components/Fancy.vue';
+  const input = (pageImports) => ({
+    uses: { [FILE_F]: [use('fancy-thing', 4)] },
+    registrations: [alias(picker, 'fancy-thing', '@/components/Fancy.vue')],
+    imports: { ...pageImports, [FILE_F]: [], [picker]: [fancy], [fancy]: [] },
+    pages: [PAGE_P1, PAGE_P2],
+  });
+  // Both pages load the aliasing file: registered.
+  const loaded = plan(input({ [PAGE_P1]: [FILE_F, picker], [PAGE_P2]: [FILE_F, picker] }));
+  assert.deepEqual(loaded.edits.get(FILE_F), [{ tag: 'fancy-thing', key: 'FancyThing', source: '@/components/Fancy.vue' }]);
+  assert.deepEqual(loaded.unresolved, []);
+
+  // P2 loads neither the aliasing file nor the component: not loaded there.
+  const missing = plan(input({ [PAGE_P1]: [FILE_F, picker], [PAGE_P2]: [FILE_F] }));
+  assert.equal(missing.edits.size, 0);
+  assert.deepEqual(missing.unresolved, [{ file: FILE_F, line: 4, tag: 'fancy-thing', reason: 'not-loaded', pages: [PAGE_P2] }]);
+});
+
+test('an alias of a package registers the name on the pages that load the aliasing file', () => {
+  const picker = 'src/components/Picker.vue';
+  const { edits, unresolved } = plan({
+    uses: { [FILE_F]: [use('vue-typeahead-bootstrap')] },
+    registrations: [alias(picker, 'vue-typeahead-bootstrap', 'vue-typeahead-bootstrap')],
+    imports: { [PAGE_P1]: [FILE_F, picker], [PAGE_P2]: [FILE_F], [FILE_F]: [], [picker]: [] },
+    pages: [PAGE_P1, PAGE_P2],
+  });
+  assert.equal(edits.size, 0);
+  assert.deepEqual(unresolved, [{ file: FILE_F, line: 1, tag: 'vue-typeahead-bootstrap', reason: 'not-loaded', pages: [PAGE_P2] }]);
+});
+
+test('pages are listed sorted, whatever the order they were given in, and only those that render the file without loading the tag', () => {
+  const pageZ = 'src/views/Z/main.js';
+  const pageA = 'src/views/A/main.js';
+  const pageB = 'src/views/B/main.js';
+  const input = (pages) => ({
+    uses: { [FILE_F]: [use('comp-t', 5)] },
+    registrations: [definition(COMP_T, 'comp-t')],
+    imports: { [pageZ]: [FILE_F], [PAGE_P1]: [FILE_F, COMP_T], [pageA]: [FILE_F], [pageB]: [COMP_T] },
+    pages,
+  });
+  const expected = [{ file: FILE_F, line: 5, tag: 'comp-t', reason: 'not-loaded', pages: [pageA, pageZ] }];
+  assert.deepEqual(plan(input([pageZ, PAGE_P1, pageA, pageB])).unresolved, expected);
+  assert.deepEqual(plan(input([pageB, pageA, PAGE_P1, pageZ])).unresolved, expected);
+});
+
+test('every use of a not-loaded tag is listed with its own line; other tags in the file are still planned', () => {
+  const other = 'src/components/Other.vue';
+  const { edits, unresolved } = plan({
+    uses: { [FILE_F]: [use('comp-t', 2), use('other-comp', 3), use('comp-t', 9)] },
+    registrations: [definition(COMP_T, 'comp-t'), definition(other, 'other-comp')],
+    imports: { [PAGE_P1]: [FILE_F, COMP_T, other], [PAGE_P2]: [FILE_F, other], [FILE_F]: [], [COMP_T]: [], [other]: [] },
+    pages: [PAGE_P1, PAGE_P2],
+  });
+  assert.deepEqual(edits.get(FILE_F), [{ tag: 'other-comp', key: 'OtherComp', source: '@/components/Other.vue' }]);
+  assert.deepEqual(
+    unresolved.map(({ line, tag, reason, pages }) => [line, tag, reason, pages]),
+    [[2, 'comp-t', 'not-loaded', [PAGE_P2]], [9, 'comp-t', 'not-loaded', [PAGE_P2]]],
+  );
+});
+
+test('not-loaded is decided after the target is chosen and self, and before script-setup and cycle', () => {
+  const loaded = { [PAGE_P1]: [FILE_F], [FILE_F]: [] };
+
+  // After rules 1 to 3: no registration and ambiguous keep their own reasons, with no pages.
+  const none = plan({ uses: { [FILE_F]: [use('nothing-here')] }, imports: loaded, pages: [PAGE_P1] });
+  assert.deepEqual(none.unresolved, [{ file: FILE_F, line: 1, tag: 'nothing-here', reason: 'no-registration' }]);
+  const ambiguous = plan({ uses: { [FILE_F]: [use('download-chart')] }, registrations: dupes, imports: loaded, pages: [PAGE_P1] });
+  assert.equal(ambiguous.unresolved[0].reason, 'ambiguous');
+  assert.equal('pages' in ambiguous.unresolved[0], false);
+
+  // After self: a recursive component reached by a page that never loads the aliasing file stays self.
+  const picker = 'src/components/Picker.vue';
+  const self = plan({
+    uses: { [COMP_T]: [use('comp-t')] },
+    registrations: [alias(picker, 'comp-t', '@/components/T.vue')],
+    imports: { [PAGE_P1]: [COMP_T], [picker]: [COMP_T], [COMP_T]: [] },
+    pages: [PAGE_P1],
+  });
+  assert.deepEqual(self.unresolved, [{ file: COMP_T, line: 1, tag: 'comp-t', reason: 'self' }]);
+
+  // Before script-setup.
+  const setup = plan({
+    uses: { [FILE_F]: [use('comp-t')] },
+    registrations: [definition(COMP_T, 'comp-t')],
+    imports: loaded,
+    pages: [PAGE_P1],
+    scriptSetup: [FILE_F],
+  });
+  assert.deepEqual(setup.unresolved, [{ file: FILE_F, line: 1, tag: 'comp-t', reason: 'not-loaded', pages: [PAGE_P1] }]);
+
+  // Before cycle: T imports F, so registering T in F would loop, but the page does not load T at all.
+  const loop = plan({
+    uses: { [FILE_F]: [use('comp-t')] },
+    registrations: [definition(COMP_T, 'comp-t')],
+    imports: { [PAGE_P1]: [FILE_F], [FILE_F]: [], [COMP_T]: [FILE_F] },
+    pages: [PAGE_P1],
+  });
+  assert.deepEqual(loop.unresolved.map(({ reason }) => reason), ['not-loaded']);
+});
+
+// ---- a definition beside an alias of another component (ruling R17) ------------------------------
+//
+// `Vue.component("volcano-plot", PortalVolcano)` in a portal page beside master's
+// `export default Vue.component("volcano-plot", {...})`: the page shows whichever registration it loads.
+// Registering the one definition everywhere would swap the component on the page that loads the alias.
+
+const DEF_V = 'src/components/eglt/VolcanoPlot.vue';
+const ALIASING = 'src/portals/M/main.js';
+const PORTAL_V = 'src/portals/M/VolcanoPlot.vue';
+const volcano = [definition(DEF_V, 'volcano-plot'), alias(ALIASING, 'volcano-plot', './VolcanoPlot.vue')];
+const volcanoInput = (pageImports, extra = {}) => ({
+  uses: { [FILE_F]: [use('volcano-plot', 6)] },
+  registrations: volcano,
+  imports: { [FILE_F]: [], [DEF_V]: [], [ALIASING]: [PORTAL_V], [PORTAL_V]: [], ...pageImports },
+  pages: Object.keys(pageImports),
+  ...extra,
+});
+
+test('a definition and an alias of another component: pages that load only the definition settle it', () => {
+  const { edits, unresolved } = plan(volcanoInput({ [PAGE_P1]: [FILE_F, DEF_V] }));
+  assert.deepEqual(edits.get(FILE_F), [{ tag: 'volcano-plot', key: 'VolcanoPlot', source: '@/components/eglt/VolcanoPlot.vue' }]);
+  assert.deepEqual(unresolved, []);
+});
+
+test('a definition and an alias of another component: pages that load only the alias get the aliased component', () => {
+  const { edits, unresolved } = plan(volcanoInput({ [ALIASING]: [FILE_F, PORTAL_V] }));
+  assert.deepEqual(edits.get(FILE_F), [{ tag: 'volcano-plot', key: 'VolcanoPlot', source: '@/portals/M/VolcanoPlot.vue' }]);
+  assert.deepEqual(unresolved, []);
+});
+
+test('a definition and an alias of another component are ambiguous when a page loads both, pages disagree, or no page renders the file', () => {
+  const both = { [PAGE_P1]: [FILE_F, DEF_V, ALIASING] };
+  const disagree = { [PAGE_P1]: [FILE_F, DEF_V], [ALIASING]: [FILE_F, PORTAL_V] };
+  const noEvidence = { [PAGE_P1]: [DEF_V] };
+  for (const pageImports of [both, disagree, noEvidence]) {
+    const { edits, unresolved } = plan(volcanoInput(pageImports));
+    assert.equal(edits.size, 0);
+    assert.deepEqual(unresolved, [
+      { file: FILE_F, line: 6, tag: 'volcano-plot', reason: 'ambiguous', candidates: [DEF_V, PORTAL_V] },
+    ]);
+  }
+});
+
+test('a definition and an alias of another component: a page that renders the file but loads neither is ambiguous, not not-loaded', () => {
+  const { edits, unresolved } = plan(volcanoInput({ [PAGE_P1]: [FILE_F, DEF_V], [PAGE_P2]: [FILE_F] }));
+  assert.equal(edits.size, 0);
+  assert.deepEqual(unresolved.map(({ reason, candidates }) => [reason, candidates]), [['ambiguous', [DEF_V, PORTAL_V]]]);
+});
+
+test('a target settled to an alias is still checked for self', () => {
+  const { edits, unresolved } = plan({
+    ...volcanoInput({ [ALIASING]: [PORTAL_V] }),
+    uses: { [PORTAL_V]: [use('volcano-plot', 7)] },
+  });
+  assert.equal(edits.size, 0);
+  assert.deepEqual(unresolved, [{ file: PORTAL_V, line: 7, tag: 'volcano-plot', reason: 'self' }]);
+});
+
+test('an alias of a package beside a definition is a second candidate too', () => {
+  const registrations = [definition(DEF_V, 'volcano-plot'), alias(ALIASING, 'volcano-plot', 'vue-volcano')];
+  const loadsBoth = plan(volcanoInput({ [PAGE_P1]: [FILE_F, DEF_V, ALIASING] }, { registrations }));
+  assert.deepEqual(loadsBoth.unresolved.map(({ reason, candidates }) => [reason, candidates]), [['ambiguous', [DEF_V, 'vue-volcano']]]);
+  const aliasOnly = plan(volcanoInput({ [ALIASING]: [FILE_F] }, { registrations }));
+  assert.deepEqual(aliasOnly.edits.get(FILE_F), [{ tag: 'volcano-plot', key: 'VolcanoPlot', source: 'vue-volcano' }]);
+});
+
+test('an alias whose component cannot be located blocks the definition only on the pages that load the alias', () => {
+  const registrations = [definition(DEF_V, 'volcano-plot'), alias(ALIASING, 'volcano-plot', null)];
+  const loadsAlias = plan(volcanoInput({ [PAGE_P1]: [FILE_F, DEF_V, ALIASING] }, { registrations }));
+  assert.equal(loadsAlias.edits.size, 0);
+  assert.deepEqual(
+    loadsAlias.unresolved.map(({ reason, candidates }) => [reason, candidates]),
+    [['ambiguous', [DEF_V, `${ALIASING} (component not importable)`]]],
+  );
+  const elsewhere = plan(volcanoInput({ [PAGE_P1]: [FILE_F, DEF_V], [ALIASING]: [] }, { registrations }));
+  assert.deepEqual(elsewhere.edits.get(FILE_F), [{ tag: 'volcano-plot', key: 'VolcanoPlot', source: '@/components/eglt/VolcanoPlot.vue' }]);
+});
+
+test('aliases that disagree on the source are settled by the pages, like duplicate definitions', () => {
+  const { edits, unresolved } = plan({
+    uses: { [FILE_F]: [use('multi')] },
+    registrations: [alias('src/a.js', 'multi', 'pkg-a'), alias('src/b.js', 'multi', 'pkg-b')],
+    imports: { [PAGE_P1]: [FILE_F, 'src/b.js'], [PAGE_P2]: [FILE_F, 'src/b.js'], 'src/a.js': [], 'src/b.js': [], [FILE_F]: [] },
+    pages: [PAGE_P1, PAGE_P2],
+  });
+  assert.deepEqual(edits.get(FILE_F), [{ tag: 'multi', key: 'Multi', source: 'pkg-b' }]);
+  assert.deepEqual(unresolved, []);
+});
+
+test('on real sources, a portal alias of a name-less component beside a master definition is not swapped (R17)', () => {
+  const sources = new Map([
+    ['src/components/eglt/VolcanoPlot.vue', '<script>\nimport Vue from "vue";\nexport default Vue.component("volcano-plot", {});\n</script>'],
+    ['src/views/Master/main.js', 'import "./Template.vue";\nimport "@/components/eglt/VolcanoPlot.vue";'],
+    ['src/views/Master/Template.vue', '<template><volcano-plot /></template>'],
+    ['src/portals/M/views/T/main.js', 'import Vue from "vue";\nimport VolcanoPlot from "./VolcanoPlot.vue";\nimport "./Template.vue";\nVue.component("volcano-plot", VolcanoPlot);'],
+    ['src/portals/M/views/T/VolcanoPlot.vue', '<script>\nexport default {};\n</script>'],
+    ['src/portals/M/views/T/Template.vue', '<template><volcano-plot /></template>'],
+  ]);
+  const { registrations, imports } = analyzeSources(sources);
+  const { edits, unresolved } = planRegistrations({
+    uses: new Map([
+      ['src/portals/M/views/T/Template.vue', [use('volcano-plot', 1)]],
+      ['src/views/Master/Template.vue', [use('volcano-plot', 1)]],
+    ]),
+    registrations,
+    imports,
+    pages: pageEntries(sources),
+    scriptSetupFiles: scriptSetupFiles(sources),
+  });
+  assert.deepEqual(edits.get('src/portals/M/views/T/Template.vue'), [
+    { tag: 'volcano-plot', key: 'VolcanoPlot', source: '@/portals/M/views/T/VolcanoPlot.vue' },
+  ]);
+  assert.deepEqual(edits.get('src/views/Master/Template.vue'), [
+    { tag: 'volcano-plot', key: 'VolcanoPlot', source: '@/components/eglt/VolcanoPlot.vue' },
+  ]);
+  assert.deepEqual(unresolved, []);
+});
+
+test('on real sources, an alias of a named import beside a definition is not importable: the use is left to a person', () => {
+  const sources = new Map([
+    ['src/components/eglt/VolcanoPlot.vue', '<script>\nimport Vue from "vue";\nexport default Vue.component("volcano-plot", {});\n</script>'],
+    ['src/portals/M/views/T/main.js', 'import Vue from "vue";\nimport { PortalVolcano } from "./widgets.js";\nimport "./Template.vue";\nVue.component("volcano-plot", PortalVolcano);'],
+    ['src/portals/M/views/T/widgets.js', 'export const PortalVolcano = {};\nexport default {};'],
+    ['src/portals/M/views/T/Template.vue', '<template><volcano-plot /></template>'],
+  ]);
+  const { registrations, imports } = analyzeSources(sources);
+  const { edits, unresolved } = planRegistrations({
+    uses: new Map([['src/portals/M/views/T/Template.vue', [use('volcano-plot', 1)]]]),
+    registrations,
+    imports,
+    pages: pageEntries(sources),
+    scriptSetupFiles: scriptSetupFiles(sources),
+  });
+  assert.equal(edits.size, 0);
+  assert.deepEqual(unresolved, [
+    {
+      file: 'src/portals/M/views/T/Template.vue',
+      line: 1,
+      tag: 'volcano-plot',
+      reason: 'ambiguous',
+      candidates: ['src/components/eglt/VolcanoPlot.vue', 'src/portals/M/views/T/main.js (component not importable)'],
+    },
+  ]);
+});
+
+// ---- unexported: Vue.component("x", {...}) that is not the file's export default (M2) ----------------
+
+const unexported = (file, name) => ({ file, name, kind: 'unexported' });
+
+test('a name whose only registration is unexported is no-registration: the file exports another component', () => {
+  const { edits, unresolved } = plan({
+    uses: { [PAGE]: [use('inner-thing', 3)] },
+    registrations: [unexported(COMP_A, 'inner-thing')],
+  });
+  assert.equal(edits.size, 0);
+  assert.deepEqual(unresolved, [{ file: PAGE, line: 3, tag: 'inner-thing', reason: 'no-registration' }]);
+});
+
+test('an unexported registration beside a definition is a candidate no file exports: it blocks the pages that load it (R17)', () => {
+  const other = 'src/components/Other.vue';
+  const input = (pageImports) => ({
+    uses: { [FILE_F]: [use('comp-t', 2)] },
+    registrations: [definition(COMP_T, 'comp-t'), unexported(other, 'comp-t')],
+    imports: { ...pageImports, [FILE_F]: [], [COMP_T]: [], [other]: [] },
+    pages: Object.keys(pageImports),
+  });
+  const blocked = [
+    { file: FILE_F, line: 2, tag: 'comp-t', reason: 'ambiguous', candidates: [`${other} (component not importable)`, COMP_T] },
+  ];
+  // P2 shows the unexported component today, so registering the definition would swap it.
+  const onlyUnexported = plan(input({ [PAGE_P1]: [FILE_F, COMP_T], [PAGE_P2]: [FILE_F, other] }));
+  assert.equal(onlyUnexported.edits.size, 0);
+  assert.deepEqual(onlyUnexported.unresolved, blocked);
+  // A page that loads both shows whichever registration runs last.
+  const both = plan(input({ [PAGE_P1]: [FILE_F, COMP_T, other] }));
+  assert.equal(both.edits.size, 0);
+  assert.deepEqual(both.unresolved, blocked);
+  // Where every page that renders the file loads the definition and not the other file, it is the target.
+  const loaded = plan(input({ [PAGE_P1]: [FILE_F, COMP_T], [PAGE_P2]: [other] }));
+  assert.deepEqual(loaded.edits.get(FILE_F), [{ tag: 'comp-t', key: 'CompT', source: '@/components/T.vue' }]);
+  assert.deepEqual(loaded.unresolved, []);
+});
+
+test('an unexported registration beside an alias makes the alias ambiguous on the pages that load both', () => {
+  const other = 'src/components/Other.vue';
+  const picker = 'src/components/Picker.vue';
+  const { edits, unresolved } = plan({
+    uses: { [FILE_F]: [use('vue-typeahead-bootstrap', 2)] },
+    registrations: [alias(picker, 'vue-typeahead-bootstrap', 'vue-typeahead-bootstrap'), unexported(other, 'vue-typeahead-bootstrap')],
+    imports: { [PAGE_P1]: [FILE_F, picker, other], [FILE_F]: [], [picker]: [], [other]: [] },
+    pages: [PAGE_P1],
+  });
+  assert.equal(edits.size, 0);
+  assert.deepEqual(unresolved.map(({ reason, candidates }) => [reason, candidates]), [
+    ['ambiguous', [`${other} (component not importable)`, 'vue-typeahead-bootstrap']],
+  ]);
+  // A page that loads only the aliasing file gets the package.
+  const settled = plan({
+    uses: { [FILE_F]: [use('vue-typeahead-bootstrap', 2)] },
+    registrations: [alias(picker, 'vue-typeahead-bootstrap', 'vue-typeahead-bootstrap'), unexported(other, 'vue-typeahead-bootstrap')],
+    imports: { [PAGE_P1]: [FILE_F, picker], [PAGE_P2]: [other], [FILE_F]: [], [picker]: [], [other]: [] },
+    pages: [PAGE_P1, PAGE_P2],
+  });
+  assert.deepEqual(settled.edits.get(FILE_F), [{ tag: 'vue-typeahead-bootstrap', key: 'VueTypeaheadBootstrap', source: 'vue-typeahead-bootstrap' }]);
+  assert.deepEqual(settled.unresolved, []);
+});
+
+test('on real sources, a component defined beside the export default is not imported as that file', () => {
+  const sources = new Map([
+    ['src/views/P/main.js', 'import "./Template.vue";\nimport "@/components/Multi.vue";'],
+    ['src/views/P/Template.vue', '<template><div><inner-thing /><outer-thing /></div></template>'],
+    ['src/components/Multi.vue', '<script>\nVue.component("inner-thing", { template: "<i/>" });\nexport default Vue.component("outer-thing", {});\n</script>'],
+  ]);
+  const { registrations, imports } = analyzeSources(sources);
+  const { edits, unresolved } = planRegistrations({
+    uses: new Map([['src/views/P/Template.vue', [use('inner-thing', 1), use('outer-thing', 1)]]]),
+    registrations,
+    imports,
+    pages: pageEntries(sources),
+    scriptSetupFiles: scriptSetupFiles(sources),
+  });
+  assert.deepEqual(edits.get('src/views/P/Template.vue'), [{ tag: 'outer-thing', key: 'OuterThing', source: '@/components/Multi.vue' }]);
+  assert.deepEqual(unresolved, [{ file: 'src/views/P/Template.vue', line: 1, tag: 'inner-thing', reason: 'no-registration' }]);
+});
+
+test('REASONS lists every reason in the order the rules decide them', () => {
+  assert.deepEqual(REASONS, ['no-registration', 'phase-2-present', 'ambiguous', 'self', 'not-loaded', 'script-setup', 'cycle']);
+});
+
+test('a not-loaded use plans no edge, so it cannot make a later use a cycle', () => {
+  const [a, b] = ['src/components/A.vue', 'src/components/B.vue'];
+  // `a` uses b-comp, which P2 never loads: not-loaded, no edge a -> b. `b` then uses a-comp, which is fine.
+  const { edits, unresolved } = plan({
+    uses: { [a]: [use('b-comp', 2)], [b]: [use('a-comp', 3)] },
+    registrations: [definition(a, 'a-comp'), definition(b, 'b-comp')],
+    imports: { [PAGE_P1]: [a, b], [PAGE_P2]: [a], [a]: [], [b]: [] },
+    pages: [PAGE_P1, PAGE_P2],
+  });
+  assert.deepEqual(unresolved, [{ file: a, line: 2, tag: 'b-comp', reason: 'not-loaded', pages: [PAGE_P2] }]);
+  assert.deepEqual([...edits], [[b, [{ tag: 'a-comp', key: 'AComp', source: '@/components/A.vue' }]]]);
+});
+
+test('a file with <script setup> or lang="ts" gets no edit and is script-setup', () => {
+  const { edits, unresolved } = plan({
+    uses: { [PAGE]: [use('comp-a', 6)] },
+    registrations: [definition(COMP_A, 'comp-a')],
+    scriptSetup: [PAGE],
+  });
+  assert.equal(edits.size, 0);
+  assert.deepEqual(unresolved, [{ file: PAGE, line: 6, tag: 'comp-a', reason: 'script-setup' }]);
+});
+
+test('an edge that closes a cycle with an existing import is dropped as cycle', () => {
+  const panel = 'src/components/Panel.vue';
+  const table = 'src/components/Table.vue';
+  const { edits, unresolved } = plan({
+    uses: { [table]: [use('panel-comp', 7)] },
+    registrations: [definition(panel, 'panel-comp')],
+    imports: { [panel]: [table], [table]: [] },
+  });
+  assert.equal(edits.size, 0);
+  assert.deepEqual(unresolved, [{ file: table, line: 7, tag: 'panel-comp', reason: 'cycle' }]);
+});
+
+test('an indirect import path back to the file is a cycle too', () => {
+  const [a, b, c] = ['src/components/A.vue', 'src/components/B.vue', 'src/components/C.vue'];
+  const { unresolved } = plan({
+    uses: { [c]: [use('a-comp')] },
+    registrations: [definition(a, 'a-comp')],
+    imports: { [a]: [b], [b]: [c], [c]: [] },
+  });
+  assert.deepEqual(unresolved.map(({ reason }) => reason), ['cycle']);
+});
+
+test('planned edges count: of two registrations that would loop, the first in file order is kept', () => {
+  const [a, b] = ['src/components/A.vue', 'src/components/B.vue'];
+  const input = {
+    uses: { [b]: [use('a-comp', 2)], [a]: [use('b-comp', 3)] }, // deliberately not in sorted order
+    registrations: [definition(a, 'a-comp'), definition(b, 'b-comp')],
+  };
+  const { edits, unresolved } = plan(input);
+  assert.deepEqual([...edits], [[a, [{ tag: 'b-comp', key: 'BComp', source: '@/components/B.vue' }]]]);
+  assert.deepEqual(unresolved, [{ file: b, line: 2, tag: 'a-comp', reason: 'cycle' }]);
+});
+
+test('registering a file that already imports the target is not a cycle unless the target imports back', () => {
+  const [a, b] = ['src/components/A.vue', 'src/components/B.vue'];
+  const oneWay = plan({
+    uses: { [a]: [use('b-comp')] },
+    registrations: [definition(b, 'b-comp')],
+    imports: { [a]: [b], [b]: [] },
+  });
+  assert.equal(oneWay.edits.get(a).length, 1);
+
+  // Both files already import each other: reading B while A loads may see it unfinished, so it stays a cycle.
+  const loop = plan({
+    uses: { [a]: [use('b-comp')] },
+    registrations: [definition(b, 'b-comp')],
+    imports: { [a]: [b], [b]: [a] },
+  });
+  assert.deepEqual(loop.unresolved.map(({ reason }) => reason), ['cycle']);
+});
+
+test('a package registration adds no edge, so it never closes a cycle', () => {
+  const { edits } = plan({
+    uses: { [PAGE]: [use('vue-typeahead-bootstrap')] },
+    registrations: [alias(PAGE, 'vue-typeahead-bootstrap', 'vue-typeahead-bootstrap')],
+    imports: { [PAGE]: [] },
+  });
+  assert.equal(edits.get(PAGE).length, 1);
+});
+
+test('<a-b> and <AB> in one file give one entry; entries are sorted by key; every finding of an unresolved tag is listed', () => {
+  const ab = 'src/components/AB.vue';
+  const zeta = 'src/components/Zeta.vue';
+  const { edits, unresolved } = plan({
+    uses: { [PAGE]: [use('zeta-comp', 1), use('a-b', 2), use('AB', 3), use('zeta-comp', 4), use('missing-x', 5), use('missing-x', 6)] },
+    registrations: [definition(zeta, 'zeta-comp'), definition(ab, 'a-b')],
+  });
+  assert.deepEqual(edits.get(PAGE), [
+    { tag: 'a-b', key: 'AB', source: '@/components/AB.vue' },
+    { tag: 'zeta-comp', key: 'ZetaComp', source: '@/components/Zeta.vue' },
+  ]);
+  assert.deepEqual(unresolved, [
+    { file: PAGE, line: 5, tag: 'missing-x', reason: 'no-registration' },
+    { file: PAGE, line: 6, tag: 'missing-x', reason: 'no-registration' },
+  ]);
+});
+
+test('files with nothing to register are left out of edits; edits and unresolved come out in sorted order', () => {
+  const other = 'src/views/O/Template.vue';
+  const { edits, unresolved } = plan({
+    uses: { [PAGE]: [use('nothing-here', 2)], [other]: [use('comp-a', 9), use('nothing-here', 3)] },
+    registrations: [definition(COMP_A, 'comp-a')],
+  });
+  assert.deepEqual([...edits.keys()], [other]);
+  assert.deepEqual(
+    unresolved.map(({ file, line }) => [file, line]),
+    [[other, 3], [PAGE, 2]],
+  );
+});
+
+test('the plan does not depend on input order and does not change its inputs', () => {
+  const inputs = () => ({
+    uses: new Map([
+      ['src/views/B/Template.vue', [use('comp-a', 3), use('download-chart', 4), use('center', 5)]],
+      ['src/views/A/Template.vue', [use('comp-a', 2), use('download-chart', 1)]],
+      [COMP_A, [use('comp-a', 8)]],
+    ]),
+    registrations: registry(definition(COMP_A, 'comp-a'), ...dupes),
+    imports: new Map([
+      ['src/views/A/main.js', ['src/views/A/Template.vue', DUP_X]],
+      ['src/views/B/main.js', ['src/views/B/Template.vue', DUP_Y]],
+    ]),
+    pages: ['src/views/A/main.js', 'src/views/B/main.js'],
+    scriptSetupFiles: new Set(),
+  });
+  const first = inputs();
+  const before = JSON.stringify([...first.uses, [...first.registrations], [...first.imports]]);
+  const result = planRegistrations(first);
+  assert.equal(JSON.stringify([...first.uses, [...first.registrations], [...first.imports]]), before);
+
+  const shuffled = inputs();
+  shuffled.uses = new Map([...shuffled.uses].reverse().map(([file, found]) => [file, [...found].reverse()]));
+  shuffled.pages.reverse();
+  const again = planRegistrations(shuffled);
+  assert.deepEqual([...again.edits], [...result.edits]);
+  assert.deepEqual(again.unresolved, result.unresolved);
+  assert.deepEqual(planRegistrations(inputs()), result);
+});
+
+test('planRegistrations works on the output of analyzeSources, pageEntries and scriptSetupFiles', () => {
+  const sources = new Map([
+    ['src/views/P/main.js', 'import Template from "./Template.vue";\nimport "@/components/Grid.vue";\nimport "@/components/Chart.vue";'],
+    ['src/views/P/Template.vue', '<template><div><grid-comp /><chart-comp /></div></template>'],
+    ['src/components/Grid.vue', '<template><chart-comp /></template>\n<script>\nimport Vue from "vue";\nexport default Vue.component("grid-comp", {});\n</script>'],
+    ['src/components/Chart.vue', '<script>\nimport Vue from "vue";\nexport default Vue.component("chart-comp", {});\n</script>'],
+    ['src/components/Setup.vue', '<script setup>\nconst a = 1;\n</script>\n<template><grid-comp /></template>'],
+  ]);
+  const { registrations, imports } = analyzeSources(sources);
+  const { edits, unresolved } = planRegistrations({
+    uses: new Map([
+      ['src/views/P/Template.vue', [use('grid-comp', 1), use('chart-comp', 1)]],
+      ['src/components/Grid.vue', [use('chart-comp', 1)]],
+      ['src/components/Setup.vue', [use('grid-comp', 5)]],
+    ]),
+    registrations,
+    imports,
+    pages: pageEntries(sources),
+    scriptSetupFiles: scriptSetupFiles(sources),
+  });
+  assert.deepEqual([...edits.keys()], ['src/components/Grid.vue', 'src/views/P/Template.vue']);
+  assert.deepEqual(edits.get('src/components/Grid.vue'), [{ tag: 'chart-comp', key: 'ChartComp', source: '@/components/Chart.vue' }]);
+  assert.deepEqual(
+    edits.get('src/views/P/Template.vue').map(({ key }) => key),
+    ['ChartComp', 'GridComp'],
+  );
+  assert.deepEqual(unresolved, [{ file: 'src/components/Setup.vue', line: 5, tag: 'grid-comp', reason: 'script-setup' }]);
+});
+
+// ---- undefinedTags: ESLint against a temporary root ---------------------------------------------
+
+/** Writes `files` (path -> text) under a fresh temp root, runs `run(root)`, and always removes the root. */
+async function withRoot(files, run) {
+  const root = mkdtempSync(join(tmpdir(), 'register-plan-'));
+  try {
+    for (const [file, text] of Object.entries(files)) {
+      mkdirSync(dirname(join(root, file)), { recursive: true });
+      writeFileSync(join(root, file), text);
+    }
+    return await run(root);
+  } finally {
+    rmSync(root, { recursive: true, force: true });
+  }
+}
+
+const COMPONENT = '<template><div /></template>\n<script>\nimport Vue from "vue";\nexport default Vue.component("my-thing", {});\n</script>\n';
+
+test('undefinedTags reports a tag no component registers locally, with its line, keyed by the file relative to root', async () => {
+  const found = await withRoot(
+    {
+      'src/views/P/Template.vue': '<template>\n  <div>\n    <my-thing />\n  </div>\n</template>\n',
+      'src/components/MyThing.vue': COMPONENT,
+    },
+    undefinedTags,
+  );
+  assert.deepEqual([...found], [['src/views/P/Template.vue', [{ tag: 'my-thing', line: 3 }]]]);
+});
+
+test('undefinedTags names each tag the way the template writes it, and lists every use', async () => {
+  const found = await withRoot(
+    {
+      'src/views/P/Template.vue':
+        '<template>\n  <div>\n    <MyThing />\n    <my-thing />\n    <b-button />\n    <BModal />\n    <span />\n  </div>\n</template>\n',
+    },
+    undefinedTags,
+  );
+  assert.deepEqual(found.get('src/views/P/Template.vue'), [
+    { tag: 'MyThing', line: 3 },
+    { tag: 'my-thing', line: 4 },
+  ]);
+});
+
+test('undefinedTags leaves out tags the file registers, and honours eslint-disable comments in templates', async () => {
+  const found = await withRoot(
+    {
+      'src/components/Local.vue':
+        '<template><my-thing /></template>\n<script>\nimport MyThing from "./MyThing.vue";\nexport default { components: { MyThing } };\n</script>\n',
+      'src/components/MyThing.vue': COMPONENT,
+      'src/views/P/Template.vue':
+        '<template>\n  <div>\n    <!-- eslint-disable-next-line vue/no-undef-components -- obsolete element -->\n    <center />\n    <other-thing />\n  </div>\n</template>\n',
+    },
+    undefinedTags,
+  );
+  assert.deepEqual([...found], [['src/views/P/Template.vue', [{ tag: 'other-thing', line: 5 }]]]);
+});
+
+test('undefinedTags reports only vue/no-undef-components: other migration rules stay silent', async () => {
+  const found = await withRoot(
+    {
+      // vue/no-use-v-if-with-v-for and vue/require-explicit-emits are errors in the ratchet config.
+      'src/components/Other.vue':
+        '<template>\n  <ul><li v-for="x in xs" v-if="x" @go="$emit(\'go\')">{{ x }}</li></ul>\n</template>\n<script>\nexport default { props: ["xs"] };\n</script>\n',
+    },
+    undefinedTags,
+  );
+  assert.equal(found.size, 0);
+});
+
+test('undefinedTags fails loudly, naming the file, when a file does not parse', async () => {
+  await withRoot({ 'src/components/Broken.vue': '<template><div /></template>\n<script>\nexport default {\n</script>\n' }, async (root) => {
+    await assert.rejects(undefinedTags(root), /src\/components\/Broken\.vue/);
+  });
+});

@@ -36,3 +36,17 @@
 		<page-footer :disease-group="$parent.diseaseGroup"></page-footer>
 	</div>
 </template>
+
+<script>
+import PageFooter from "@/components/PageFooter.vue";
+import PageHeader from "@/components/PageHeader.vue";
+import ResourcesSection from "@/components/Resources.vue";
+
+export default {
+    components: {
+        PageFooter,
+        PageHeader,
+        ResourcesSection,
+    },
+};
+</script>

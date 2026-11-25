@@ -309,15 +309,12 @@
 </template>
 
 <script>
-import Vue from "vue";
 import { groupBy } from "@/utils/lodashUtils";
-import { BootstrapVueIcons } from "bootstrap-vue";
 import uiUtils from "@/utils/uiUtils";
 import Formatters from "@/utils/formatters";
 
-Vue.use(BootstrapVueIcons);
-
-export default Vue.component("phenotype-signal-bar-chart", {
+export default {
+    name: "phenotype-signal-bar-chart",
     modules: {
         uiUtils,
     },
@@ -468,7 +465,7 @@ export default Vue.component("phenotype-signal-bar-chart", {
             window.location.href = "#associations-table";
         },
     },
-});
+};
 </script>
 
 <style>

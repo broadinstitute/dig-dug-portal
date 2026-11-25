@@ -1,0 +1,8 @@
+{
+  "url": "https://hugeampkpncms.org/view/rest/get_research_page_access?pageid=kp_liger_documentation",
+  "status": 200,
+  "headers": {
+    "content-type": "application/json"
+  },
+  "body": "[{\"title\":\"LIGER documentation\",\"field_page_mode\":\"public\",\"field_page_id\":\"kp_liger_documentation\",\"field_display_on_kp\":\"1\"}]"
+}

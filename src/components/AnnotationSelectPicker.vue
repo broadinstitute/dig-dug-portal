@@ -10,25 +10,21 @@
         :maxMatches="1000"
         @hit="onAnnotationSelect($event)"
     >
-        <template slot="suggestion" slot-scope="{ data, htmlText }">
+        <template v-slot:suggestion="{ data, htmlText }">
             <span v-html="htmlText"></span>&nbsp;
         </template>
     </vue-typeahead-bootstrap>
 </template>
 
 <script>
-import Vue from "vue";
-
-import { BootstrapVue, IconsPlugin } from "bootstrap-vue";
 import VueTypeaheadBootstrap from "vue-typeahead-bootstrap";
 import Formatters from "@/utils/formatters";
-import "bootstrap/dist/css/bootstrap.css";
-import "bootstrap-vue/dist/bootstrap-vue.css";
-Vue.use(BootstrapVue);
-Vue.use(IconsPlugin);
-Vue.component("vue-typeahead-bootstrap", VueTypeaheadBootstrap);
 
-export default Vue.component("annotation-selectpicker", {
+export default {
+    name: "annotation-selectpicker",
+    components: {
+        VueTypeaheadBootstrap,
+    },
     props: {
         annotations: {
             type: Array,
@@ -43,6 +39,7 @@ export default Vue.component("annotation-selectpicker", {
             required: false
         }
     },
+    emits: ["annotation"],
     data() {
         return {
             userText: this.defaultSet || null
@@ -50,7 +47,7 @@ export default Vue.component("annotation-selectpicker", {
     },
     computed: {
         annotationOptions() {
-            return this.annotations.sort((a, b) => {
+            return [...this.annotations].sort((a, b) => {
                 if (a.annotation < b.annotation) return -1;
                 if (b.annotation < a.annotation) return 1;
                 return 0;
@@ -73,5 +70,5 @@ export default Vue.component("annotation-selectpicker", {
             });
         }
     }
-});
+};
 </script>

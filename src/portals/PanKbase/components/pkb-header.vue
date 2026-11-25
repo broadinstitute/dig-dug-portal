@@ -83,13 +83,13 @@
 </template>
 
 <script>
-import Vue from "vue";
 import GoogleAnalytics from "@/components/analytics/GoogleAnalytics4.vue";
 import { pkbMenu } from "@/portals/PanKbase/assets/pkbMenu.js";
 
 let menuItemActive = false;
 
-export default Vue.component("PkbHeader", {
+export default {
+    name: "PkbHeader",
     components: {
         GoogleAnalytics,
     },
@@ -141,7 +141,7 @@ export default Vue.component("PkbHeader", {
             }
         },
     },
-});
+};
 </script>
 <style scoped>
 .pkb-nav {

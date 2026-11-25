@@ -82,6 +82,7 @@ export default {
             default: null,
         },
     },
+    emits: ["toggle-tissue-selection"],
     data() {
         return {
             dotPositions: [],
@@ -187,7 +188,7 @@ export default {
         });
         document.addEventListener("mousedown", this.onDocumentMouseDown);
     },
-    beforeDestroy() {
+    beforeUnmount() {
         if (this.resizeObserver) {
             this.resizeObserver.disconnect();
         }

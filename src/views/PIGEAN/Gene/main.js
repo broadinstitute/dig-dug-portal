@@ -1,4 +1,4 @@
-import Vue from "vue";
+import { mountPage } from "@/utils/pageSetup";
 import Template from "./Template.vue";
 import store from "./store.js";
 
@@ -22,9 +22,11 @@ import Formatters from "@/utils/formatters";
 import dataConvert from "@/utils/dataConvert";
 import pigeanUtils from "@/utils/pigeanUtils.js";
 import bioIndexUtils from "@/utils/bioIndexUtils";
+import { cloneDeep } from "@/utils/lodashUtils";
 import { pageMixin } from "@/mixins/pageMixin.js";
 
-new Vue({
+// @vue/component
+mountPage(Template, {
     store,
     modules: {},
     components: {
@@ -159,7 +161,7 @@ new Vue({
             return bioIndexUtils.TRAIT_GROUPS;
         },
         phewasAdjustedData() {
-            let adjustedData = structuredClone(this.pigeanFilteredData); // Deep copy
+            let adjustedData = cloneDeep(this.pigeanFilteredData); // Deep copy
             for (let i = 0; i < adjustedData.length; i++) {
                 if (adjustedData[i].combined < 0) {
                     adjustedData[i].combined = 0;
@@ -168,7 +170,7 @@ new Vue({
             return adjustedData;
         },
         pigeanFilteredData(){
-            let rawData = structuredClone(this.phewasAllData);
+            let rawData = cloneDeep(this.phewasAllData);
             let filteredData = rawData.filter(item => item.log_bf > 0 || item.prior > 0);
             return filteredData;
         },
@@ -222,8 +224,4 @@ new Vue({
             this.pigeanColors = colors;
         }
     },
-
-    render(createElement, context) {
-        return createElement(Template);
-    },
-}).$mount("#app");
+});

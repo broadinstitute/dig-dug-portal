@@ -1,5 +1,4 @@
 <script>
-import Vue from "vue";
 
 // The "nothing selected yet" body for the Gene program and Cell state tabs: pick
 // one from what is in scope.
@@ -7,7 +6,8 @@ import Vue from "vue";
 // The canvas is the primary way to select, but it requires finding a row in a
 // pannable view. This is the same set as a plain list, which is the faster path when
 // you know what you are looking for.
-export default Vue.component("EntityList", {
+export default {
+    name: "EntityList",
     props: {
         // [{ key, label, absText, specText, specDirection, muted, color?, matchCount? }]
         items: {
@@ -41,6 +41,7 @@ export default Vue.component("EntityList", {
             default: ""
         }
     },
+    emits: ["select"],
 
     computed: {
         showMatches() {
@@ -60,7 +61,7 @@ export default Vue.component("EntityList", {
             return this.items.filter((item) => item.muted).length;
         }
     }
-});
+};
 </script>
 
 <template>

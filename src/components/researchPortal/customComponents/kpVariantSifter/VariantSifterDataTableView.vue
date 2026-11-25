@@ -49,9 +49,9 @@
                     </thead>
                     <tbody>
                         <template
-                            v-for="(row, rowIndex) in pagedRows"
+                            v-for="(row, rowIndex) in pagedRows" :key="rowKey(row, rowIndex)"
                         >
-                            <tr :key="rowKey(row, rowIndex)">
+                            <tr>
                                 <td v-if="showStarColumn">
                                     <b-icon
                                         :icon="isStarred(row) ? 'star-fill' : 'star'"
@@ -178,6 +178,7 @@ export default {
             default: 10,
         },
     },
+    emits: ["toggle-star-variant"],
     data() {
         return {
             currentPage: 1,

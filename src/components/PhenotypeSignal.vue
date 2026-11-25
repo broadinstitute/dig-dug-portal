@@ -165,15 +165,12 @@
 </template>
 
 <script>
-import Vue from "vue";
 import { groupBy } from "@/utils/lodashUtils";
-import { BootstrapVueIcons } from "bootstrap-vue";
 import PhenotypeSignalItem from "@/components/PhenotypeSignalItem.vue";
 import uiUtils from "@/utils/uiUtils";
 
-Vue.use(BootstrapVueIcons);
-
-export default Vue.component("phenotype-signal", {
+export default {
+    name: "phenotype-signal",
     modules: {
         uiUtils,
     },
@@ -246,7 +243,7 @@ export default Vue.component("phenotype-signal", {
             uiUtils.showHideByClass(CLASS);
         },
     },
-});
+};
 </script>
 
 <style>

@@ -74,8 +74,8 @@
                                             class="gp2-qtl-effect-mark"
                                             aria-hidden="true"
                                         >{{ effectMark(directionValue(row)) }}</span>
-                                        {{ formatCell(row, column) }}
-                                    </span>
+                                        {{ formatCell(row, column) }}{{ " "
+                                    }}</span>
                                     <template v-else>{{ formatCell(row, column) }}</template>
                                 </td>
                             </tr>
@@ -126,6 +126,7 @@ export default {
             default: null,
         },
     },
+    emits: ["toggle-star-variant"],
     data() {
         return {
             perPageNumber: "10",

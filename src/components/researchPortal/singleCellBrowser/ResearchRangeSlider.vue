@@ -47,17 +47,20 @@
 </template>
 
 <script>
-    import Vue from "vue";
 
-    export default Vue.component('research-range-slider', {
+    export default {
+        name: "research-range-slider",
+        // the default config builds with compat, which would make value of it
+        compatConfig: { COMPONENT_V_MODEL: false },
         props: {
             min: { type: Number, required: true },
             max: { type: Number, required: true },
             step: { type: Number, default: 1 },
             decimals: { type: Number, default: 0 },
             //[low, high]. null or an incomplete pair means the full extent
-            value: { type: Array, default: null },
+            modelValue: { type: Array, default: null },
         },
+        emits: ["update:modelValue", "change"],
         data() {
             return {
                 low: this.min,
@@ -82,7 +85,7 @@
         watch: {
             //the parent owns the value; mirror it whenever it changes underneath us (a
             //Clear, a dataset switch, another filter being removed)
-            value: {
+            modelValue: {
                 immediate: true,
                 handler() {
                     this.syncFromValue();
@@ -93,7 +96,7 @@
         },
         methods: {
             syncFromValue() {
-                const [low, high] = Array.isArray(this.value) ? this.value : [];
+                const [low, high] = Array.isArray(this.modelValue) ? this.modelValue : [];
                 this.low = this.clamp(Number.isFinite(low) ? low : this.min);
                 this.high = this.clamp(Number.isFinite(high) ? high : this.max);
                 if (this.low > this.high) {
@@ -129,7 +132,7 @@
                 //live feedback only. the parent must not rebuild the filter on this: a mask
                 //rebuild plus a full re-aggregation per pixel of drag is seconds of work at
                 //1.5M cells. the commit happens on change (pointer release)
-                this.$emit('input', [this.low, this.high]);
+                this.$emit('update:modelValue', [this.low, this.high]);
             },
             commit() {
                 this.$emit('change', [this.low, this.high]);
@@ -137,11 +140,11 @@
             reset() {
                 this.low = this.min;
                 this.high = this.max;
-                this.$emit('input', [this.low, this.high]);
+                this.$emit('update:modelValue', [this.low, this.high]);
                 this.commit();
             },
         },
-    });
+    };
 </script>
 
 <style scoped>

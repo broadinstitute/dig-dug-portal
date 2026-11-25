@@ -21,14 +21,11 @@
 </template>
 
 <script>
-import Vue from "vue";
 import $ from "jquery";
 import uiUtils from "@/utils/uiUtils";
-import { BootstrapVueIcons } from "bootstrap-vue";
 
-Vue.use(BootstrapVueIcons);
-
-export default Vue.component("research-byor-projects", {
+export default {
+	name: "research-byor-projects",
 	props: [],
 	data() {
 		return {
@@ -42,7 +39,7 @@ export default Vue.component("research-byor-projects", {
 	mounted: function () {
 		this.getByorProjects();
 	},
-	beforeDestroy() {},
+	beforeUnmount() {},
 	computed: {},
 	watch: {},
 	methods: {
@@ -59,7 +56,7 @@ export default Vue.component("research-byor-projects", {
 			}
 		},
 	},
-});
+};
 
 $(function () {});
 </script>

@@ -11,7 +11,7 @@
         @hit="onAutoCompleteItemSelected($event)"
         @keyup.enter="onUserEnterNonAutoCompleteItem"
     >
-        <template slot="suggestion" slot-scope="{ data, htmlText }">
+        <template v-slot:suggestion="{ data, htmlText }">
             <span v-html="htmlText"></span>&nbsp;
             <small v-if="secondaryKey" class="text-secondary">{{
                 data[secondaryKey]
@@ -21,19 +21,15 @@
 </template>
 
 <script>
-import Vue from "vue";
 import { cloneDeep } from "@/utils/lodashUtils";
-import { BootstrapVue, IconsPlugin } from "bootstrap-vue";
 import VueTypeaheadBootstrap from "vue-typeahead-bootstrap";
-import "bootstrap/dist/css/bootstrap.css";
-import "bootstrap-vue/dist/bootstrap-vue.css";
-
-Vue.use(BootstrapVue);
-Vue.use(IconsPlugin);
-Vue.component("vue-typeahead-bootstrap", VueTypeaheadBootstrap);
 
 //currently autocompletes only genes
-export default Vue.component("autocomplete", {
+export default {
+    name: "autocomplete",
+    components: {
+        VueTypeaheadBootstrap,
+    },
     props: {
         matches: Array,
         placeholder: String,
@@ -44,6 +40,7 @@ export default Vue.component("autocomplete", {
         },
         disabled: Boolean,
     },
+    emits: ["item-select", "keyup-enter", "input-change"],
     data() {
         return {
             userInput: this.initialText || "",
@@ -93,5 +90,5 @@ export default Vue.component("autocomplete", {
             this.$emit("input-change", text);
         },
     },
-});
+};
 </script>

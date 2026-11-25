@@ -241,6 +241,7 @@ export default {
             default: "Welcome to GP2 Browser",
         },
     },
+    emits: ["import-session", "start-search"],
     data() {
         welcomeFieldCounter += 1;
         const suffix = welcomeFieldCounter;
@@ -350,7 +351,7 @@ export default {
     mounted() {
         document.addEventListener("click", this.onDocumentClick);
     },
-    beforeDestroy() {
+    beforeUnmount() {
         document.removeEventListener("click", this.onDocumentClick);
         if (this.geneLookupTimer) {
             clearTimeout(this.geneLookupTimer);

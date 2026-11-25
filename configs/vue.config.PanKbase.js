@@ -345,6 +345,19 @@ module.exports = {
         }
     },
     chainWebpack: (config) => {
+        // Vue 3 as it is, without @vue/compat (Vue CLI sets `vue$`), with our own components in place of BootstrapVue's
+        config.resolve.alias.set("bootstrap-vue$", require.resolve("../src/components/bv/index.js"));
+        // the feature flag of Vue 3.4 and later that Vue CLI 4.5 does not define
+        config
+            .plugin("feature-flags")
+            .tap(([flags]) => [{ ...flags, __VUE_PROD_HYDRATION_MISMATCH_DETAILS__: "false" }]);
+        // vue-typeahead-bootstrap 2.12 is written for Vue 2: ours is a copy of it for Vue 3
+        config.resolve.alias.set(
+            "vue-typeahead-bootstrap$",
+            require.resolve("../src/components/typeahead/VueTypeaheadBootstrap.vue")
+        );
+        // Vuex 4's `browser` field, which webpack 4 takes first, is its development build
+        config.resolve.alias.set("vuex$", "vuex/dist/vuex.esm-bundler.js");
         // Optimize CSS extraction to prevent ordering conflicts in multi-page builds
         // when the same component CSS is used across multiple entry points
         if (config.plugins.has("extract-css")) {

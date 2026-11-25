@@ -55,18 +55,21 @@
 </template>
 
 <script>
-import Vue from "vue";
 import ResearchSingleSearch from "@/components/researchPortal/ResearchSingleSearch.vue";
 import ResearchSingleSearchV2 from "@/components/researchPortal/ResearchSingleSearchV2.vue";
 import ResearchSingleSearchCFDE from "@/components/researchPortal/ResearchSingleSearchCFDE.vue";
+import ResearchPageDescription from "@/components/researchPortal/ResearchPageDescription.vue";
 
-export default Vue.component("research-front-page", {
+export default {
+	name: "research-front-page",
 	props: ["sectionConfigs","pageDescription", "utilsBox","phenotypeMap","phenotypesInUse"],
     
 	components: {
         ResearchSingleSearch,
         ResearchSingleSearchV2,
-        ResearchSingleSearchCFDE
+        ResearchSingleSearchCFDE,
+        ResearchPageDescription,
+        ResearchSingleSearchCfde: ResearchSingleSearchCFDE,
     },
 
 	data() {
@@ -109,7 +112,7 @@ export default Vue.component("research-front-page", {
             return exampleLink;
         }
     },
-});
+};
 </script>
 
 <style>

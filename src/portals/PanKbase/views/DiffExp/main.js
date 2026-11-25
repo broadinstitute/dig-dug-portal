@@ -1,4 +1,4 @@
-import Vue from "vue";
+import { mountPage } from "@/utils/pageSetup";
 import Template from "./Template.vue";
 import store from "./store.js";
 
@@ -14,6 +14,7 @@ import BulkTable from "../../components/BulkTable.vue";
 import GeneSelectPicker from "../../../../components/GeneSelectPicker.vue";
 import MouseGeneSelect from "../../../../components/MouseGeneSelect.vue";
 import Formatters from "@/utils/formatters";
+import { cloneDeep } from "@/utils/lodashUtils";
 import uiUtils from "@/utils/uiUtils";
 import CriterionFunctionGroup from "@/components/criterion/group/CriterionFunctionGroup.vue";
 import FilterGreaterThan from "@/components/criterion/FilterGreaterThan.vue";
@@ -28,7 +29,8 @@ const BIO_INDEX_HOST = biUtils.BIO_INDEX_HOST.indexOf("dev") === -1
     ? "https://bioindex.pankbase.org"
     : "https://bioindex-dev.pankbase.org";
 
-new Vue({
+// @vue/component
+mountPage(Template, {
     store,
     components: {
         Scatterplot,
@@ -133,13 +135,15 @@ new Vue({
             return this.$store.state.selectedGene;
         },
         zNormData() {
-            let outputData = structuredClone(
+            let outputData = cloneDeep(
                 this.$store.state.singleBulkZNormData
             );
+            // rows without data: a throw here would take the whole page away on Vue 3
+            outputData = outputData.filter((item) => item != null);
             outputData.forEach((item) => {
                 item["-log10P"] = item.log10FDR;
                 for (let i = 0; i < this.samplesColumns.length; i++) {
-                    let expressionDataPoint = item.expression[i];
+                    let expressionDataPoint = item.expression?.[i];
                     let sampleLabel = this.samplesColumns[i];
                     item[sampleLabel] = expressionDataPoint;
                 }
@@ -237,7 +241,7 @@ new Vue({
                 this.$store.state.currentComparisons[
                     this.$store.state.selectedComparison
                 ];
-            return label.split(/[^w]vs/)[0];
+            return (label || "").split(/[^w]vs/)[0];
         },
     },
     async mounted() {
@@ -369,8 +373,4 @@ new Vue({
             }
         },
     },
-
-    render(createElement, context) {
-        return createElement(Template);
-    },
-}).$mount("#app");
+});

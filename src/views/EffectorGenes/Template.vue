@@ -67,13 +67,14 @@
 						:unfilteredDataset="$parent.summaryData.data"
 						:utils="$parent.utilsBox"
 					></research-page-filters>
-					<div
-						class="row"
-						v-if="$store.state.filteredData != ''"
-						v-for="item in $store.state.filteredData"
-					>
-						<div class="col-md-12" v-html="item.body"></div>
-					</div>
+					<template v-if="$store.state.filteredData != ''">
+						<div
+							class="row"
+							v-for="item in $store.state.filteredData"
+						>
+							<div class="col-md-12" v-html="item.body"></div>
+						</div>
+					</template>
 				</div>
 			</div>
 		</div>
@@ -82,3 +83,19 @@
 		<page-footer :disease-group="$parent.diseaseGroup"></page-footer>
 	</div>
 </template>
+
+<script>
+import Documentation from "@/components/Documentation.vue";
+import PageFooter from "@/components/PageFooter.vue";
+import PageHeader from "@/components/PageHeader.vue";
+import ResearchPageFilters from "@/components/researchPortal/ResearchPageFilters.vue";
+
+export default {
+    components: {
+        Documentation,
+        PageFooter,
+        PageHeader,
+        ResearchPageFilters,
+    },
+};
+</script>

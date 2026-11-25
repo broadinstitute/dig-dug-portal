@@ -24,8 +24,8 @@
                             :key="v"
                             @click="removeFilter(i, 'annotations')"
                             class="btn"
-                        >
-                            {{ v }}
+                        >{{
+                            " " }}{{ v }}
                             <span class="remove">X</span>
                         </b-badge>
                     </template>
@@ -38,8 +38,8 @@
                             :key="v"
                             @click="removeFilter(i, 'methods')"
                             class="btn"
-                        >
-                            {{ v }}
+                        >{{
+                            " " }}{{ v }}
                             <span class="remove">X</span>
                         </b-badge>
                     </template>
@@ -52,8 +52,8 @@
                             :key="v"
                             @click="removeFilter(i, 'tissues')"
                             class="btn"
-                        >
-                            {{ v }}
+                        >{{
+                            " " }}{{ v }}
                             <span class="remove">X</span>
                         </b-badge>
                     </template>
@@ -94,18 +94,11 @@
 </template>
 
 <script>
-import Vue from "vue";
-import { BootstrapVue, IconsPlugin } from "bootstrap-vue";
 import Formatters from "@/utils/formatters";
 
-Vue.use(BootstrapVue);
-Vue.use(IconsPlugin);
-
-import "bootstrap/dist/css/bootstrap.css";
-import "bootstrap-vue/dist/bootstrap-vue.css";
-
 import DataDownload from "@/components/DataDownload.vue";
-export default Vue.component("regions-table", {
+export default {
+    name: "regions-table",
     components: {
         DataDownload,
     },
@@ -195,5 +188,5 @@ export default Vue.component("regions-table", {
             this.tissues = this.tissues === this[option] ? this[option] : [];
         },
     },
-});
+};
 </script>

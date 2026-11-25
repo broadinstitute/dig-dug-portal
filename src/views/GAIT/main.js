@@ -1,4 +1,4 @@
-import Vue from "vue";
+import { mountPage } from "@/utils/pageSetup";
 import Template from "./Template.vue";
 import store from "./store.js";
 
@@ -16,7 +16,8 @@ import { query, match } from "@/utils/bioIndexUtils";
 import { pageMixin } from "@/mixins/pageMixin";
 import { isEqual } from "@/utils/lodashUtils";
 
-new Vue({
+// @vue/component
+mountPage(Template, {
     store,
     components: {
         Documentation,
@@ -558,7 +559,4 @@ new Vue({
             this.updateSelectedVariants();
         },
     },
-    render(createElement, context) {
-        return createElement(Template);
-    },
-}).$mount("#app");
+});

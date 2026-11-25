@@ -15,15 +15,12 @@
 </template>
 
 <script>
-import Vue from "vue";
 import $ from "jquery";
 import uiUtils from "@/utils/uiUtils";
-import { BootstrapVueIcons } from "bootstrap-vue";
 import Formatters from "@/utils/formatters.js";
 
-Vue.use(BootstrapVueIcons);
-
-export default Vue.component("research-genes-track", {
+export default {
+    name: "research-genes-track",
     props: ["region", "genesData", "plotConfig", "plotType"],
     data() {
         return {
@@ -43,7 +40,7 @@ export default Vue.component("research-genes-track", {
         window.addEventListener("resize", this.onResize);
         this.renderTrack(this.genesData);
     },
-    beforeDestroy() {
+    beforeUnmount() {
         window.removeEventListener("resize", this.onResize);
     },
     computed: {
@@ -187,7 +184,7 @@ export default Vue.component("research-genes-track", {
             });
         },
     },
-});
+};
 
 $(function () {});
 </script>

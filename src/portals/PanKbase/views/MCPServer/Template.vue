@@ -133,6 +133,8 @@
 </template>
 
 <script>
+import PkbFooter from "@/portals/PanKbase/components/pkb-footer.vue";
+import PkbHeader from "@/portals/PanKbase/components/pkb-header.vue";
 const URL = "https://mcp.data.pankbase.org/mcp";
 const DOCS = [
   { id: "claude", name: "Claude", m: "C", url: "https://support.claude.com/en/articles/11175166-get-started-with-custom-connectors-using-remote-mcp" },
@@ -162,6 +164,10 @@ const CAPS = [
 ];
 
 export default {
+  components: {
+    PkbFooter,
+    PkbHeader,
+  },
   name: "MCPServerBody",
   data() {
     return {
@@ -189,7 +195,7 @@ export default {
     },
   },
   mounted() { window.addEventListener("resize", this.onResize); },
-  beforeDestroy() { window.removeEventListener("resize", this.onResize); clearTimeout(this.tm); },
+  beforeUnmount() { window.removeEventListener("resize", this.onResize); clearTimeout(this.tm); },
   methods: {
     onResize() { this.w = window.innerWidth; },
     doCopy(key, text) {

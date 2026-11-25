@@ -6,7 +6,7 @@
     </div>
 </template>
 <script>
-import Vue from "vue";
+import { markRaw } from "vue";
 import { Network } from "vis-network";
 import { DataSet } from "vis-data";
 import { uniqBy } from "@/utils/lodashUtils";
@@ -72,7 +72,8 @@ const makeGraph = (query_graph, knowledge_graph_results) => {
     return graph;
 };
 
-export default Vue.component("translator-knowledge-graph", {
+export default {
+    name: "translator-knowledge-graph",
     props: ['query_graph', 'results'],
     computed: {
         graph: function () {
@@ -96,7 +97,7 @@ export default Vue.component("translator-knowledge-graph", {
     mounted() {
         this.$nextTick(() => this.renderNetwork());
     },
-    beforeDestroy() {
+    beforeUnmount() {
         if (this.network) {
             this.network.destroy();
         }
@@ -112,11 +113,11 @@ export default Vue.component("translator-knowledge-graph", {
                 nodes: new DataSet(this.nodes),
                 edges: new DataSet(this.edges),
             };
-            this.network = new Network(container, data, {});
+            this.network = markRaw(new Network(container, data, {}));
         },
         onNodeHovered() {
             console.log(arguments)
         }
     }
-})
+}
 </script>

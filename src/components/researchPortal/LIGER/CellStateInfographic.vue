@@ -1,5 +1,4 @@
 <script>
-import Vue from "vue";
 
 // each gene belongs to one program and tracks it with its own emphasis, so gene direction
 // is derived from the program delta rather than authored separately -- they cannot disagree
@@ -89,7 +88,8 @@ const PAGE_WIDTH = 1380;
 // glyph rather than something that grows and shrinks with the column.
 const PREVIEW_SCALE = .25;
 
-export default Vue.component("CellStateInfographic", {
+export default {
+    name: "CellStateInfographic",
     props: {
         // Render as a small preview that sits beside the page headline. The figure
         // itself is unchanged -- it is authored at PAGE_WIDTH and scaled to
@@ -209,7 +209,7 @@ export default Vue.component("CellStateInfographic", {
         this.lockHeights();
     },
 
-    beforeDestroy() {
+    beforeUnmount() {
         window.removeEventListener("resize", this.fit);
         window.removeEventListener("keydown", this.onWindowKeydown);
     },
@@ -268,7 +268,7 @@ export default Vue.component("CellStateInfographic", {
             this.fit();
         },
     },
-});
+};
 </script>
 
 <template>

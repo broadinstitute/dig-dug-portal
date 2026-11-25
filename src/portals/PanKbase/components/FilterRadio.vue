@@ -6,24 +6,17 @@
             :displayLabel="label || field"
             :options="processedOptions"
             :totalRowCount="options.length"
-            @input="e => updateFilter(e)">
+            @update:modelValue="e => updateFilter(e)">
 
         </categorical-filter>
     </div>
 </template>
 
 <script>
-import Vue from "vue";
-import { BootstrapVue, IconsPlugin } from "bootstrap-vue";
 import CategoricalFilter from "../views/Donors/CategoricalFilter.vue";
 
-Vue.use(BootstrapVue);
-Vue.use(IconsPlugin);
-
-import "bootstrap/dist/css/bootstrap.css";
-import "bootstrap-vue/dist/bootstrap-vue.css";
-
-export default Vue.component("filter-radio", {
+export default {
+    name: "filter-radio",
     props: {
         value: Object,
         field: String,
@@ -132,5 +125,5 @@ export default Vue.component("filter-radio", {
             this.updateFilter(newThreshold);
         },
     }
-});
+};
 </script>

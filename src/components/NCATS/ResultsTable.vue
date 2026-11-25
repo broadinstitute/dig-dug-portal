@@ -130,9 +130,9 @@
                                             :curie="data.value"
                                         >
                                         </resolved-curie-link>
-                                        <span v-else>
-                                            {{ data.value }}
-                                        </span>
+                                        <span v-else>{{
+                                            " " }}{{ data.value }}{{ " "
+                                        }}</span>
                                     </span>
                                 </span>
                             </span>
@@ -175,10 +175,13 @@ import Formatters from "@/utils/formatters";
 import uiUtils from "@/utils/uiUtils";
 
 import AsyncComputed from "vue-async-computed";
+import FilterEnumerationControl from "@/components/criterion/FilterEnumeration.vue";
+import ResolvedCurieLink from "@/components/NCATS/ResolvedCurieLink.vue";
 Vue.use(AsyncComputed);
 
-export default Vue.component("translator-results-table", {
-    props: ["query_graph", "selectable", "filter", "mock", "relationsOnly"],
+export default {
+    name: "translator-results-table",
+    emits: ["change", "change-knowledge-graph"],
     props: {
         query_graph: Object,
         selectable: Boolean,
@@ -196,6 +199,8 @@ export default Vue.component("translator-results-table", {
     components: {
         ResultsTooltip,
         CriterionFunctionGroup,
+        FilterEnumerationControl,
+        ResolvedCurieLink,
     },
     data() {
         return {
@@ -392,5 +397,5 @@ export default Vue.component("translator-results-table", {
             deep: true,
         },
     },
-});
+};
 </script>

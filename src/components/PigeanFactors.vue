@@ -83,8 +83,8 @@
           <template v-slot:cell(top_gene_sets)="row">
             <div class="top-list-cell">
               <span v-if="row.item.top_gene_sets" class="top-gene-sets-cell">
-                {{ formatSemicolonList(row.item.top_gene_sets) }}
-              </span>
+                {{ formatSemicolonList(row.item.top_gene_sets) }}{{ " "
+              }}</span>
               <span v-else>-</span>
               <b-button
                 variant="outline-primary"
@@ -99,8 +99,8 @@
           <template v-slot:cell(top_genes)="row">
             <div class="top-list-cell">
               <span v-if="row.item.top_genes">
-                {{ formatSemicolonList(row.item.top_genes) }}
-              </span>
+                {{ formatSemicolonList(row.item.top_genes) }}{{ " "
+              }}</span>
               <span v-else>-</span>
               <b-button
                 variant="outline-primary"
@@ -257,12 +257,16 @@ import { query, DEFAULT_SIGMA, DEFAULT_GENESET_SIZE } from "@/utils/bioIndexUtil
 import ResearchPheWAS from "@/components/researchPortal/ResearchPheWAS.vue";
 import keyParams from "@/utils/keyParams";
 import { TOOLTIP_MAP } from "../utils/pigeanUtils";
+import TooltipDocumentation from "@/components/TooltipDocumentation.vue";
 
-export default Vue.component("pigean-factors", {
+export default {
+  name: "pigean-factors",
   components: {
     DataDownload,
     PigeanFactorsViz,
-    ResearchPheWAS
+    ResearchPheWAS,
+    ResearchPhewasPlot: ResearchPheWAS,
+    TooltipDocumentation,
   },
   props: {
     pigeanFactorData: {
@@ -999,7 +1003,7 @@ export default Vue.component("pigean-factors", {
       return label.replaceAll(",", "").replaceAll(" ", "_");
     },
   }
-});
+};
 </script>
 <style scoped>
 .subtable-container {

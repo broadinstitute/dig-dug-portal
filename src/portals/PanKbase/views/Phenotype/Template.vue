@@ -95,7 +95,7 @@
                             :field="'nearest'"
                             :options="
                                 $store.state.associations.data.map(
-                                    (association) => association.nearest[0]
+                                    (association) => association.nearest?.[0]
                                 )
                             "
                             :inclusive="false"
@@ -125,7 +125,7 @@
                             <div class="label">Meta-analysis</div>
                         </filter-enumeration-control>
 
-                        <template slot="filtered" slot-scope="{ filter }">
+                        <template v-slot:filtered="{ filter }">
                             <documentation
                                 name="pheno.top_assoc.subheader"
                                 :content-map="
@@ -229,7 +229,7 @@
                             <div class="label">Genericity (&le;)</div>
                         </filter-less-control>
 
-                        <template slot="filtered" slot-scope="{ filter }">
+                        <template v-slot:filtered="{ filter }">
                             <c2ct-table v-if="$parent.c2ctData.length > 0"
                                 :c2ct-data="$parent.c2ctData"
                                 :filter="filter"
@@ -276,7 +276,7 @@
                             <div class="label">P-Value (&le;)</div>
                         </filter-pvalue-control>
 
-                        <template slot="filtered" slot-scope="{ filter }">
+                        <template v-slot:filtered="{ filter }">
                             <b-tabs>
                                 <b-tab 
                                     v-if="$store.state.hugePhenotype.data.length > 0"
@@ -438,7 +438,7 @@
                         <filter-greater-control :field="'rg'">
                             <div class="label">Correlation (&ge;)</div>
                         </filter-greater-control>
-                        <template slot="filtered" slot-scope="{ filter }">
+                        <template v-slot:filtered="{ filter }">
                             <correlation-table
                                 v-if="$store.state.geneticCorrelation.data.length > 0"
                                 :correlation-data="
@@ -516,7 +516,7 @@
                             <div class="label">Fold (&ge;)</div>
                         </filter-greater-control>
 
-                        <template slot="filtered" slot-scope="{ filter }">
+                        <template v-slot:filtered="{ filter }">
                             <enrichment-table
                                 v-if="$parent.ancestryAnnotations.length > 0"
                                 :phenotypes="[$store.state.phenotype]"
@@ -567,6 +567,56 @@
       
   </div>
 </template>
+
+<script>
+import AssociationsTable from "@/components/AssociationsTable.vue";
+import C2ctTable from "@/components/C2ctTable.vue";
+import CorrelationTable from "@/components/CorrelationTable.vue";
+import CriterionFunctionGroup from "@/components/criterion/group/CriterionFunctionGroup.vue";
+import Documentation from "@/components/Documentation.vue";
+import EglsSection from "@/components/EffectorGenesSection.vue";
+import EnrichmentTable from "@/components/EnrichmentTable.vue";
+import FilterEffectDirectionControl from "@/components/criterion/FilterEffectDirection.vue";
+import FilterEnumerationControl from "@/components/criterion/FilterEnumeration.vue";
+import FilterGreaterControl from "@/components/criterion/FilterGreaterThan.vue";
+import FilterLessControl from "@/components/criterion/FilterLessThan.vue";
+import FilterPvalueControl from "@/components/criterion/FilterPValue.vue";
+import GeneFinderTable from "@/components/GeneFinderTable.vue";
+import MetaAnalysisBarGraph from "@/components/MetaAnalysisBarGraph.vue";
+import PathwayTable from "@/components/PathwayTable.vue";
+import PhenotypeHugeScores from "@/components/PhenotypeHugeScores.vue";
+import PhenotypeSelectpicker from "@/components/PhenotypeSelectPicker.vue";
+import PkbFooter from "@/portals/PanKbase/components/pkb-footer.vue";
+import PkbHeader from "@/portals/PanKbase/components/pkb-header.vue";
+import RawImg from "@/components/RawImage.vue";
+import TooltipDocumentation from "@/components/TooltipDocumentation.vue";
+
+export default {
+    components: {
+        AssociationsTable,
+        C2ctTable,
+        CorrelationTable,
+        CriterionFunctionGroup,
+        Documentation,
+        EglsSection,
+        EnrichmentTable,
+        FilterEffectDirectionControl,
+        FilterEnumerationControl,
+        FilterGreaterControl,
+        FilterLessControl,
+        FilterPvalueControl,
+        GeneFinderTable,
+        MetaAnalysisBarGraph,
+        PathwayTable,
+        PhenotypeHugeScores,
+        PhenotypeSelectpicker,
+        PkbFooter,
+        PkbHeader,
+        RawImg,
+        TooltipDocumentation,
+    },
+};
+</script>
 
 <style scoped>
     #search-heading {

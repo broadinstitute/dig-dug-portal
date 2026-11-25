@@ -35,6 +35,7 @@ import GP2Browser from "@/components/researchPortal/customComponents/GP2Browser.
 export default {
     components: {
         GP2Browser,
+        Gp2Browser: GP2Browser,
     },
 };
 </script>

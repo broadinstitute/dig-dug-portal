@@ -3,14 +3,15 @@
 </template>
 
 <script>
-import Vue from "vue";
+import { markRaw } from "vue";
 import * as am4core from "@amcharts/amcharts4/core";
 import * as am4charts from "@amcharts/amcharts4/charts";
 import am4themes_animated from "@amcharts/amcharts4/themes/animated";
 am4core.useTheme(am4themes_animated);
 am4core.options.autoDispose = true;
 
-export default Vue.component("ForestPlot", {
+export default {
+    name: "ForestPlot",
     props: {
         data: {
             type: Array,
@@ -74,7 +75,7 @@ export default Vue.component("ForestPlot", {
             }
         });
     },
-    beforeDestroy() {
+    beforeUnmount() {
         if (this.chart) {
             this.chart.dispose();
             this.chart = null;
@@ -103,7 +104,9 @@ export default Vue.component("ForestPlot", {
 
             try {
                 // Create chart instance
-                this.chart = am4core.create(element, am4charts.XYChart);
+                this.chart = markRaw(
+                    am4core.create(element, am4charts.XYChart)
+                );
                 //let labelName = dichotomous ? "Odds Ratio" : "Beta";
 
                 this.chart.data = data.map((item) => {
@@ -232,7 +235,7 @@ export default Vue.component("ForestPlot", {
             }
         },
     },
-});
+};
 </script>
 
 <style></style>

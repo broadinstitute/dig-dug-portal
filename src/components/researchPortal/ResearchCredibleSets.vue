@@ -161,18 +161,15 @@
 </template>
 
 <script>
-import Vue from "vue";
 import $ from "jquery";
 //import uiUtils from "@/utils/uiUtils";
 //import plotUtils from "@/utils/plotUtils";
 //import dataConvert from "@/utils/dataConvert";
-import { BootstrapVueIcons } from "bootstrap-vue";
 //import Formatters from "@/utils/formatters.js";
 //import keyParams from "@/utils/keyParams";
 
-Vue.use(BootstrapVueIcons);
-
-export default Vue.component("research-credible-sets-plot", {
+export default {
+	name: "research-credible-sets-plot",
 	props: [
 		"region",
 		"phenotype",
@@ -208,7 +205,7 @@ export default Vue.component("research-credible-sets-plot", {
 		window.addEventListener("resize", this.onResize);
 		this.renderCSPlot();
 	},
-	beforeDestroy() {
+	beforeUnmount() {
 		window.removeEventListener("resize", this.onResize);
 	},
 	computed: {
@@ -1045,7 +1042,7 @@ export default Vue.component("research-credible-sets-plot", {
 			}
 		},
 	},
-});
+};
 
 $(function () {});
 </script>

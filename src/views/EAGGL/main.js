@@ -1,11 +1,12 @@
-import Vue from "vue";
+import { mountPage } from "@/utils/pageSetup";
 import Template from "./Template.vue";
 import store from "./store.js";
 
 import uiUtils from "@/utils/uiUtils";
 import { pageMixin } from "@/mixins/pageMixin.js";
 
-new Vue({
+// @vue/component
+mountPage(Template, {
     store,
     mixins: [pageMixin],
 
@@ -38,8 +39,4 @@ new Vue({
     methods: {
         ...uiUtils,
     },
-
-    render(createElement) {
-        return createElement(Template);
-    },
-}).$mount("#app");
+});

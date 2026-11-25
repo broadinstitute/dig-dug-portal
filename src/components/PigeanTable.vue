@@ -13,11 +13,14 @@ import alertUtils from "@/utils/alertUtils";
 import plotUtils from "@/utils/plotUtils";
 import sortUtils from "@/utils/sortUtils";
 import dataConvert from "@/utils/dataConvert";
-export default Vue.component("pigean-table", {
+import { cloneDeep } from "@/utils/lodashUtils";
+export default {
+    name: "pigean-table",
     components: {
         DataDownload,
         PigeanTable,
         PigeanLocusZoom,
+        ResearchPhewasPlot: ResearchPheWAS,
     },
     props: [
         "pigeanData",
@@ -220,7 +223,7 @@ export default Vue.component("pigean-table", {
             return allFields;
         },
         describePhenotypes(data) {
-            let inputData = structuredClone(data);
+            let inputData = cloneDeep(data);
             for (let i = 0; i < inputData.length; i++) {
                 if (!inputData[i].phenotype) {
                     continue;
@@ -244,7 +247,7 @@ export default Vue.component("pigean-table", {
             return this.traitGroup !== "portal";
         },
     },
-});
+};
 </script>
 <template>
     <div id="pigean-gene" :class="isSubtable ? 'pigean-subtable' : ''">
@@ -287,8 +290,8 @@ export default Vue.component("pigean-table", {
                         v-if="!!phenotypeMap[r.item.phenotype]"
                         :href="`/pigean/phenotype.html?phenotype=${r.item.phenotype}${suffix}`"
                     >
-                        {{ r.item.phenotypeDesc }}
-                    </a>
+                        {{ r.item.phenotypeDesc }}{{ " "
+                    }}</a>
                     <span v-else>{{ r.item.phenotype }}</span>
                 </template>
                 <template #cell(gene_set)="r">
@@ -301,16 +304,16 @@ export default Vue.component("pigean-table", {
                 <template #cell(top_gene_sets)="r">
                     <div class="wrapped-cell-content">
                         <span v-if="r.item.top_gene_sets">
-                            {{ r.item.top_gene_sets }}
-                        </span>
+                            {{ r.item.top_gene_sets }}{{ " "
+                        }}</span>
                         <span v-else>-</span>
                     </div>
                 </template>
                 <template #cell(top_genes)="r">
                     <div class="wrapped-cell-content">
                         <span v-if="r.item.top_genes">
-                            {{ r.item.top_genes }}
-                        </span>
+                            {{ r.item.top_genes }}{{ " "
+                        }}</span>
                         <span v-else>-</span>
                     </div>
                 </template>

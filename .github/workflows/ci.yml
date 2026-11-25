@@ -1,0 +1,212 @@
+# Portal branches (merge-down)
+#
+# Portal branches (matkp-main, cfde-main, ...) get this file when master merges down, but pull
+# requests into them do not run it: `pull_request` below is limited to master and dev/**. On a
+# portal branch the root vue.config.js is master's page set, not the portal's, so as it stands
+# this workflow would build, check and e2e-test the wrong site there. Before a portal branch adds
+# itself to `pull_request.branches`, its migration wave must:
+#   1. build with VUE_CLI_SERVICE_CONFIG_PATH=configs/vue.config.<Portal>.js, as
+#      nightly-builds.yml does: the production build here and the e2e job's baseline build
+#      (npm run e2e:baseline inherits the environment);
+#   2. pass that config to the dist check, which takes it as its second argument:
+#      npm run check:dist -- dist configs/vue.config.<Portal>.js
+#   3. point the catalog test (e2e/catalog.test.mjs loads ../vue.config.js) at the same config;
+#   4. regenerate and commit a package-lock.json: 7 portal branches have none, so `npm ci` fails,
+#      and master's lockfile does not match their dependencies.
+
+name: CI
+
+# The build job is the per-PR gate. The A/B e2e job is slower and its live-data requests reach the
+# production BioIndex service, so it runs only where asked for: on PRs labelled `e2e`, nightly on
+# master, and from the Actions tab (see the e2e-plan job).
+on:
+  pull_request:
+    branches: [master, 'dev/**']
+    # The default types, plus `labeled` so that adding the `e2e` label starts a run.
+    types: [opened, synchronize, reopened, labeled]
+  push:
+    branches: [master]
+  # GitHub runs `schedule` only from the default branch, and offers `workflow_dispatch` only once
+  # this file is on the default branch.
+  schedule:
+    - cron: '47 7 * * *'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  build:
+    # A label other than `e2e` changes nothing to build.
+    if: github.event.action != 'labeled' || github.event.label.name == 'e2e'
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v7
+        with:
+          # The ratchet compares against a base ref, so it needs the full history.
+          fetch-depth: 0
+
+      - uses: actions/setup-node@v7
+        with:
+          node-version: 22
+          cache: npm
+
+      - run: npm ci
+
+      - name: Script unit tests
+        run: npm run test:scripts
+
+      - name: Vue 3 lint ratchet
+        env:
+          EVENT_NAME: ${{ github.event_name }}
+          BEFORE_SHA: ${{ github.event.before }}
+        run: |
+          # pull_request: compare against the PR's base branch.
+          # push: compare against the previous tip; a new branch reports an all-zero SHA,
+          #       which (like workflow_dispatch) means no comparison, only counts.
+          BASE=""
+          if [ "$EVENT_NAME" = "pull_request" ]; then
+            BASE="origin/$GITHUB_BASE_REF"
+          elif [ "$EVENT_NAME" = "push" ] && [ "$BEFORE_SHA" != "0000000000000000000000000000000000000000" ]; then
+            BASE="$BEFORE_SHA"
+          fi
+
+          if [ -n "$BASE" ]; then
+            npm run lint:vue3 -- --base "$BASE"
+          else
+            npm run lint:vue3
+          fi
+
+      - name: Production build
+        run: npm run deploy
+
+      - name: Check every page was built
+        run: npm run check:dist
+
+      - uses: actions/upload-artifact@v7
+        with:
+          name: dist
+          path: dist
+          retention-days: 7
+          # A re-run of the job uploads again under the same name.
+          overwrite: true
+
+  # Decides whether the A/B e2e runs, and against which baseline. It runs:
+  #   - on a PR labelled `e2e`, on every push while the label is on;
+  #   - nightly, on master;
+  #   - from the Actions tab (Run workflow), on any branch.
+  # An empty `base` output means there is nothing to compare, and the e2e job is skipped.
+  e2e-plan:
+    if: >-
+      github.event_name == 'schedule' ||
+      github.event_name == 'workflow_dispatch' ||
+      (github.event_name == 'pull_request' &&
+       contains(github.event.pull_request.labels.*.name, 'e2e') &&
+       (github.event.action != 'labeled' || github.event.label.name == 'e2e'))
+    runs-on: ubuntu-latest
+    outputs:
+      base: ${{ steps.pick.outputs.base }}
+    steps:
+      - uses: actions/checkout@v7
+        with:
+          # The baseline is a merge base or an older commit, so it needs the full history.
+          fetch-depth: 0
+
+      - name: Pick the baseline ref
+        id: pick
+        env:
+          EVENT_NAME: ${{ github.event_name }}
+        run: |
+          case "$EVENT_NAME" in
+            pull_request)
+              # HEAD is GitHub's test-merge commit (the PR merged into its base), so this merge
+              # base is the base branch's tip that was merged in, not the commit the PR branched
+              # from. That is the build the PR would change.
+              if ! REF=$(git merge-base HEAD "origin/$GITHUB_BASE_REF"); then
+                echo "::error::No merge base between HEAD and origin/$GITHUB_BASE_REF."
+                exit 1
+              fi
+              ;;
+            schedule)
+              # Master as it stood 24 hours earlier, so a failure points at one day's merges.
+              REF=$(git rev-list -1 --first-parent --before='24 hours ago' HEAD)
+              ;;
+            *)
+              # workflow_dispatch: the branch's merge base with master; on master itself, the
+              # commit before HEAD.
+              if ! REF=$(git merge-base HEAD origin/master); then
+                echo "::error::No merge base between HEAD and origin/master."
+                exit 1
+              fi
+              if [ "$REF" = "$(git rev-parse HEAD)" ]; then
+                REF="HEAD~1"
+              fi
+              ;;
+          esac
+
+          # Fail here, not after the baseline build starts, if the ref names no commit.
+          if [ -z "$REF" ] || ! BASE=$(git rev-parse --verify --quiet "$REF^{commit}"); then
+            echo "::error::Baseline ref '$REF' ($EVENT_NAME event) does not resolve to a commit in this checkout."
+            exit 1
+          fi
+
+          if [ "$BASE" = "$(git rev-parse HEAD)" ]; then
+            echo "Nothing merged in the last 24 hours, so there is nothing to compare; e2e skipped." >> "$GITHUB_STEP_SUMMARY"
+            BASE=""
+          else
+            echo "Baseline ref: $BASE"
+          fi
+          echo "base=$BASE" >> "$GITHUB_OUTPUT"
+
+  # Opens every catalog page in this build (the `dist` artifact) and in a build of the baseline
+  # that e2e-plan picked, and fails on anything this build adds: a landmark that stops rendering,
+  # new page errors, console errors or failed requests, or a screenshot that drifts. Chromium only;
+  # the other engines run the single-build smoke test in the nightly workflow.
+  e2e:
+    needs: [build, e2e-plan]
+    if: needs.e2e-plan.outputs.base != ''
+    runs-on: ubuntu-latest
+    timeout-minutes: 45
+    env:
+      BASE: ${{ needs.e2e-plan.outputs.base }}
+    steps:
+      - uses: actions/checkout@v7
+        with:
+          # The baseline build checks out an older commit, so it needs the full history.
+          fetch-depth: 0
+
+      - uses: actions/setup-node@v7
+        with:
+          node-version: 22
+          cache: npm
+
+      - run: npm ci
+
+      - uses: actions/download-artifact@v8
+        with:
+          name: dist
+          path: dist
+
+      - name: Install Chromium
+        run: npx playwright install --with-deps chromium
+
+      - name: Build the baseline
+        run: npm run e2e:baseline -- "$BASE"
+
+      - uses: ./.github/actions/e2e-live-data
+        with:
+          origin-ip: ${{ secrets.E2E_ORIGIN_IP }}
+
+      - name: A/B e2e (Chromium)
+        run: npx playwright test --project=chromium
+
+      - uses: actions/upload-artifact@v7
+        if: always()
+        with:
+          name: playwright-report
+          path: |
+            playwright-report
+            test-results
+          retention-days: 14
+          # A re-run of the job uploads again under the same name.
+          overwrite: true

@@ -63,6 +63,7 @@ export default {
             default: false,
         },
     },
+    emits: ["close"],
 };
 </script>
 

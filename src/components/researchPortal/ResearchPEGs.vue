@@ -27,15 +27,12 @@
 </template>
 
 <script>
-import Vue from "vue";
 import $ from "jquery";
 import uiUtils from "@/utils/uiUtils";
-import { BootstrapVueIcons } from "bootstrap-vue";
 import Formatters from "@/utils/formatters.js";
 
-Vue.use(BootstrapVueIcons);
-
-export default Vue.component("research-predicted-effector-genes", {
+export default {
+	name: "research-predicted-effector-genes",
 	props: [
 		"region",
 		"genesData",
@@ -59,7 +56,7 @@ export default Vue.component("research-predicted-effector-genes", {
 		window.addEventListener("resize", this.onResize);
 		this.renderTrack(this.genesData);
 	},
-	beforeDestroy() {
+	beforeUnmount() {
 		window.removeEventListener("resize", this.onResize);
 	},
 	computed: {
@@ -261,7 +258,7 @@ export default Vue.component("research-predicted-effector-genes", {
 			}
 		},
 	},
-});
+};
 
 $(function () {});
 </script>

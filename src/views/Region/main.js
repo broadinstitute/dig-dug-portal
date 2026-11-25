@@ -1,4 +1,4 @@
-import Vue from "vue";
+import { mountPage } from "@/utils/pageSetup";
 import * as d3 from "d3";
 import Template from "./Template.vue";
 import store from "./store.js";
@@ -47,7 +47,8 @@ import sessionUtils from "@/utils/sessionUtils";
 import regionUtils from "@/utils/regionUtils";
 import { pageMixin } from "@/mixins/pageMixin.js";
 
-new Vue({
+// @vue/component
+mountPage(Template, {
     store,
     components: {
         LunarisLink,
@@ -537,8 +538,4 @@ new Vue({
             return sifterAncestry.includes(this.$store.state.ancestry);
         },
     },
-
-    render(createElement) {
-        return createElement(Template);
-    },
-}).$mount("#app");
+});

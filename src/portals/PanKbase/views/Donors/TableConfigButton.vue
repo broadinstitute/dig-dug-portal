@@ -22,11 +22,11 @@
                 <div class="config-grid-header">Rename</div>
                 <div class="config-grid-header">Show on load</div>
 
-                <template v-for="column in draftColumns">
-                    <div :key="`${column.name}-name`" class="config-grid-cell config-name">
+                <template v-for="column in draftColumns" :key="column.name">
+                    <div class="config-grid-cell config-name">
                         {{ column.name }}
                     </div>
-                    <div :key="`${column.name}-label`" class="config-grid-cell">
+                    <div class="config-grid-cell">
                         <input
                             v-model="column.label"
                             type="text"
@@ -34,7 +34,7 @@
                             :placeholder="column.name"
                         >
                     </div>
-                    <div :key="`${column.name}-show`" class="config-grid-cell config-checkbox">
+                    <div class="config-grid-cell config-checkbox">
                         <input
                             v-model="column.showOnLoad"
                             type="checkbox"
@@ -59,6 +59,7 @@ export default {
             default: null,
         },
     },
+    emits: ["save"],
     data() {
         return {
             draftColumns: [],

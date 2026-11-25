@@ -15,7 +15,8 @@
                 :fields="fields"
                 :per-page="perPage"
                 :current-page="currentPage"
-                :sort-by.sync="sortBy"
+                :sort-by="sortBy"
+                @update:sortBy="sortBy = $event"
             >
                 <template #cell(other_phenotype)="r">
                     <a
@@ -40,10 +41,10 @@
     </div>
 </template>
 <script>
-import Vue from "vue";
 import Formatters from "@/utils/formatters";
 import DataDownload from "@/components/DataDownload.vue";
-export default Vue.component("CorrelationTable", {
+export default {
+    name: "CorrelationTable",
     components: {
         DataDownload,
     },
@@ -125,7 +126,7 @@ export default Vue.component("CorrelationTable", {
             return phenotypeEntry.description;
         },
     },
-});
+};
 </script>
 <style scoped>
 @import url("/css/effectorGenes.css");

@@ -247,9 +247,6 @@
 </template>
 
 <script>
-import Vue from "vue";
-import { BootstrapVue, BootstrapVueIcons } from "bootstrap-vue";
-
 import VariantSifterMenuBar from "./kpVariantSifter/VariantSifterMenuBar.vue";
 import VariantSifterSessionParamBubbles from "./kpVariantSifter/VariantSifterSessionParamBubbles.vue";
 import VariantSifterWorkspaceGuide from "./kpVariantSifter/VariantSifterWorkspaceGuide.vue";
@@ -581,10 +578,8 @@ function emptyGlobalEnrichmentState() {
     };
 }
 
-Vue.use(BootstrapVue);
-Vue.use(BootstrapVueIcons);
-
-export default Vue.component("kp-variant-sifter", {
+export default {
+    name: "kp-variant-sifter",
     props: ["sectionConfigs", "phenotypesInUse", "utilsBox"],
     components: {
         VariantSifterMenuBar,
@@ -816,7 +811,7 @@ export default Vue.component("kp-variant-sifter", {
         this.$nextTick(() => this.setupChromePin());
         this.refreshAssistantLlmHealth();
     },
-    beforeDestroy() {
+    beforeUnmount() {
         if (this.regionPanSyncTimer) {
             clearTimeout(this.regionPanSyncTimer);
             this.regionPanSyncTimer = null;
@@ -7527,7 +7522,7 @@ export default Vue.component("kp-variant-sifter", {
             };
         },
     },
-});
+};
 </script>
 
 <style scoped>

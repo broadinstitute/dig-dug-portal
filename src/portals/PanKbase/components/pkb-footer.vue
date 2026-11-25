@@ -45,10 +45,10 @@
 </template>
 
 <script>
-import Vue from "vue";
 import { pkbMenu } from '@/portals/PanKbase/assets/pkbMenu.js';
 
-export default Vue.component("PkbFooter", {
+export default {
+    name: "PkbFooter",
     components: {},
     props: {},
     data() { 
@@ -59,7 +59,7 @@ export default Vue.component("PkbFooter", {
     computed: {},
     created() {},
     methods: {},
-});
+};
 </script>
 
 <style scoped>
@@ -76,37 +76,36 @@ export default Vue.component("PkbFooter", {
     margin-top: auto;
     flex-direction: column;
     gap: 40px;
-
-    .menu {
-        display: flex;
-        gap: 20px;
-    }
-    .menu a, .menu a:visited {
-        color: black !important;
-    }
-    .menu a:hover{
-        color: var(--pkb-secondary-green) !important;
-        text-decoration: none;
-    }
-    .menu-item-wrapper {
-        display: flex;
-        flex-direction: column;
-    }
-    .submenu {
-        display: flex;
-        flex-direction: column;
-    }
-    a.submenu-item {
-        font-weight: normal;
-    }
-    .logos img{
-        width: 20px;
-    }
-    .logos a{
-        opacity: 0.7;
-    }
-    .logos a:hover{
-        opacity: 1;
-    }
+}
+.pkb-footer .menu {
+    display: flex;
+    gap: 20px;
+}
+.pkb-footer .menu a, .pkb-footer .menu a:visited {
+    color: black !important;
+}
+.pkb-footer .menu a:hover{
+    color: var(--pkb-secondary-green) !important;
+    text-decoration: none;
+}
+.pkb-footer .menu-item-wrapper {
+    display: flex;
+    flex-direction: column;
+}
+.pkb-footer .submenu {
+    display: flex;
+    flex-direction: column;
+}
+.pkb-footer a.submenu-item {
+    font-weight: normal;
+}
+.pkb-footer .logos img{
+    width: 20px;
+}
+.pkb-footer .logos a{
+    opacity: 0.7;
+}
+.pkb-footer .logos a:hover{
+    opacity: 1;
 }
 </style>

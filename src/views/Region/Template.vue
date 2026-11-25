@@ -84,11 +84,11 @@
                         :class="'gene-with-signal ' + row.type"
                     >
                         <template v-if="row.type == 'protein_coding'">
-                            <a :href="`/gene.html?gene=${row.name}`">
-                                {{ row.name }}
-                            </a></template
+                            <a :href="`/gene.html?gene=${row.name}`">{{
+                                " " }}{{ row.name }}{{ " "
+                            }}</a></template
                         >
-                        <template v-else> {{ row.name }}</template>
+                        <template v-else>{{ " " }}{{ row.name }}</template>
                     </div>
                 </div>
             </div>
@@ -515,6 +515,56 @@
         <page-footer :disease-group="$parent.diseaseGroup"></page-footer>
     </div>
 </template>
+
+<script>
+import AncestrySelectpicker from "@/components/AncestrySelectPicker.vue";
+import AssociationsTable from "@/components/AssociationsTable.vue";
+import ClumpedVariantsTable from "@/components/ClumpedVariantsTable.vue";
+import CriterionFunctionGroup from "@/components/criterion/group/CriterionFunctionGroup.vue";
+import CriterionListGroup from "@/components/criterion/group/CriterionListGroup.vue";
+import Documentation from "@/components/Documentation.vue";
+import ExpandRegion from "@/components/ExpandRegion.vue";
+import FilterEffectDirectionControl from "@/components/criterion/FilterEffectDirection.vue";
+import FilterEnumerationControl from "@/components/criterion/FilterEnumeration.vue";
+import FilterPvalueControl from "@/components/criterion/FilterPValue.vue";
+import Locuszoom from "@/components/lz/LocusZoom.vue";
+import LzAssociationsPanel from "@/components/lz/panels/LocusZoomAssociationsPanel.vue";
+import LzCatalogAnnotationsPanel from "@/components/lz/panels/LocusZoomCatalogAnnotationsPanel.vue";
+import PageFooter from "@/components/PageFooter.vue";
+import PageHeader from "@/components/PageHeader.vue";
+import PhenotypeSignalBarChart from "@/components/PhenotypeSignalBarChart.vue";
+import PhenotypeSignalInGroup from "@/components/PhenotypeSignalInGroup.vue";
+import ResearchPhewasPlot from "@/components/researchPortal/ResearchPheWAS.vue";
+import ResearchSingleSearch from "@/components/researchPortal/ResearchSingleSearch.vue";
+import SearchHeaderWrapper from "@/components/SearchHeaderWrapper.vue";
+import TooltipDocumentation from "@/components/TooltipDocumentation.vue";
+
+export default {
+    components: {
+        AncestrySelectpicker,
+        AssociationsTable,
+        ClumpedVariantsTable,
+        CriterionFunctionGroup,
+        CriterionListGroup,
+        Documentation,
+        ExpandRegion,
+        FilterEffectDirectionControl,
+        FilterEnumerationControl,
+        FilterPvalueControl,
+        Locuszoom,
+        LzAssociationsPanel,
+        LzCatalogAnnotationsPanel,
+        PageFooter,
+        PageHeader,
+        PhenotypeSignalBarChart,
+        PhenotypeSignalInGroup,
+        ResearchPhewasPlot,
+        ResearchSingleSearch,
+        SearchHeaderWrapper,
+        TooltipDocumentation,
+    },
+};
+</script>
 <style>
 .link-to-vs {
     color: #ffffff !important;

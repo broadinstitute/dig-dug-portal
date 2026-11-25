@@ -1,4 +1,3 @@
-import Vue from "vue";
 import Vuex from "vuex";
 
 import bioPortal from "@/modules/bioPortal";
@@ -9,8 +8,6 @@ import dataConvert from "@/utils/dataConvert";
 import BIO_INDEX_HOST from "@/utils/bioIndexUtils";
 const PANKBASE_BIOINDEX = BIO_INDEX_HOST.BIO_INDEX_HOST.replace("hugeamp", "pankbase");
 
-
-Vue.use(Vuex);
 
 
 export default new Vuex.Store({

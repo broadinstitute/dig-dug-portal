@@ -89,7 +89,7 @@
 							</tr>
 							<tr>
 								<td>
-									<Strong>Hide table: </Strong><input type="checkbox" class="chkbox"
+									<strong>Hide table: </strong><input type="checkbox" class="chkbox"
 									@click="utils.uiUtils.showHideElement(sectionId + '_table_wrapper')"
 								/>
 								</td>
@@ -222,11 +222,15 @@
 							<button @click="selectRow(value)" :disabled="isSelected(value)">Select</button>
 						</td>
 						<template
-							v-for="(tdValue, tdKey) in value"
-							v-if="
-								topRows.includes(tdKey) &&
-								getIfChecked(tdKey) == true &&
-								tdKey !== tableFormat['select column']
+							v-for="
+								[tdValue, tdKey] in Object.keys(value || {})
+									.map((k) => [value[k], k])
+									.filter(
+										([tdValue, tdKey]) =>
+											topRows.includes(tdKey) &&
+											getIfChecked(tdKey) == true &&
+											tdKey !== tableFormat['select column']
+									)
 							"
 						>
 							<td
@@ -306,8 +310,8 @@
 									:key="sKey"
 								>
 
-									<span v-if="!!ifSetParameterColumn(tdKey)" class="set-parameter-options">
-										{{ (!!getParameterColumnLabel(tdKey)) ? getParameterColumnLabel(tdKey) : sValue }}
+									<span v-if="!!ifSetParameterColumn(tdKey)" class="set-parameter-options">{{
+										" " }}{{ (!!getParameterColumnLabel(tdKey)) ? getParameterColumnLabel(tdKey) : sValue }}
 										<span class="btns-wrapper">
 											<button v-for="section in getParameterTargets(tdKey)" class="btn btn-sm show-evidence-btn set-search-btn" 
 												v-html="section.label" @click="setParameter(sValue, tdKey, section.section,section.parameter, section.compare)" ></button>
@@ -367,31 +371,12 @@
 						</td>
 					</tr>
 					<!-- testing dynamic sub table-->
-					<template v-if="!!tableFormat['column formatting']"
-					v-for="(itemValue, itemKey) in tableFormat['column formatting']">
-					<tr v-if="itemValue.type.includes('dynamic subsection') && !!ifSubsectionData(sanitizeKey(itemKey+value[itemKey]+index))" class="dynamic-sub-section" :class="getRowID(itemKey+value[itemKey]+index) + ' '+ ifHidden(sanitizeKey(itemKey + value[itemKey] + index))" :key="value[itemKey]"
-					>
-					<td :colspan="topRowNumber">
-						<research-sub-section
-						:sectionId="sectionId"
-						:rowId="getRowID(itemKey + value[itemKey] + index)"
-						:colors="colors"
-						:starItems="starItems"
-						:multiSectionPage="multiSectionPage"
-						:plotMargin="plotMargin"
-						:subSectionConfig="itemValue['subsection']"
-						:subSectionData="collectSubsectionData(sanitizeKey(itemKey+value[itemKey]+index))"
-						:phenotypeMap="phenotypeMap"
-						:utils="utils"
+					<template v-if="!!tableFormat['column formatting']">
+						<template v-for="(itemValue, itemKey) in tableFormat['column formatting']">
+						<tr v-if="itemValue.type.includes('dynamic subsection') && !!ifSubsectionData(sanitizeKey(itemKey+value[itemKey]+index))" class="dynamic-sub-section" :class="getRowID(itemKey+value[itemKey]+index) + ' '+ ifHidden(sanitizeKey(itemKey + value[itemKey] + index))" :key="value[itemKey]"
 						>
-						</research-sub-section>
-					</td>
-					</tr>
-					<!-- testing BYOGL table-->
-					<tr v-if="itemValue.type.includes('byogl section') && !!ifSubsectionData(sanitizeKey(itemKey+value[itemKey]+index))" class="dynamic-sub-section" :class="getRowID(itemKey+value[itemKey]+index) + ' '+ ifHidden(sanitizeKey(itemKey + value[itemKey] + index))" :key="value[itemKey]"
-					>
 						<td :colspan="topRowNumber">
-							<research-byogl-section
+							<research-sub-section
 							:sectionId="sectionId"
 							:rowId="getRowID(itemKey + value[itemKey] + index)"
 							:colors="colors"
@@ -403,9 +388,29 @@
 							:phenotypeMap="phenotypeMap"
 							:utils="utils"
 							>
-							</research-byogl-section>
+							</research-sub-section>
 						</td>
-					</tr>
+						</tr>
+						<!-- testing BYOGL table-->
+						<tr v-if="itemValue.type.includes('byogl section') && !!ifSubsectionData(sanitizeKey(itemKey+value[itemKey]+index))" class="dynamic-sub-section" :class="getRowID(itemKey+value[itemKey]+index) + ' '+ ifHidden(sanitizeKey(itemKey + value[itemKey] + index))" :key="value[itemKey]"
+						>
+							<td :colspan="topRowNumber">
+								<research-byogl-section
+								:sectionId="sectionId"
+								:rowId="getRowID(itemKey + value[itemKey] + index)"
+								:colors="colors"
+								:starItems="starItems"
+								:multiSectionPage="multiSectionPage"
+								:plotMargin="plotMargin"
+								:subSectionConfig="itemValue['subsection']"
+								:subSectionData="collectSubsectionData(sanitizeKey(itemKey+value[itemKey]+index))"
+								:phenotypeMap="phenotypeMap"
+								:utils="utils"
+								>
+								</research-byogl-section>
+							</td>
+						</tr>
+						</template>
 					</template>
 				</template>
 			</tbody>
@@ -430,14 +435,14 @@
 </template>
 
 <script>
-import Vue from "vue";
 import EventBus from "@/utils/eventBus";
 import ResearchDataTableFeatures from "@/components/researchPortal/ResearchDataTableFeatures.vue";
 import ResearchSummaryPlot from "@/components/researchPortal/ResearchSummaryPlot.vue";
 import ResearchSubSection from "@/components/researchPortal/ResearchSubSection.vue";
 import ResearchByoglSection from "@/components/researchPortal/ResearchByoglSection.vue";
 
-export default Vue.component("research-data-table", {
+export default {
+	name: "research-data-table",
 	props: [
 		"pageID",
 		"dataset",
@@ -460,6 +465,7 @@ export default Vue.component("research-data-table", {
 		"colors",
 		"plotMargin"
 	],
+	emits: ["on-feature-rows-change", "splice", "on-star", "clicked-sort"],
 	data() {
 		return {
 			currentPage: 1,
@@ -1691,7 +1697,7 @@ export default Vue.component("research-data-table", {
 			}
 		},
 	},
-});
+};
 </script>
 
 <style scoped>

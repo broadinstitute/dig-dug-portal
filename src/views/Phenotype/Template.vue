@@ -180,7 +180,7 @@
                                 <div class="label">Meta-analysis</div>
                             </filter-enumeration-control>
 
-                            <template slot="filtered" slot-scope="{ filter }">
+                            <template v-slot:filtered="{ filter }">
                                 <documentation
                                     name="pheno.top_assoc.subheader"
                                     :content-map="
@@ -319,7 +319,7 @@
                                 <div class="label">Genericity (&le;)</div>
                             </filter-less-control>
 
-                            <template slot="filtered" slot-scope="{ filter }">
+                            <template v-slot:filtered="{ filter }">
                                 <c2ct-table
                                     :c2ct-data="$parent.c2ctData"
                                     :filter="filter"
@@ -364,7 +364,7 @@
                             >
                                 <div class="label">Technology</div>
                             </filter-enumeration-control>
-                            <template slot="filtered" slot-scope="{ filter }">
+                            <template v-slot:filtered="{ filter }">
                                 <datasets-table
                                     :datasets="$parent.ancestryDatasets"
                                     :phenotype="$store.state.phenotype"
@@ -412,7 +412,7 @@
                                 <div class="label">P-Value (&le;)</div>
                             </filter-pvalue-control>
 
-                            <template slot="filtered" slot-scope="{ filter }">
+                            <template v-slot:filtered="{ filter }">
                                 <b-tabs>
                                     <b-tab
                                         title="HuGE Scores"
@@ -601,7 +601,7 @@
                             <filter-greater-control :field="'rg'">
                                 <div class="label">Correlation (&ge;)</div>
                             </filter-greater-control>
-                            <template slot="filtered" slot-scope="{ filter }">
+                            <template v-slot:filtered="{ filter }">
                                 <correlation-table
                                     :correlation-data="
                                         $store.state.geneticCorrelation.data
@@ -678,7 +678,7 @@
                                 <div class="label">Fold (&ge;)</div>
                             </filter-greater-control>
 
-                            <template slot="filtered" slot-scope="{ filter }">
+                            <template v-slot:filtered="{ filter }">
                                 <enrichment-table
                                     :phenotypes="[$store.state.phenotype]"
                                     :annotations="$parent.ancestryAnnotations"
@@ -746,10 +746,66 @@
 </template>
 <script>
 import BottomLineProvenance from "@/components/researchPortal/bottomLineProvenance/BottomLineProvenance.vue";
+import AncestrySelectpicker from "@/components/AncestrySelectPicker.vue";
+import AssociationsTable from "@/components/AssociationsTable.vue";
+import C2ctTable from "@/components/C2ctTable.vue";
+import CorrelationTable from "@/components/CorrelationTable.vue";
+import CriterionFunctionGroup from "@/components/criterion/group/CriterionFunctionGroup.vue";
+import DatasetsTable from "@/components/DatasetsTable.vue";
+import Documentation from "@/components/Documentation.vue";
+import EglsSection from "@/components/EffectorGenesSection.vue";
+import EnrichmentTable from "@/components/EnrichmentTable.vue";
+import FilterEffectDirectionControl from "@/components/criterion/FilterEffectDirection.vue";
+import FilterEnumerationControl from "@/components/criterion/FilterEnumeration.vue";
+import FilterGreaterControl from "@/components/criterion/FilterGreaterThan.vue";
+import FilterLessControl from "@/components/criterion/FilterLessThan.vue";
+import FilterPvalueControl from "@/components/criterion/FilterPValue.vue";
+import GeneFinderTable from "@/components/GeneFinderTable.vue";
+import GeneSet2Phenotype from "@/components/Cfde2Kp/GeneSet2Phenotype.vue";
+import KcCfdeLogo from "@/components/Cfde2Kp/KcCfdeLogo.vue";
+import MetaAnalysisBarGraph from "@/components/MetaAnalysisBarGraph.vue";
+import PageFooter from "@/components/PageFooter.vue";
+import PageHeader from "@/components/PageHeader.vue";
+import PathwayTable from "@/components/PathwayTable.vue";
+import PhenotypeHugeScores from "@/components/PhenotypeHugeScores.vue";
+import PigeanFactors from "@/components/PigeanFactors.vue";
+import PigeanPhenotype from "@/components/PigeanPhenotype.vue";
+import RawImg from "@/components/RawImage.vue";
+import ResearchSingleSearch from "@/components/researchPortal/ResearchSingleSearch.vue";
+import SearchHeaderWrapper from "@/components/SearchHeaderWrapper.vue";
+import TooltipDocumentation from "@/components/TooltipDocumentation.vue";
 
 export default {
     components: {
         BottomLineProvenance,
+        AncestrySelectpicker,
+        AssociationsTable,
+        C2ctTable,
+        CorrelationTable,
+        CriterionFunctionGroup,
+        DatasetsTable,
+        Documentation,
+        EglsSection,
+        EnrichmentTable,
+        FilterEffectDirectionControl,
+        FilterEnumerationControl,
+        FilterGreaterControl,
+        FilterLessControl,
+        FilterPvalueControl,
+        GeneFinderTable,
+        "gene-set-2-phenotype": GeneSet2Phenotype,
+        KcCfdeLogo,
+        MetaAnalysisBarGraph,
+        PageFooter,
+        PageHeader,
+        PathwayTable,
+        PhenotypeHugeScores,
+        PigeanFactors,
+        PigeanPhenotype,
+        RawImg,
+        ResearchSingleSearch,
+        SearchHeaderWrapper,
+        TooltipDocumentation,
     },
 };
 </script>

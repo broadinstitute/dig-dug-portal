@@ -1,0 +1,8 @@
+{
+  "url": "https://hugeampkpncms.org/rest/byor_content?id=collaborate_pankbase",
+  "status": 200,
+  "headers": {
+    "content-type": "application/json"
+  },
+  "body": "[{\"title\":\"Collaborate\",\"field_data_points\":false,\"field_data_table_format\":false,\"body\":\"\\u003Cp style=\\u0022font-size:18px;\\u0022\\u003EPanKbase is a growing resource that strives to create an inclusive, dynamic community for diabetes and pancreatic researchers. As we develop PanKbase, we welcome collaborations in areas including data collection and curation, method development, tool creation, and data visualization. We value input from data providers, experts, and multidisciplinary users to ensure the utility and relevance of our resource. To collaborate, please contact us at \\u003Ca href=\\u0022mailto:help@pankbase.org\\u0022 target=\\u0022blank\\u0022\\u003Ehelp@pankbase.org\\u003C\\/a\\u003E or join our \\u003Ca href=\\u0022https:\\/\\/github.com\\/orgs\\/PanKbase\\/discussions\\u0022 target=\\u0022blank\\u0022\\u003ECommunity Forum\\u003C\\/a\\u003E. If you wish to submit data to PanKbase, please follow our \\u003Ca href=\\u0022https:\\/\\/hugeampkpncms.org\\/sites\\/default\\/files\\/images\\/pankbase\\/methods\\/dataprocessingstandards.pdf\\u0022 target=\\u0022blank\\u0022\\u003EStandards for Data Processing\\u003C\\/a\\u003E. Learn more about our current metadata standards \\u003Ca href=\\u0022\\/metadata-data-standards.html\\u0022 target=\\u0022blank\\u0022\\u003Ehere\\u003C\\/a\\u003E.\\u003C\\/p\\u003E\\n\",\"field_page_style\":false}]"
+}

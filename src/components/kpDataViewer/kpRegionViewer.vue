@@ -1,48 +1,46 @@
 <template>
 	<div class="mbm-plot-content kp-region-viewer-wrapper">
-		<div
-			class="kp-region-viewer-wrapper"
-			v-for="item in plotsList"
-			v-if="plotsList != null"
-		>
-			<h5 v-html="item"></h5>
-			<div class="row">
-				<div
-					class="col-md-9 association-plot-wrapper"
-					:id="pkgID + '_' + item + '_associationPlot_wrapper'"
-				>
-					<canvas
-						:id="pkgID + '_' + item + '_associationPlot'"
-						width=""
-						height=""
+		<template v-if="plotsList != null">
+			<div
+				class="kp-region-viewer-wrapper"
+				v-for="item in plotsList"
+			>
+				<h5 v-html="item"></h5>
+				<div class="row">
+					<div
+						class="col-md-9 association-plot-wrapper"
+						:id="pkgID + '_' + item + '_associationPlot_wrapper'"
 					>
-					</canvas>
-				</div>
-				<div
-					class="col-md-3 ld-plot-wrapper"
-					:id="pkgID + '_' + item + '_ldPlot_wrapper'"
-				>
-					<canvas
-						:id="pkgID + '_' + item + '_ldPlot'"
-						width=""
-						height=""
+						<canvas
+							:id="pkgID + '_' + item + '_associationPlot'"
+							width=""
+							height=""
+						>
+						</canvas>
+					</div>
+					<div
+						class="col-md-3 ld-plot-wrapper"
+						:id="pkgID + '_' + item + '_ldPlot_wrapper'"
 					>
-					</canvas>
+						<canvas
+							:id="pkgID + '_' + item + '_ldPlot'"
+							width=""
+							height=""
+						>
+						</canvas>
+					</div>
 				</div>
 			</div>
-		</div>
+		</template>
 	</div>
 </template>
 
 <script>
-import Vue from "vue";
-import { BootstrapVueIcons } from "bootstrap-vue";
 import umLdServer from "@/modules/umLdServer.js";
 import Formatters from "@/utils/formatters.js";
 
-Vue.use(BootstrapVueIcons);
-
-export default Vue.component("kp-region-viewer", {
+export default {
+	name: "kp-region-viewer",
 	props: ["plotData", "plotLayout", "renderConfig", "region", "pkgID"],
 	data() {
 		return {
@@ -86,7 +84,7 @@ export default Vue.component("kp-region-viewer", {
 	mounted: function () {
 		window.addEventListener("resize", this.onResize);
 	},
-	beforeDestroy() {
+	beforeUnmount() {
 		window.removeEventListener("resize", this.onResize);
 	},
 	computed: {
@@ -630,7 +628,7 @@ export default Vue.component("kp-region-viewer", {
 			}
 		},
 	},
-});
+};
 </script>
 
 <style>

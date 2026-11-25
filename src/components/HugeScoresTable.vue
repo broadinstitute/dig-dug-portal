@@ -172,15 +172,8 @@
 </template>
 
 <script>
-import Vue from "vue";
-import { BootstrapVue, IconsPlugin } from "bootstrap-vue";
 import Formatters from "@/utils/formatters";
 
-Vue.use(BootstrapVue);
-Vue.use(IconsPlugin);
-
-import "bootstrap/dist/css/bootstrap.css";
-import "bootstrap-vue/dist/bootstrap-vue.css";
 import DataDownload from "@/components/DataDownload";
 import KcCfdeLogo from "@/components/Cfde2Kp/KcCfdeLogo.vue";
 
@@ -321,7 +314,8 @@ function joinMultiValues(fieldsToJoin, joinBy, row) {
     return out;
 }
 
-export default Vue.component("HugeScoresTable", {
+export default {
+    name: "HugeScoresTable",
     components: {
         DataDownload,
         KcCfdeLogo,
@@ -538,7 +532,7 @@ export default Vue.component("HugeScoresTable", {
         },
         setGeneSetSubtablePage(item, page) {
             const key = this.getRowKey(item);
-            this.$set(this.geneSetSubtablePageByRow, key, page);
+            this.geneSetSubtablePageByRow[key] = page;
         },
         formatGeneSetCell(value) {
             if (value == null) return "";
@@ -574,11 +568,11 @@ export default Vue.component("HugeScoresTable", {
             const key = this.getRowKey(item);
             const phenotype = item.phenotype;
             if (!phenotype) return;
-            this.$set(this.geneSetDataByRow, key, {
+            this.geneSetDataByRow[key] = {
                 loading: true,
                 data: [],
                 error: null,
-            });
+            };
             const url = this.geneSetsApi.replace(
                 "$phenotype",
                 encodeURIComponent(phenotype)
@@ -592,21 +586,21 @@ export default Vue.component("HugeScoresTable", {
                 const json = await response.json();
                 const rawRows = json.data || json || [];
                 const data = this.applyGeneSetDataConvert(rawRows);
-                this.$set(this.geneSetDataByRow, key, {
+                this.geneSetDataByRow[key] = {
                     loading: false,
                     data,
                     error: null,
-                });
+                };
             } catch (err) {
-                this.$set(this.geneSetDataByRow, key, {
+                this.geneSetDataByRow[key] = {
                     loading: false,
                     data: [],
                     error: err.message || "Failed to load gene sets.",
-                });
+                };
             }
         },
     },
-});
+};
 </script>
 <style>
 .compelling {

@@ -214,10 +214,10 @@
 </template>
 
 <script>
-import Vue from "vue";
 import $ from "jquery";
 
-export default Vue.component("research-byogl-section", {
+export default {
+	name: "research-byogl-section",
 	props: ["sectionId","rowId","subSectionConfig", "subSectionData","phenotypeMap","utils","colors","starItems","plotMargin","multiSectionPage"],
 	components: {
 	},
@@ -634,7 +634,7 @@ export default Vue.component("research-byogl-section", {
 			return content;
 		},
 	},
-});
+};
 
 $(function () { });
 </script>

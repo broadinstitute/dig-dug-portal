@@ -68,27 +68,21 @@
 </template>
 
 <script>
-import Vue from "vue";
 import $ from "jquery";
 
 import VueTypeaheadBootstrap from "vue-typeahead-bootstrap";
 import ManhattanPlot from "@/components/ManhattanPlot.vue";
-import { BootstrapVue, IconsPlugin } from "bootstrap-vue";
 import Chi from "chi-squared";
 import Formatters from "@/utils/formatters";
 import Filters from "@/utils/filters";
 
 import EffectorGenesMPlot from "@/components/eglt/EffectorGenesMPlot";
 
-Vue.use(BootstrapVue);
-Vue.use(IconsPlugin);
-
-import "bootstrap/dist/css/bootstrap.css";
-import "bootstrap-vue/dist/bootstrap-vue.css";
 import Documentation from "@/components/Documentation";
 import TooltipDocumentation from "@/components/TooltipDocumentation";
 
-export default Vue.component("gene-finder-table", {
+export default {
+    name: "gene-finder-table",
     props: [
         "associations",
         "phenotypes",
@@ -284,7 +278,7 @@ export default Vue.component("gene-finder-table", {
             return 2 * pdf;
         },
     },
-});
+};
 </script>
 
 <style>

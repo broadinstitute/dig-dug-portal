@@ -39,8 +39,8 @@
                             encodeURIComponent(cell.value)
                         "
                     >
-                        {{ cell.value }}
-                    </a>
+                        {{ cell.value }}{{ " "
+                    }}</a>
                     <span v-else>{{ cell.value }}</span>
                 </template>
                 <template v-slot:[sourceCellSlot]="cell">
@@ -51,8 +51,8 @@
                             encodeURIComponent(cell.value)
                         "
                     >
-                        {{ cell.value }}
-                    </a>
+                        {{ cell.value }}{{ " "
+                    }}</a>
                     <span v-else>{{ cell.value }}</span>
                 </template>
                 <template #cell(GenesInGeneSet)="row">
@@ -129,13 +129,6 @@
 </template>
 
 <script>
-import Vue from "vue";
-import { BootstrapVue } from "bootstrap-vue";
-import "bootstrap/dist/css/bootstrap.css";
-import "bootstrap-vue/dist/bootstrap-vue.css";
-
-Vue.use(BootstrapVue);
-
 const PIGEAN_GENE_SET_PHENOTYPE_BASE =
     "https://cfde-dev.hugeampkpnbi.org/api/bio/query/pigean-gene-set-phenotype";
 
@@ -293,7 +286,8 @@ function translateToCategory(value, categories) {
     return cat ? cat.name : "";
 }
 
-export default Vue.component("gene-set-2-phenotype", {
+export default {
+    name: "gene-set-2-phenotype",
     components: {},
     props: {
         phenotype: {
@@ -397,7 +391,7 @@ export default Vue.component("gene-set-2-phenotype", {
     },
     created() {},
     mounted() {},
-    beforeDestroy() {},
+    beforeUnmount() {},
     methods: {
         async fetchGeneSetPhenotype() {
             const phenotypeName = this.phenotype && this.phenotype.name;
@@ -517,7 +511,7 @@ export default Vue.component("gene-set-2-phenotype", {
             }
         },
     },
-});
+};
 </script>
 
 <style scoped>

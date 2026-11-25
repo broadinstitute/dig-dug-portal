@@ -9,10 +9,10 @@
 </template>
 
 <script>
-import Vue from "vue";
 import uiUtils from "@/utils/uiUtils";
 
-export default Vue.component("DataDownload", {
+export default {
+    name: "DataDownload",
     props: {
         data: {
             type: Array,
@@ -38,5 +38,5 @@ export default Vue.component("DataDownload", {
             uiUtils.convertJson2Tsv(this.data, this.filename);
         },
     },
-});
+};
 </script>

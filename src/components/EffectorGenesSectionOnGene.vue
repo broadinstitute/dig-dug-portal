@@ -11,7 +11,7 @@
 				<div class="col-md-1">PMID</div>
 				<div class="col-md-1">View full list</div>
 			</div>
-			<div class="row egls-list" v-for="egl in eglsOnGene" v-if="!!eglsList[egl.field_page_id]" >
+			<div class="row egls-list" v-for="egl in (eglsOnGene || []).filter((egl) => !!eglsList[egl.field_page_id])" >
 				<template>
 					<div
 						class="col-md-4"
@@ -75,10 +75,10 @@
 </template>
 
 <script>
-import Vue from "vue";
 import dataConvert from "@/utils/dataConvert";
 
-export default Vue.component("egls-section-on-gene", {
+export default {
+	name: "egls-section-on-gene",
 	props: ["gene"],
 	components: {},
 	data() {
@@ -133,7 +133,7 @@ export default Vue.component("egls-section-on-gene", {
 			}
 		},
 	},
-});
+};
 </script>
 <style scoped>
 .egls-list-header {

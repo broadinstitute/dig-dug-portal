@@ -19,17 +19,17 @@
 </template>
 
 <script>
-import Vue from "vue";
 
 import uiUtils from "@/utils/uiUtils";
 
-export default Vue.component("search-header-wrapper", {
+export default {
+    name: "search-header-wrapper",
     props: ["datasetInfo"],
 
     mounted() {
         window.addEventListener("scroll", this.onScroll);
     },
-    beforeDestroy() {
+    beforeUnmount() {
         window.removeEventListener("scroll", this.onScroll);
     },
     computed: {
@@ -62,7 +62,7 @@ export default Vue.component("search-header-wrapper", {
             }
         },
     },
-});
+};
 </script>
 
 <style>

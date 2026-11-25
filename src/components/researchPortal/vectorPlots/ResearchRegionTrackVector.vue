@@ -8,15 +8,12 @@
 </template>
 
 <script>
-import Vue from "vue";
 import $ from "jquery";
 import * as d3 from "d3";
 import { cloneDeep } from "@/utils/lodashUtils";
-import { BootstrapVueIcons } from "bootstrap-vue";
 
-Vue.use(BootstrapVueIcons);
-
-export default Vue.component("research-region-track-vector", {
+export default {
+    name: "research-region-track-vector",
     props: [
         "renderData",
         "renderConfig",
@@ -35,7 +32,7 @@ export default Vue.component("research-region-track-vector", {
     mounted: function () {
         //this.renderRegionTrack()
     },
-    beforeDestroy() {},
+    beforeUnmount() {},
     computed: {
         canvasId() {
             let canvasId = this.sectionId.replaceAll("_", "-").toLowerCase();
@@ -306,7 +303,7 @@ export default Vue.component("research-region-track-vector", {
             });
         },
     },
-});
+};
 
 $(function () {});
 </script>

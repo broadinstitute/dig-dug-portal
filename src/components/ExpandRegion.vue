@@ -14,9 +14,9 @@
 </template>
 
 <script>
-import Vue from "vue";
 
-export default Vue.component("expand-region", {
+export default {
+    name: "expand-region",
     props: ["chr", "start", "end", "setLocus"],
     methods: {
         expandRegion() {
@@ -34,6 +34,6 @@ export default Vue.component("expand-region", {
             document.getElementById("region_expander").value = null;
         },
     },
-});
+};
 </script>
 

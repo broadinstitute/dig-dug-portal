@@ -1,4 +1,4 @@
-import Vue from "vue";
+import { mountPage } from "@/utils/pageSetup";
 import Template from "./Template.vue";
 import store from "./store.js";
 
@@ -21,9 +21,11 @@ import pigeanUtils from "@/utils/pigeanUtils.js";
 import cvdiBioIndexUtils from "../utils/cvdiBioIndexUtils";
 import Formatters from "@/utils/formatters";
 import dataConvert from "@/utils/dataConvert";
+import { cloneDeep } from "@/utils/lodashUtils";
 import { pageMixin } from "@/mixins/pageMixin.js";
 
-new Vue({
+// @vue/component
+mountPage(Template, {
     store,
     components: {
         SearchHeaderWrapper,
@@ -133,7 +135,7 @@ new Vue({
             );
         },
         phewasAdjustedData() {
-            let adjustedData = structuredClone(this.phewasAllData);
+            let adjustedData = cloneDeep(this.phewasAllData);
             for (let i = 0; i < adjustedData.length; i++) {
                 if (adjustedData[i].beta_uncorrected < 0) {
                     adjustedData[i].beta_uncorrected = 0;
@@ -145,7 +147,7 @@ new Vue({
             return this.pigeanPhenotypeMap;
         },
         phewasAllData(){
-            return structuredClone(this.$store.state.phewasData);
+            return cloneDeep(this.$store.state.phewasData);
         }
     },
     methods: {
@@ -176,8 +178,4 @@ new Vue({
         this.$store.dispatch("bioPortal/getPhenotypes");
         this.genesetSearchOptions = await cvdiBioIndexUtils.getAllGenesets();
     },
-
-    render(createElement, context) {
-        return createElement(Template);
-    },
-}).$mount("#app");
+});

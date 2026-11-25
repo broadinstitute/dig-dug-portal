@@ -10,3 +10,15 @@
       <pkb-footer></pkb-footer> 
   </div>
 </template>
+
+<script>
+import PkbFooter from "@/portals/PanKbase/components/pkb-footer.vue";
+import PkbHeader from "@/portals/PanKbase/components/pkb-header.vue";
+
+export default {
+    components: {
+        PkbFooter,
+        PkbHeader,
+    },
+};
+</script>

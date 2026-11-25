@@ -1,4 +1,4 @@
-import Vue from "vue";
+import { mountPage } from "@/utils/pageSetup";
 import Template from "./Template.vue";
 import store from "./store.js";
 
@@ -15,14 +15,15 @@ import FilterPValue from "@/components/criterion/FilterPValue.vue";
 import FilterEffectDirection from "@/components/criterion/FilterEffectDirection.vue";
 import FilterEnumeration from "@/components/criterion/FilterEnumeration.vue";
 import FilterGreaterThan from "@/components/criterion/FilterGreaterThan.vue";
-import { isEqual } from "@/utils/lodashUtils";
+import { isEqual, orderBy } from "@/utils/lodashUtils";
 import Colors from "@/utils/colors";
 import Formatters from "@/utils/formatters";
 import keyParams from "@/utils/keyParams";
 import sessionUtils from "@/utils/sessionUtils";
 import { pageMixin } from "@/mixins/pageMixin.js";
 
-new Vue({
+// @vue/component
+mountPage(Template, {
     store,
     components: {
         PhenotypeSelectPicker,
@@ -115,8 +116,12 @@ new Vue({
                 return this.$store.state.phenotypesInSession;
             }
         },
+        // in the order of the phenotype picker, for the header
         rawPhenotypes() {
-            return this.$store.state.bioPortal.phenotypes;
+            return orderBy(this.$store.state.bioPortal.phenotypes, [
+                "group",
+                "description",
+            ]);
         },
     },
 
@@ -193,8 +198,4 @@ new Vue({
             return row.beta * (row.alignment || 1);
         },
     },
-
-    render(createElement, context) {
-        return createElement(Template);
-    },
-}).$mount("#app");
+});

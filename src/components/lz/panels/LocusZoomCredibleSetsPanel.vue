@@ -1,12 +1,13 @@
 <script>
 
-import Vue from "vue";
+import { markRaw } from "vue";
 import LzPanel from "./LzPanel"
 import { LZBioIndexSource, BASE_PANEL_OPTIONS } from "@/utils/lzUtils"
 import idCounter from "@/utils/idCounter";
 import LocusZoom from "locuszoom";
 
-export default Vue.component('lz-credset-panel', {
+export default {
+    name: "lz-credset-panel",
     components: {
         LzPanel
     },
@@ -20,14 +21,15 @@ export default Vue.component('lz-credset-panel', {
             required: true,
         },
     },
+    emits: ["input", "resolve", "error"],
     created() {
-        this.panelClass = new LZCredibleVariantsPanel(
+        this.panelClass = markRaw(new LZCredibleVariantsPanel(
             this.phenotype, 
             this.credibleSetId,
             event => this.$emit('input', event),
             event => this.$emit('resolve', event),
             event => this.$emit('error', event)
-        )
+        ))
         // hack - needs to be replaced
         this.addPanels = this.$parent.addPanels;
         this.plot = this.$parent.plot;
@@ -47,7 +49,7 @@ export default Vue.component('lz-credset-panel', {
         }
     },
     
-});
+};
 
 export class LZCredibleVariantsPanel {
     constructor(phenotype, credibleSetId, onLoad, onResolve, onError, initialData) {

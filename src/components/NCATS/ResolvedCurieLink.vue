@@ -8,19 +8,20 @@
             </curie-label>
         </slot>
     </a>
-    <span v-else>
-        {{curie}}
-    </span>
+    <span v-else>{{
+        " " }}{{curie}}{{ " "
+    }}</span>
 </template>
 <script>
-import Vue from "vue";
 import trapi from "./trapi"
 import NormalizedCurieLabel from "./NormalizedCurieLabel"
 
-export default Vue.component('resolved-curie-link', {
+export default {
+    name: "resolved-curie-link",
     props: ["curie", "id", "prefix", "keepTitlePrefix"],
     components: {
-        NormalizedCurieLabel
+        NormalizedCurieLabel,
+        CurieLabel: NormalizedCurieLabel,
     },
     data() {
         return {
@@ -50,5 +51,5 @@ export default Vue.component('resolved-curie-link', {
             if (this.context) return trapi.identifiers.resolveCurie(this.fullCurie, this.context)
         }
     }
-})
+}
 </script>

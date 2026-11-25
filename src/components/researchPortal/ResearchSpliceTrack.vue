@@ -61,13 +61,11 @@
 </template>
 
 <script>
-import Vue from "vue";
 import $ from "jquery";
-import { BootstrapVueIcons } from "bootstrap-vue";
+import { cloneDeep } from "@/utils/lodashUtils";
 
-Vue.use(BootstrapVueIcons);
-
-export default Vue.component("research-splice-track", {
+export default {
+	name: "research-splice-track",
 	props: [
 		"plotConfig",
 		"plotType",
@@ -118,7 +116,7 @@ export default Vue.component("research-splice-track", {
 	created() {
 		console.log("Making the research splice track");
 	},
-	beforeDestroy() {
+	beforeUnmount() {
 		window.removeEventListener("resize", this.onResize);
 	},
 	computed: {
@@ -336,7 +334,7 @@ export default Vue.component("research-splice-track", {
 							: this.colors.charcoal;
 
 						ctx.fillRect(xStartPos, yPos + 10, xonWidth, 20);
-						let mappedExon = structuredClone(gene);
+						let mappedExon = cloneDeep(gene);
 						mappedExon.exonStart = xStartPos;
 						mappedExon.exonEnd = xStartPos + xonWidth;
 						mappedExon.exonTop = yPos + 10;
@@ -356,7 +354,7 @@ export default Vue.component("research-splice-track", {
 					let spliceMidpoint = xStart + (splice.midpoint - xMin) * xposbypixel;
 					let spliceStart = xStart + (splice.splice_start - xMin) * xposbypixel;
 					let spliceEnd = xStart + (splice.splice_end - xMin) * xposbypixel;
-					let mappedSplice = structuredClone(splice);
+					let mappedSplice = cloneDeep(splice);
 					mappedSplice.spliceStart = spliceStart;
 					mappedSplice.spliceEnd = spliceEnd;
 					mappedSplice.spliceMidpoint = spliceMidpoint;
@@ -411,7 +409,7 @@ export default Vue.component("research-splice-track", {
 		},
 		tileExons(exonsInput){
 			let allRows = [];
-			let exons = structuredClone(exonsInput);
+			let exons = cloneDeep(exonsInput);
 
 			// Initiate first row with first exon
 			allRows.push([exons.shift()]);
@@ -447,7 +445,7 @@ export default Vue.component("research-splice-track", {
 			return this.getSpliceMidpoints(splices.data);
 		},
 		getSpliceMidpoints(splices){
-			let output = structuredClone(splices);
+			let output = cloneDeep(splices);
 			for (let i = 0; i < output.length; i++){
 				output[i].midpoint = (output[i].splice_start + output[i].splice_end)/2;
 			}
@@ -467,7 +465,7 @@ export default Vue.component("research-splice-track", {
 			let strand = this.exonData[0].strand;
 			let start_splice_event = this.spliceStart(strand);
 			let end_splice_event = this.spliceEnd(strand);
-			let validExons = structuredClone(this.exonData);
+			let validExons = cloneDeep(this.exonData);
 			validExons = validExons.filter(e => 
 				!!this.validExon(strand, e, start_splice_event, end_splice_event));
 		},
@@ -642,7 +640,7 @@ export default Vue.component("research-splice-track", {
 			);
 		},
 	},
-});
+};
 
 $(function () {});
 </script>

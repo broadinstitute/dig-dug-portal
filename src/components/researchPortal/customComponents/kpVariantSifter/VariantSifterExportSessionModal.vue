@@ -85,6 +85,7 @@ export default {
             default: false,
         },
     },
+    emits: ["close", "export"],
     data() {
         return {
             localFilename: "",
@@ -118,7 +119,7 @@ export default {
     mounted() {
         document.addEventListener("keydown", this.onKeyDown);
     },
-    beforeDestroy() {
+    beforeUnmount() {
         document.removeEventListener("keydown", this.onKeyDown);
     },
     methods: {

@@ -12,7 +12,7 @@
                         <b-td
                             style="width:200px;color:gray;"
                             class="text-left"
-                        ><--Common Variation BF</b-td>
+                        >&lt;--Common Variation BF</b-td>
                     </b-tr>
                     <b-tr style="border: 3px solid white !important;">
                         <b-th style="width:150px" rowspan="1" class="text-right">X</b-th>
@@ -25,13 +25,13 @@
                                 style="white-space: nowrap;"
                                 v-if="this.exomeSignificant == false"
                             >
-                                <--Rare Variation BF
+                                &lt;--Rare Variation BF
                                 <a
                                     href="#"
                                     @click.prevent="$bvModal.show('exampleModal')"
                                 >(Reset Prior Allelic variance)</a>
                             </span>
-                            <span v-else><--Rare Variation BF</span>
+                            <span v-else>&lt;--Rare Variation BF</span>
                             <reset-prior-widget :beta="3" :rareBF="this.rareBF"></reset-prior-widget>
                         </b-td>
                     </b-tr>
@@ -63,27 +63,21 @@
 
 
 <script>
-import Vue from "vue";
-
-import { BootstrapVue, IconsPlugin } from "bootstrap-vue";
 import VueTypeaheadBootstrap from "vue-typeahead-bootstrap";
 import Autocomplete from "@/components/Autocomplete.vue";
 import ResetPriorWidget from "@/components/ResetPriorWidget.vue";
-import "bootstrap/dist/css/bootstrap.css";
-import "bootstrap-vue/dist/bootstrap-vue.css";
 import { match } from "@/utils/bioIndexUtils";
 import Formatters from "@/utils/formatters";
 import $ from "jquery";
 
 import uiUtils from "@/utils/uiUtils";
 
-Vue.use(BootstrapVue);
-Vue.use(IconsPlugin);
 
-Vue.component("vue-typeahead-bootstrap", VueTypeaheadBootstrap);
-Vue.component("autocomplete", Autocomplete);
-
-export default Vue.component("hugescore-table", {
+export default {
+    name: "hugescore-table",
+    components: {
+        ResetPriorWidget,
+    },
     props: {
         commonBF: {
             type: Number,
@@ -145,7 +139,7 @@ export default Vue.component("hugescore-table", {
         //     $(element).modal("show");
         // }
     }
-});
+};
 </script>
 
 <style>

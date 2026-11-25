@@ -54,8 +54,8 @@
                 </template>
                 <template #cell(description)="data">
                     <a :id="data.item.phenotype" style="cursor: help">
-                        {{ data.item.description }}
-                    </a>
+                        {{ data.item.description }}{{ " "
+                    }}</a>
                     <b-popover
                         :target="data.item.phenotype"
                         triggers="hover"
@@ -118,8 +118,8 @@
                             <b-spinner small></b-spinner>
                             <span class="sr-only">Loading...</span>
                         </span>
-                        <span v-else>
-                            {{ data.detailsShowing ? "Hide" : "Show" }}
+                        <span v-else>{{
+                            " " }}{{ data.detailsShowing ? "Hide" : "Show" }}
                             Variants
                         </span>
                     </b-button>
@@ -132,13 +132,13 @@
                             :class="`effect ${
                                 data.item.beta < 0 ? 'negative' : 'positive'
                             }`"
-                        >
-                            {{
+                        >{{
+                            " " }}{{
                                 effectFormatter(data.item.beta) < 0
                                     ? "&#9660;"
                                     : "&#9650;"
-                            }}
-                        </span>
+                            }}{{ " "
+                        }}</span>
                         <span>{{ effectFormatter(data.item.beta) }}</span>
                     </template>
                 </template>
@@ -152,16 +152,16 @@
                                     ? 'negative'
                                     : 'positive'
                             }`"
-                        >
-                            {{
+                        >{{
+                            " " }}{{
                                 effectFormatter(Math.exp(data.item.beta)) < 1
                                     ? "&#9660;"
                                     : "&#9650;"
-                            }}
-                        </span>
-                        <span>
-                            {{ effectFormatter(Math.exp(data.item.beta)) }}
-                        </span>
+                            }}{{ " "
+                        }}</span>
+                        <span>{{
+                            " " }}{{ effectFormatter(Math.exp(data.item.beta)) }}{{ " "
+                        }}</span>
                     </template>
                 </template>
                 <template #row-details="row">
@@ -213,8 +213,8 @@
                                         data.item.beta < 0
                                             ? "&#9660;"
                                             : "&#9650;"
-                                    }}
-                                </span>
+                                    }}{{ " "
+                                }}</span>
                                 <span
                                     v-if="
                                         !phenotypeMap[data.item.phenotype]
@@ -222,8 +222,8 @@
                                     "
                                     >{{ effectFormatter(data.item.beta) }}</span
                                 >
-                                <span v-else>
-                                    {{
+                                <span v-else>{{
+                                    " " }}{{
                                         effectFormatter(
                                             Math.exp(data.item.beta)
                                         )
@@ -271,7 +271,8 @@ import { query } from "@/utils/bioIndexUtils";
 import Formatters from "@/utils/formatters";
 import keyParams from "@/utils/keyParams";
 import DataDownload from "@/components/DataDownload";
-export default Vue.component("clumped-variants-table", {
+export default {
+    name: "clumped-variants-table",
     components: {
         DataDownload,
     },
@@ -429,7 +430,7 @@ export default Vue.component("clumped-variants-table", {
             window.location.href = "#associations-table";
         },
     },
-});
+};
 </script>
 <style>
 @import url("/css/table.css");

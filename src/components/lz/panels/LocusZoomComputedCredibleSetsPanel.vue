@@ -2,7 +2,6 @@
     <div></div>
 </template>
 <script>
-import Vue from "vue";
 import { isEqual, isEmpty } from "@/utils/lodashUtils";
 import idCounter from "@/utils/idCounter";
 import LocusZoom from "locuszoom";
@@ -18,7 +17,8 @@ import {
     closeAlert,
 } from "@/components/Alert";
 
-export default Vue.component("lz-computed-credset-panel", {
+export default {
+    name: "lz-computed-credset-panel",
     props: {
         phenotype: {
             type: String,
@@ -36,6 +36,7 @@ export default Vue.component("lz-computed-credset-panel", {
         onResolve: Function,
         onError: Function,
     },
+    emits: ["input"],
     data() {
         return {
             panelId: null,
@@ -79,7 +80,7 @@ export default Vue.component("lz-computed-credset-panel", {
             this.updatePanel();
         },
     },
-});
+};
 
 export class LZComputedCredibleVariantsPanel {
     constructor(phenotype, initialData) {

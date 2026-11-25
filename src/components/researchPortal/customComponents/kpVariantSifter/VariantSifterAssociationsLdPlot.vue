@@ -9,9 +9,9 @@
                 <header class="vks-assoc-ld-stack-head">
                     <h4 class="vks-assoc-ld-stack-title">
                         <template v-if="multiPhenotype && series.phenotypeLabel">
-                            <span class="vks-assoc-ld-stack-phenotype">
-                                {{ series.phenotypeLabel }}
-                            </span>
+                            <span class="vks-assoc-ld-stack-phenotype">{{
+                                " " }}{{ series.phenotypeLabel }}{{ " "
+                            }}</span>
                             <span class="vks-assoc-ld-stack-sep">·</span>
                         </template>
                         {{ ancestryTitle(series) }}
@@ -59,8 +59,8 @@
                             v-if="multiPhenotype && series.phenotypeLabel"
                             class="vks-assoc-ld-tab-phenotype"
                         >
-                            {{ series.phenotypeLabel }}
-                        </span>
+                            {{ series.phenotypeLabel }}{{ " "
+                        }}</span>
                         <span class="vks-assoc-ld-tab-code">{{ series.ancestry }}</span>
                         <span class="vks-assoc-ld-tab-label">{{ ancestryTitle(series) }}</span>
                         <span class="vks-assoc-ld-tab-count">{{ series.rows.length.toLocaleString() }}</span>
@@ -166,6 +166,7 @@ export default {
             default: null,
         },
     },
+    emits: ["toggle-star-variant", "set-reference-variant"],
     data() {
         return {
             activeSeriesKey: null,

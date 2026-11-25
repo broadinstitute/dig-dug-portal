@@ -6,7 +6,7 @@
                 :plotData="plotData"
                 :renderConfig="assocPlotConfig"
             ></research-m-plot>
-            <center style="margin-bottom: 30px">
+            <div style="text-align: center; margin-bottom: 30px">
                 <b v-show="!!showChiSquared">
                     Combined P-Value(Χ²) across
                     <a
@@ -16,7 +16,7 @@
                         >{{ phenotypeMap[p].description }}</a
                     >
                 </b>
-            </center>
+            </div>
         </div>
         <div v-if="tableData.length > 0">
             <div class="text-right mb-2">
@@ -93,22 +93,17 @@
 </template>
 
 <script>
-import Vue from "vue";
-import { BootstrapVue, IconsPlugin } from "bootstrap-vue";
 import Chi from "chi-squared";
 import Formatters from "@/utils/formatters";
 
-Vue.use(BootstrapVue);
-Vue.use(IconsPlugin);
-
-import "bootstrap/dist/css/bootstrap.css";
-import "bootstrap-vue/dist/bootstrap-vue.css";
-
 import DataDownload from "@/components/DataDownload";
+import ResearchMPlot from "@/components/researchPortal/ResearchMPlot.vue";
 
-export default Vue.component("GeneFinderTable", {
+export default {
+    name: "GeneFinderTable",
     components: {
         DataDownload,
+        ResearchMPlot,
     },
     props: [
         "associations",
@@ -308,7 +303,7 @@ export default Vue.component("GeneFinderTable", {
             return 2 * pdf;
         },
     },
-});
+};
 </script>
 
 <style>

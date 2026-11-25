@@ -13,15 +13,16 @@
                 :class="'feature-list ' + i"
                 :key="i"
             >
-                <b-row :class="'feature-name ' + i" v-html="i"></b-row>
-                <template v-for="(col, j) in row">
+                <div class="row" :class="'feature-name ' + i" v-html="i"></div>
+                <template v-for="(col, j) in row" :key="`c_${i}_${j}`">
                     <b-row
                         :class="'feature-headers ' + i"
                         v-if="j === 0"
                         :title="i"
                         :key="`h_${i}_${j}`"
                     >
-                        <b-col
+                        <div
+                            class="col"
                             :class="
                                 $parent.config[
                                     $parent.dataset
@@ -32,16 +33,15 @@
                             v-for="header in Object.keys(col)"
                             :key="header"
                             v-html="header"
-                        ></b-col>
+                        ></div>
                     </b-row>
 
                     <b-row
                         :class="'feature-content ' + i + getColContent(col)"
-                        :key="`c_${i}_${j}`"
                     >
-                        <template v-for="(item, name) in col">
-                            <b-col
-                                :key="name"
+                        <template v-for="(item, name) in col" :key="name">
+                            <div
+                                class="col"
                                 v-if="item == '' && item == null"
                                 :class="
                                     $parent.config[
@@ -59,9 +59,9 @@
                                 v-html="
                                     '<span class=\'col-content-filler\'>filler</span>'
                                 "
-                            ></b-col>
-                            <b-col
-                                :key="name"
+                            ></div>
+                            <div
+                                class="col"
                                 v-else
                                 :class="
                                     $parent.config[
@@ -87,7 +87,7 @@
                                         'feature'
                                     )
                                 "
-                            ></b-col>
+                            ></div>
                         </template>
                     </b-row>
                 </template>
@@ -97,9 +97,9 @@
 </template>
 
 <script>
-import Vue from "vue";
 import uiUtils from "@/utils/uiUtils";
-export default Vue.component("effector-genes-features", {
+export default {
+    name: "effector-genes-features",
     props: ["features", "featureIndex", "columnHeader"],
     data() {
         return {};
@@ -117,5 +117,5 @@ export default Vue.component("effector-genes-features", {
             return S.toString().replace(/[^a-zA-Z ]/g, "");
         },
     },
-});
+};
 </script>

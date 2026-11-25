@@ -35,7 +35,7 @@
 					</canvas>
 				</div>
 			</div>
-			<div class="heatmap-label" v-html=""></div>
+			<div class="heatmap-label"></div>
 		</div>
 		<pre></pre>
 		<b-pagination
@@ -49,16 +49,13 @@
 </template>
 
 <script>
-import Vue from "vue";
 import $ from "jquery";
 import uiUtils from "@/utils/uiUtils";
 import sortUtils from "@/utils/sortUtils";
-import { BootstrapVueIcons } from "bootstrap-vue";
 import Formatters from "@/utils/formatters.js";
 
-Vue.use(BootstrapVueIcons);
-
-export default Vue.component("gene-finder-heatmap", {
+export default {
+	name: "gene-finder-heatmap",
 	props: [
 		"rawData",
 		"heatmapData",
@@ -89,13 +86,13 @@ export default Vue.component("gene-finder-heatmap", {
 		this.renderScaleLegend();
 		window.addEventListener("resize", this.onResize);
 	},
-	beforeDestroy() {
+	beforeUnmount() {
 		window.removeEventListener("resize", this.onResize);
 	},
 	computed: {
 		renderData() {
 			let dataInOrder = sortUtils.sortArrOfObjects(
-				this.heatmapData,
+				[...this.heatmapData],
 				"chiSquared",
 				"number",
 				"asc"
@@ -763,7 +760,7 @@ export default Vue.component("gene-finder-heatmap", {
 			});
 		},
 	},
-});
+};
 
 $(function () {});
 </script>

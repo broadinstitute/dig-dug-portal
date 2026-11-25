@@ -226,10 +226,7 @@
 </template>
 
 <script>
-import Vue from "vue";
 //import uiUtils from "@/utils/uiUtils";
-
-import { BootstrapVueIcons } from "bootstrap-vue";
 
 import ResearchRegionPlot from "@/components/researchPortal/ResearchRegionPlot.vue";
 import ResearchGenesTrack from "@/components/researchPortal/ResearchGenesTrack.vue";
@@ -239,9 +236,8 @@ import ResearchAnnotationsPlotV2 from "@/components/researchPortal/ResearchAnnot
 import GiantCredibleSets from "@/components/researchPortal/GiantCredibleSets.vue";
 import ResearchGeneLinks from "@/components/researchPortal/ResearchGeneLinks.vue";
 
-Vue.use(BootstrapVueIcons);
-
-export default Vue.component("giant-gem-pkg", {
+export default {
+	name: "giant-gem-pkg",
 	props: [
 		"pkgConfig",
 		"dataComparisonConfig",
@@ -268,6 +264,9 @@ export default Vue.component("giant-gem-pkg", {
 		ResearchAnnotationsPlotV2,
 		GiantCredibleSets,
 		ResearchGeneLinks,
+		GiantCredibleSetsPlot: GiantCredibleSets,
+		ResearchBiosamplesPlot: ResearchBiosamplePlot,
+		ResearchGeneLinksPlot: ResearchGeneLinks,
 	},
 	mounted: function () {
 		if (this.pkgConfig != null) {
@@ -280,7 +279,7 @@ export default Vue.component("giant-gem-pkg", {
 			});
 		}
 	},
-	beforeDestroy() {},
+	beforeUnmount() {},
 	computed: {
 		pkgID() {
 			if (this.pkgConfig == null) {
@@ -307,7 +306,7 @@ export default Vue.component("giant-gem-pkg", {
 			this.utils.uiUtils.showHideSvg(SECTION_ID);
 		},
 	},
-});
+};
 </script>
 
 <style>

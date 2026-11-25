@@ -8,15 +8,12 @@
 </template>
 
 <script>
-import Vue from "vue";
 import $ from "jquery";
 import * as d3 from "d3";
 import { cloneDeep } from "@/utils/lodashUtils";
-import { BootstrapVueIcons } from "bootstrap-vue";
 
-Vue.use(BootstrapVueIcons);
-
-export default Vue.component("research-region-dots-vector", {
+export default {
+    name: "research-region-dots-vector",
     props: [
         "renderData",
         "colorGroups",
@@ -36,7 +33,7 @@ export default Vue.component("research-region-dots-vector", {
     mounted: function () {
         //this.renderPlot()
     },
-    beforeDestroy() {},
+    beforeUnmount() {},
     computed: {
         canvasId() {
             let canvasId = this.sectionId.replaceAll("_", "-").toLowerCase();
@@ -286,7 +283,7 @@ export default Vue.component("research-region-dots-vector", {
             });
         },
     },
-});
+};
 
 $(function () {});
 </script>

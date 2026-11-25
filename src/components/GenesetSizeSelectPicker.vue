@@ -7,16 +7,12 @@
 </template>
 
 <script>
-import Vue from "vue";
-import { BootstrapVue, IconsPlugin } from "bootstrap-vue";
 import keyParams from "@/utils/keyParams";
-import "bootstrap/dist/css/bootstrap.css";
-import "bootstrap-vue/dist/bootstrap-vue.css";
-Vue.use(BootstrapVue);
-Vue.use(IconsPlugin);
 
-export default Vue.component("geneset-size-selectpicker", {
+export default {
+    name: "geneset-size-selectpicker",
     props: [],
+    emits: ["onGenesetSizeChange"],
     data() {
         return {
             size: keyParams.genesetSize,
@@ -38,5 +34,5 @@ export default Vue.component("geneset-size-selectpicker", {
             }
         },
     },
-});
+};
 </script>

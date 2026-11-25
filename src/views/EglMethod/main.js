@@ -1,14 +1,7 @@
-import Vue from "vue";
-import BootstrapVue from "bootstrap-vue";
-import { BootstrapVueIcons } from "bootstrap-vue";
-
-Vue.use(BootstrapVueIcons);
+import { mountPage } from "@/utils/pageSetup";
 
 import Template from "./Template.vue";
 import store from "./store.js";
-
-Vue.use(BootstrapVue);
-Vue.config.productionTip = false;
 
 import Documentation from "@/components/Documentation.vue";
 import PageHeader from "@/components/PageHeader.vue";
@@ -25,7 +18,8 @@ import Alert, {
     closeAlert,
 } from "@/components/Alert";
 
-new Vue({
+// @vue/component
+mountPage(Template, {
     store,
     components: {
         PageHeader,
@@ -43,14 +37,10 @@ new Vue({
         //this.$store.dispatch("effectorGenes/getDatasets", keyParams.trait); //for now, data from kp4cd
     },
 
-    render(createElement, context) {
-        return createElement(Template);
-    },
-
     mounted() {
         window.addEventListener("scroll", this.onScroll);
     },
-    beforeDestroy() {
+    beforeUnmount() {
         window.removeEventListener("scroll", this.onScroll);
     },
 
@@ -181,4 +171,4 @@ new Vue({
             this.$store.dispatch("kp4cd/getFrontContents", group.name);
         },
     },
-}).$mount("#app");
+});

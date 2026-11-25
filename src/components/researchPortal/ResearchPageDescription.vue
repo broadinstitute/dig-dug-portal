@@ -3,9 +3,9 @@
 </template>
 
 <script>
-import Vue from "vue";
 
-export default Vue.component("research-page-description", {
+export default {
+	name: "research-page-description",
 	props: ["content","utils"],
 	components: {},
 
@@ -25,9 +25,9 @@ export default Vue.component("research-page-description", {
 		this.renderPlots();
 	},
 	computed: {
-		pageContent(content) {
+		pageContent() {
 			
-			if(!!content && content != "") {
+			if(!!this.content && this.content != "") {
 				let formattedContent = this.content
 					.replace(/&lt;plot&gt;/g, "<div class='plot'>")
 					.replace(/&lt;plot-end&gt;/g, "</div>");
@@ -323,7 +323,7 @@ export default Vue.component("research-page-description", {
 			this.renderPlots();
 		},
 	},
-});
+};
 </script>
 
 <style>

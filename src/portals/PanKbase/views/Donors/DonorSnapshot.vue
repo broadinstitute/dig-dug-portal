@@ -67,9 +67,8 @@
 
             <div class="snapshot-scroll">
                 <div class="snapshot-comparison" :style="comparisonGridStyle">
-                    <template v-for="row in comparisonRows">
+                    <template v-for="row in comparisonRows" :key="`${row.key}-special`">
                         <article
-                            :key="`${row.key}-special`"
                             class="snapshot-card snapshot-card-special"
                             :class="row.cardClass"
                         >
@@ -120,8 +119,8 @@
                                 >
                                     <div class="snapshot-micro-meta">
                                         <span class="snapshot-micro-label snapshot-micro-label-full" :title="plotRow.label">
-                                            {{ plotRow.label }}
-                                        </span>
+                                            {{ plotRow.label }}{{ " "
+                                        }}</span>
                                         <span class="snapshot-micro-value">{{ plotRow.value }} · {{ formatPercent(plotRow.percent) }}</span>
                                     </div>
                                     <div class="snapshot-micro-track">
@@ -163,9 +162,9 @@
                                     v-for="(part, partIndex) in splitFooterParts(card.rowsByCohort[row.key].footer)"
                                     :key="`${row.key}-${card.key}-footer-${partIndex}`"
                                     class="snapshot-card-footer-part"
-                                >
-                                    {{ part }}
-                                </span>
+                                >{{
+                                    " " }}{{ part }}{{ " "
+                                }}</span>
                             </div>
                         </article>
                     </template>
@@ -176,7 +175,6 @@
 </template>
 
 <script>
-import Vue from "vue";
 import { formatDataTypeLabel, normalizeDataTypeValue } from "./dataTypeUtils";
 import { parseNumericValue } from "./datasetUtils";
 
@@ -185,7 +183,8 @@ const ALL_DONOR_COLORS = ["#1a7b79", "#2f918e", "#47a8a1", "#68bcb0", "#8fd0c0"]
 const ASSAY_DONOR_COLORS = ["#12647a", "#1a7ca0", "#2598c5", "#53b1dc", "#8fd0ee"];
 const DATA_TYPE_COLORS = ["#0f766e", "#1d8f7d", "#34a98d", "#6ec2a9", "#9dd9c8"];
 
-export default Vue.component("DonorSnapshot", {
+export default {
+    name: "DonorSnapshot",
     props: {
         preparedDataset: {
             type: Object,
@@ -885,7 +884,7 @@ export default Vue.component("DonorSnapshot", {
             };
         },
     },
-});
+};
 
 function formatPercentValue(value) {
     if (!Number.isFinite(value)) {

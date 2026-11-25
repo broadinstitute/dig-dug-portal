@@ -50,9 +50,10 @@
   @import url("/css/table.css");
 </style>
 <script>
-  import Vue from "vue";
   import DataDownload from "@/components/DataDownload.vue";
-  export default Vue.component("MouseSummaryTable", {
+  import { cloneDeep } from "@/utils/lodashUtils";
+  export default {
+    name: "MouseSummaryTable",
     components: {
         DataDownload,
     },
@@ -114,7 +115,7 @@
         return this.items[0]?.[field] || '';
       },
       filteredData(){
-        let data = structuredClone(this.items);
+        let data = cloneDeep(this.items);
         if (!!this.filter){
           data = data.filter(this.filter);
         }
@@ -153,5 +154,5 @@
 
       }
     }
-  });
+  };
 </script>

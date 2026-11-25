@@ -231,7 +231,6 @@
 </template>
 
 <script>
-import Vue from "vue";
 import $ from "jquery";
 
 import ResearchMPlotBitmap from "@/components/researchPortal/ResearchMPlotBitmap.vue";
@@ -255,10 +254,12 @@ import ResearchSingleCellBrowser from "@/components/researchPortal/singleCellBro
 import ResearchSpliceTrack from "@/components/researchPortal/ResearchSpliceTrack.vue";
 import cfdePhenotypeXing from "@/components/researchPortal/customComponents/cfdePhenotypeXing.vue";
 
-export default Vue.component("research-section-visualizers", {
+export default {
+	name: "research-section-visualizers",
 	props: ["plotConfig","plotData","plotLegend","phenotypeMap","plotMargin","colors",
 		"sectionId","utils","dataComparisonConfig","searchParameters","regionZoom",
 		"regionViewArea","starItems","region","bigRegion","rowKeyField","linkedHoverKey"],
+	emits: ["hover-key-change", "on-star", "ld-data-loaded"],
 	components: {
 		ResearchAnnotationsPlot,
 		ResearchScatterPlot,
@@ -279,7 +280,13 @@ export default Vue.component("research-section-visualizers", {
 		ResearchRegionDotsTrack,
 		ResearchSingleCellBrowser,
 		ResearchSpliceTrack,
-		cfdePhenotypeXing
+		cfdePhenotypeXing,
+		MultiGenesTrack: ResearchGenesTrack,
+		MultiRegionPlot: ResearchRegionPlot,
+		ResearchCfdeXing: cfdePhenotypeXing,
+		ResearchMBitmapPlot: ResearchMPlotBitmap,
+		ResearchMQqPlot: ResearchMQQPlot,
+		ResearchPhewasPlot: ResearchPheWAS,
     },
 	data() {
 		return {
@@ -313,7 +320,7 @@ export default Vue.component("research-section-visualizers", {
 			this.$emit("ld-data-loaded", DATA);
 		}
 	},
-});
+};
 
 $(function () {});
 </script>

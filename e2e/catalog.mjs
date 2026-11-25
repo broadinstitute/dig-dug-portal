@@ -1,0 +1,153 @@
+// Every production page, in vue.config.js order, with what it takes to load it in e2e runs.
+//
+//   id        the page key in vue.config.js
+//   path      the built HTML file, from the server root
+//   query     URL parameters the page needs to render (values taken from links the site generates)
+//   landmark  CSS selector that is visible once the page body has rendered (default DEFAULT_LANDMARK).
+//             Never `#app`: mountPage (src/utils/pageSetup.js) takes that id off the element, so it
+//             is gone once the page has mounted, on 2.7 and on Vue 3.
+//   mask      selectors to mask in screenshots (A/B comparison)
+//   maxDiff   allowed screenshot difference (A/B comparison)
+//   skip      why the page cannot be checked yet
+//   needsLiveData  true when the landmark only renders with live BioIndex data (smoke skips it in the
+//             no-live-data mode, E2E_NO_LIVE_DATA=1)
+//
+// Some pages rewrite their own query string on load (keyParams.set: keys sorted by query-string,
+// defaults filled in). Their queries are written in that canonical form, so the URL a page ends
+// on is the URL it was opened with.
+//
+// e2e/catalog.test.mjs keeps this list in step with vue.config.js.
+
+/** The page body container that every Template.vue renders, except the pages that set `landmark`. */
+export const DEFAULT_LANDMARK = '.mdkp-body';
+
+// The portal front pages render the banner, not .mdkp-body, once the portal's disease group loads.
+const FRONT_PAGE_LANDMARK = '.front-top-banner';
+
+// A page that throws while rendering because its CMS content is missing is skipped with a reason
+// that starts with this prefix, followed by the CMS paths it needs. E2E_CMS_DISCOVERY=1 probes those
+// pages so a capture can unblock them (see e2e/README.md).
+const NEEDS_CMS_PREFIX = 'needs CMS fixtures: ';
+
+/** @type {Array<{ id: string, path: string, query?: Record<string, string>, landmark?: string, mask?: string[], maxDiff?: number, skip?: string, needsLiveData?: true }>} */
+export const PAGES = [
+  { id: 'index', path: '/index.html', landmark: FRONT_PAGE_LANDMARK },
+  { id: 'phenotype', path: '/phenotype.html', query: { phenotype: 'T2D' } },
+  // Once its associations load, the page writes the region's top phenotype into the URL (keys sorted),
+  // before or after `load` depending on timing; pinning that phenotype (CHOL here) keeps the URL fixed.
+  // Site links to region.html carry a phenotype too (GeneAssociationsTable, HugeScoresTable).
+  { id: 'region', path: '/region.html', query: { chr: '1', end: '55100000', phenotype: 'CHOL', start: '55000000' } },
+  // rs11591147 as its varId: the form the site's variant links use, and the one the page writes back
+  // into its URL once the variant loads (an rsID gets rewritten, before or after `load`).
+  { id: 'variant', path: '/variant.html', query: { variant: '1:55505647:G:T' } },
+  { id: 'gene', path: '/gene.html', query: { gene: 'PCSK9' } },
+  { id: 'datasets', path: '/datasets.html' },
+  { id: 'dinspector', path: '/dinspector.html' },
+  { id: 'downloads', path: '/downloads.html' },
+  { id: 'policies', path: '/policies.html' },
+  { id: 'about', path: '/about.html' },
+  { id: 'collaborate', path: '/collaborate.html' },
+  { id: 'resources', path: '/resources.html' },
+  { id: 'publications', path: '/publications.html' },
+  { id: 'news', path: '/news.html' },
+  { id: 'contacts', path: '/contacts.html' },
+  { id: 'kplab', path: '/kplab.html' },
+  { id: 'apis', path: '/apis.html' },
+  { id: 'epigeneticdatasets', path: '/epigeneticdatasets.html' },
+  { id: 'epigenomicdatasets', path: '/epigenomicdatasets.html' },
+  { id: 'ampt2dpartnership', path: '/ampt2dpartnership.html' },
+  { id: 'effectorgenes', path: '/effectorgenes.html' },
+  { id: 'eglmethod', path: '/method.html' },
+  { id: 'hugecalculator', path: '/hugecalculator.html' },
+  { id: 'genesifter', path: '/genesifter.html' },
+  { id: 'signalsifter', path: '/signalsifter.html' },
+  { id: 'complicationsviewer', path: '/complicationsviewer.html' },
+  { id: 'page404', path: '/404.html' },
+  { id: 'gait', path: '/gait.html' },
+  { id: 'gait2', path: '/ncgait.html' },
+  { id: 'project', path: '/project.html' },
+  { id: 'variantsearch', path: '/variantsearch.html' },
+  // pageid from LigerBrowser's documentation link.
+  { id: 'research', path: '/research.html', query: { pageid: 'kp_liger_documentation' } },
+  // The page shows a random session ID ("Session ID is 9c56e1c7.") on every load.
+  { id: 'egggenerator', path: '/egggenerator.html', mask: ['#session-id-area'] },
+  { id: 'help', path: '/help.html' },
+  // tissue from the c2ct-annotation links on phenotype.html?phenotype=T2D (C2ctTable).
+  {
+    id: 'tissue',
+    path: '/tissue.html',
+    query: { tissue: 'adipose_tissue' },
+    skip:
+      'loads a single-cell fields.json.gz from bioindex-dev.hugeamp.org that is ~160-220 MB decoded; ' +
+      'replaying a body that size through route.fulfill disconnects Chromium',
+  },
+  // With no phenotype the page writes its default trait group into the URL after it loads.
+  { id: 'pigeangraph', path: '/pigeangraph.html', query: { traitGroup: 'portal' } },
+  { id: 'pigean_index', path: '/pigean/index.html', landmark: FRONT_PAGE_LANDMARK },
+  // gene + suffix as PigeanTable links them; genesetSize and traitGroup are the defaults the page writes back.
+  { id: 'pigean_gene', path: '/pigean/gene.html', query: { gene: 'PCSK9', genesetSize: 'mouse_msigdb', traitGroup: 'all_but_hpo' } },
+  // geneset from the PigeanTable links on pigean/phenotype.html (default phenotype T2D).
+  {
+    id: 'pigean_geneset',
+    path: '/pigean/geneset.html',
+    query: { geneset: 'mp_impaired_glucose_tolerance', genesetSize: 'mouse_msigdb', traitGroup: 'all_but_hpo' },
+  },
+  { id: 'pigean_phenotype', path: '/pigean/phenotype.html' },
+  // The "Mechanism Graph" link on pigean/phenotype.html (default phenotype T2D), keys in the sorted
+  // order the page writes back.
+  // Its vis-network canvas lays the graph out with a physics simulation that lands a little
+  // differently on each load.
+  {
+    id: 'network_graph',
+    path: '/pigean/network_graph.html',
+    query: { genesetSize: 'mouse_msigdb', phenotype: 'T2D' },
+    mask: ['.network-container .vis-network'],
+  },
+  { id: 'factorization', path: '/factorization.html' },
+  { id: 'cvdi_pigean_index', path: '/cvdi_pigean/index.html', landmark: FRONT_PAGE_LANDMARK },
+  // gene from the cvdi_pigean/index.html search examples. CVDI data (cvdi.hugeampkpnbi.org) is not a
+  // live host, so the CVDI pages render without it.
+  { id: 'cvdi_pigean_gene', path: '/cvdi_pigean/gene.html', query: { gene: 'PLAU' } },
+  // CVDI's own gene set values come from cvdi.hugeampkpnbi.org; this one is from the PIGEAN gene set links.
+  { id: 'cvdi_pigean_geneset', path: '/cvdi_pigean/geneset.html', query: { geneset: 'mp_impaired_glucose_tolerance' } },
+  // phenotype from the cvdi_pigean/index.html phenotype search, which offers the KP phenotypes.
+  {
+    id: 'cvdi_pigean_phenotype',
+    path: '/cvdi_pigean/phenotype.html',
+    query: { phenotype: 'T2D' },
+    skip: 'needs cvdi.hugeampkpnbi.org (pigean/phenotypes/phenotypes_with_labels.tsv), which is not a live host',
+  },
+  { id: 'liger', path: '/liger.html' },
+  { id: 'pigean_method', path: '/pigean-method.html', landmark: '.pigean-method-page' },
+  { id: 'eaggl', path: '/EAGGL.html' },
+  // The GP2 browser workspace, rendered once the session's phenotypes load from BioIndex
+  // (api/portal/phenotypes); without them the page stays on "Loading phenotypes…".
+  { id: 'gp2browser', path: '/gp2browser.html', landmark: '.kp-variant-sifter-workspace', needsLiveData: true },
+  { id: 'pegasus', path: '/pegasus.html' },
+  { id: 'bottomline', path: '/bottom-line.html' },
+  { id: 'birds', path: '/birds.html' },
+  { id: 't2d_assays', path: '/t2d_assays.html' },
+];
+
+/** The page path plus its URL-encoded query, if any. */
+export function pageUrl(entry) {
+  const search = new URLSearchParams(entry.query ?? {}).toString();
+  return search ? `${entry.path}?${search}` : entry.path;
+}
+
+/**
+ * Whether the page is skipped only because the CMS fixtures have not been captured yet. A discovery
+ * run (E2E_CMS_DISCOVERY=1, see scripts/vue3-migration/capture-cms.mjs) probes these pages anyway,
+ * so the CMS URLs they request get logged.
+ */
+export function needsCmsFixtures(entry) {
+  return typeof entry.skip === 'string' && entry.skip.startsWith(NEEDS_CMS_PREFIX);
+}
+
+/**
+ * Whether the page's landmark only renders with live BioIndex data, so the smoke test cannot check
+ * it when E2E_NO_LIVE_DATA=1.
+ */
+export function needsLiveData(entry) {
+  return entry.needsLiveData === true;
+}

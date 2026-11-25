@@ -18,7 +18,7 @@
                             style="width:30px;background-color:#c4edc8"
                             class="text-center"
                         >{{combinedBF}}</b-td>
-                        <b-td style="width:20px;" class="text-left"><-- HuGE Score</b-td>
+                        <b-td style="width:20px;" class="text-left">&lt;-- HuGE Score</b-td>
                     </b-tr>
                 </b-tbody>
                 <!-- <hr style="padding:-20px;width:550px;text-align:right;margin-left:20px" /> -->
@@ -28,22 +28,14 @@
 </template>
         
 <script>
-import Vue from "vue";
-import { BootstrapVue, IconsPlugin } from "bootstrap-vue";
 import VueTypeaheadBootstrap from "vue-typeahead-bootstrap";
 import Autocomplete from "@/components/Autocomplete.vue";
-import "bootstrap/dist/css/bootstrap.css";
-import "bootstrap-vue/dist/bootstrap-vue.css";
 import { match } from "@/utils/bioIndexUtils";
 import Formatters from "@/utils/formatters";
 
-Vue.use(BootstrapVue);
-Vue.use(IconsPlugin);
 
-Vue.component("vue-typeahead-bootstrap", VueTypeaheadBootstrap);
-Vue.component("autocomplete", Autocomplete);
-
-export default Vue.component("genepage-combinedevidence-table", {
+export default {
+    name: "genepage-combinedevidence-table",
     props: {
         commonBF: {
             type: Number,
@@ -76,7 +68,7 @@ export default Vue.component("genepage-combinedevidence-table", {
         }
     },
     methods: {}
-});
+};
 </script>
 
 <style>

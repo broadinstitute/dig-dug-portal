@@ -49,6 +49,7 @@ export default {
         name: { type: String, required: true },
         title: { type: String, required: true },
     },
+    emits: ["section", "loaded"],
     data: () => ({
         rendered: { html: "", headings: [] },
         loading: false,
@@ -62,7 +63,7 @@ export default {
             },
         },
     },
-    beforeDestroy() {
+    beforeUnmount() {
         if (this.controller) this.controller.abort();
     },
     methods: {

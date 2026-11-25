@@ -8,15 +8,12 @@
 </template>
 
 <script>
-import Vue from "vue";
 import $ from "jquery";
 import * as d3 from "d3";
 import { cloneDeep } from "@/utils/lodashUtils";
-import { BootstrapVueIcons } from "bootstrap-vue";
 
-Vue.use(BootstrapVueIcons);
-
-export default Vue.component("research-genes-track-vector", {
+export default {
+    name: "research-genes-track-vector",
     props: [
         "genesData",
         "renderConfig",
@@ -35,7 +32,7 @@ export default Vue.component("research-genes-track-vector", {
     mounted: function () {
         //this.renderPlot()
     },
-    beforeDestroy() {},
+    beforeUnmount() {},
     computed: {},
     watch: {},
     methods: {
@@ -337,7 +334,7 @@ export default Vue.component("research-genes-track-vector", {
 */
         },
     },
-});
+};
 
 $(function () {});
 </script>

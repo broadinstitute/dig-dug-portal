@@ -8,15 +8,12 @@
 </template>
 
 <script>
-import Vue from "vue";
 import $ from "jquery";
 import * as d3 from "d3";
 import { cloneDeep } from "@/utils/lodashUtils";
-import { BootstrapVueIcons } from "bootstrap-vue";
 
-Vue.use(BootstrapVueIcons);
-
-export default Vue.component("research-region-plot-vector", {
+export default {
+    name: "research-region-plot-vector",
     props: [
         "assoData",
         "ldData",
@@ -37,7 +34,7 @@ export default Vue.component("research-region-plot-vector", {
     mounted: function () {
         //this.renderPlot('default')
     },
-    beforeDestroy() {},
+    beforeUnmount() {},
     computed: {},
     watch: {},
     methods: {
@@ -292,7 +289,7 @@ export default Vue.component("research-region-plot-vector", {
             });
         },
     },
-});
+};
 
 $(function () {});
 </script>

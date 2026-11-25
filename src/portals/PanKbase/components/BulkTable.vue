@@ -85,7 +85,6 @@
   </div>
 </template>
 <script>
-import Vue from "vue";
 import Formatters from "@/utils/formatters";
 import DataDownload from "@/components/DataDownload.vue";
 import keyParams from "@/utils/keyParams";
@@ -95,9 +94,11 @@ import alertUtils from "@/utils/alertUtils";
 import plotUtils from "@/utils/plotUtils";
 import sortUtils from "@/utils/sortUtils";
 import dataConvert from "@/utils/dataConvert";
+import { cloneDeep } from "@/utils/lodashUtils";
 
 const BIO_INDEX_HOST = "https://bioindex.pankbase.org";
-export default Vue.component("bulk-table", {
+export default {
+    name: "bulk-table",
     components: {
         DataDownload,
         BulkTable,
@@ -144,12 +145,10 @@ export default Vue.component("bulk-table", {
             return utils;
         },
         scatterConfig(){
-            if (this.contField === null){
-                this.contField = this.contFields[0];
-            }
+            let contField = this.contField === null ? this.contFields[0] : this.contField;
             let config = {
-                xField: this.contField.key,
-                xAxisLabel: this.contField.label,
+                xField: contField.key,
+                xAxisLabel: contField.label,
                 yField: "norm_counts",
                 yAxisLabel: "Gene expression (CPM)",
                 dotKey: "sample_id",
@@ -157,7 +156,7 @@ export default Vue.component("bulk-table", {
                 plotHeight: 350,
                 hoverFields: [
                     {key: "sample_id", label: "Sample"},
-                    {key: this.contField.key, label: this.contField.label},
+                    {key: contField.key, label: contField.label},
                     {key: "norm_counts", label: "Gene expression (CPM)"}
                 ],
             };
@@ -167,7 +166,7 @@ export default Vue.component("bulk-table", {
             return this.tableData.length || 0;
         },
         tableData() {
-            let data = structuredClone(this.bulkData);
+            let data = cloneDeep(this.bulkData);
             if (this.filter) {
                 data = data.filter(this.filter);
             }
@@ -193,8 +192,8 @@ export default Vue.component("bulk-table", {
             if (!this.subtableData[queryKey]) {
                 let data = await this.query(this.config.subtableEndpoint, queryKey);
                 let fields = this.getFields(data[0]);
-                Vue.set(this.subtableData, queryKey, this.toNumeric(data, fields));
-                Vue.set(this.subtableFields, queryKey, fields);
+                this.subtableData[queryKey] = this.toNumeric(data, fields);
+                this.subtableFields[queryKey] = fields;
             }
         },
         async showDetails(row) {
@@ -256,7 +255,7 @@ export default Vue.component("bulk-table", {
           let fieldsToConvert = fields.filter(field => field.isNumerical)
             .map(field => field.key);
           fieldsToConvert.push("norm_counts");
-          let outputData = structuredClone(geneData);
+          let outputData = cloneDeep(geneData);
           for (let i = 0; i < fieldsToConvert.length; i++){
             let field = fieldsToConvert[i];
             outputData = outputData.map(item => {
@@ -307,7 +306,7 @@ export default Vue.component("bulk-table", {
             this.findGene(this.highlightedGene);
         }
     }
-});
+};
 </script>
 <style scoped>
 @import url("/css/effectorGenes.css");
