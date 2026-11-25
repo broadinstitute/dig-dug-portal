@@ -623,7 +623,9 @@ not check for local changes, and step 2 commits its output alone.
 `vue3/pankbase-switch` is PanKbase on Vue 3.5, made from `vue3/pankbase`. PanKbase's build has neither `@vue/compat` nor
 BootstrapVue's code: it runs on Vue 3 as it is, with components of our own (`src/components/bv/`) in place of
 BootstrapVue's. It is temporary: it builds with Vue CLI 4, and Vite is a later stage. Do not merge it into `dev/vue3` or
-`master`, and do not open a PR from it. It takes `vue3/pankbase` by merge (below), never the other way round.
+`master`. Its pull request into `pankbase-main` (#1348) is a draft, to be merged at PanKbase's switch and not before. It
+takes `vue3/pankbase` by merge (below), never the other way round; how `pankbase-main` gets `master`'s changes after the
+switch is in "After the switch".
 
 The default `vue.config.js` keeps `@vue/compat` (MODE 2) for all components, and BootstrapVue on it, and only PanKbase's
 pages were compared with Vue 2. `configs/vue.config.CFDE.js` and `vue.configPapers.js` are not switched: they have no
@@ -806,6 +808,121 @@ From a clean tree. In a merge conflict `--ours` is this branch and `--theirs` is
      in development only: a `<b-modal>` without `hide-footer` has no footer, and `b-tab` and `b-form-radio` need their
      parent. A render that throws on a row with missing fields (below).
 
+### After the switch: taking `master`'s changes
+
+For when this branch is in `pankbase-main`, which is then Vue 3 while `master` is still Vue 2. `vue3/pankbase` has no
+part in it any more. What `master` gets goes `master` → `dev/vue3` → `pankbase-main`, each step on a branch of its own
+with a pull request that is merged with a merge commit. Never squash one: git then keeps the old merge base, and
+the next update shows the same conflicts again.
+
+**Do not merge `master` into `pankbase-main`.** Git can take it without a conflict, and the Vue 2 code is in. A key in
+the wrong place still stops the build. One `export default Vue.component(...)` does not: the build passes with a warning
+(`export 'default' (imported as 'Vue') was not found in 'vue'`) and every page that imports the file is blank. If it has
+happened, steps 4 to 6 of the second part find it.
+
+`git log --oneline origin/dev/vue3..origin/master` lists what there is to take; with no output there is nothing.
+
+#### `master` into `dev/vue3`
+
+Once for all portals. On a branch `dev/vue3-master-<date>` from `origin/dev/vue3`, with its own packages (Vue 2.7; `npm
+ci`), from a clean tree:
+
+1. `git merge origin/master`. In a conflict take this side (`git checkout --ours <file>`), then put `master`'s change
+   into it by hand: `git diff $(git merge-base origin/dev/vue3 origin/master) origin/master -- <file>` has it. Commit the
+   merge. If `package-lock.json` changed, `npm ci` again.
+2. Register by hand. The two registration codemods refuse to write now (`phase-2-present`, `phase 1 is not complete`),
+   but their dry runs are the worklist: `npm run codemod:register-components -- --dry-run` and `npm run
+   codemod:unwrap-vue-component -- --dry-run`.
+   - `export default Vue.component("x", { ... })` becomes `export default { name: "x", ... }`.
+   - A file that uses `<x>` imports it and has it under `components`. A page's `Template.vue` without a `<script>` gets
+     one. `import "@/components/X.vue"` in a `main.js`, for its side effect, goes.
+   - Two components can have one name (`download-chart`): take the one that the page's `main.js` imports.
+
+   Done when both dry runs exit 0, with nothing under Unresolved and no file to change.
+3. The other codemods write as before. Commit their output alone, then settle what each lists under Unresolved, Left and
+   Check by hand:
+
+   ```bash
+   npm run codemod:lint-fix -- --rule vue/no-deprecated-slot-attribute --rule vue/no-deprecated-slot-scope-attribute --rule vue/no-deprecated-data-object-declaration
+   npm run codemod:declare-emits
+   npm run codemod:page-setup
+   npm run codemod:explicit-spaces
+   ```
+4. Fix by hand what is left, by the rules of "Hand fixes" and "Vue 3 semantics". Done when `npm run
+   tool:semantics-scan` reads 0 everywhere, and `npm run lint:vue3 -- --base origin/dev/vue3` shows a rise only in the
+   three rules that wait for the switch. It exits 1 for that rise: read the table, not the exit code.
+5. `npm run test:scripts`. A new page fails two tests until it is in `e2e/catalog.mjs` and the number of pages in
+   `scripts/vue3-migration/check-dist.test.mjs` is raised.
+6. The development A/B (see compare-render) with `origin/master` as `<base ref>`, then the pull request into `dev/vue3`.
+
+#### `dev/vue3` into `pankbase-main`
+
+On a branch `vue3/pankbase-update-<date>` from `origin/pankbase-main`, with its own packages (Vue 3; `npm ci`), from a
+clean tree:
+
+1. `git merge-base HEAD origin/dev/vue3` gives M, the last `dev/vue3` that PanKbase has. Keep the output of
+   `git diff --stat M HEAD -- src ':!src/portals'` for step 7, then `git merge origin/dev/vue3`.
+2. A conflict, by what `git diff M HEAD -- <file>` shows. It is what PanKbase and the switch changed in the file:
+   - Only keys and names of lifecycle hooks: take the incoming file whole (`git checkout --theirs <file>`), step 4 writes
+     them again. Four key files have PanKbase's own changes as well, so they are not such files: `PheWASDatasets.vue`,
+     `PhenotypeSignalInGroup.vue`, and `ProgramDetails.vue` and `StateDetails.vue` of `LIGER/`.
+   - Anything else (27 shared files have both): by hand, keeping both sides.
+   - `package.json`, `package-lock.json`, the build configs and `pageSetup.js`: step 3 of "Merging `vue3/pankbase`
+     forward".
+
+   Commit the merge.
+3. `npm ci`, then `npm ls vue`: one Vue, 3.5.45.
+4. `npm run codemod:template-keys`, then the `eslint` command for the lifecycle hooks (both in step 5 of the section
+   above), each committed alone. Settle Left by hand. The dry run then reads Left 0 and `Key errors left on Vue 3` 0.
+5. `npm run tool:nocompat-scan -- --config configs/vue.config.PanKbase.js`, against the hits that step 7 of the section
+   above says are to stay. What is new is Vue 2 code in a file that PanKbase's pages reach:
+
+   | Hit | Write |
+   | --- | --- |
+   | `setDelete` | an assignment; `delete obj.key` |
+   | `eventBus` | `EventBus` of `src/utils/eventBus.js`; an event of a child is a listener in the template |
+   | `children` | a `ref` |
+   | `emitInput`, `vModelComponent` | the prop `modelValue` and the event `update:modelValue` |
+   | `vueImport`, `vuePrototype` | named imports; a module of its own for shared state |
+   | `native` | the listener without `.native` |
+   | `watchArrays` (a note) | `deep: true`, if the array gets its items in place |
+   | `bvTags`, `bvDirectives` | another tag, or the prop, event or icon added to `src/components/bv/` |
+
+   Not in the list, so read the new code for it: a `$bvModal` or `$bvToast` method that ours do not have
+   (`$bvModal.msgBoxOk` throws), a chart library that draws over an element whose content is Vue's (`bindto: this.$el`:
+   Vue throws at the next update), a render that throws on a row with missing fields, and the rest of the last point of
+   step 7 above. A file that PanKbase's pages do not reach needs none of this: nothing builds it here.
+6. Build (below), and the command for nested rules: 0. Then a development build, whose console shows every use that our
+   components do not support, on the pages that show what changed.
+7. `git diff --stat origin/dev/vue3 HEAD -- src ':!src/portals'` next to step 1's output: every file that PanKbase or the
+   switch changed is still listed with its numbers, apart from what step 4 and 5 changed. A fix that a merge has dropped
+   shows only here.
+8. Compare the pages with a build of `pankbase-main` from before the merge: all pages for text and errors, and by hand
+   what the update changes. Then the pull request into `pankbase-main`.
+
+#### PanKbase's own changes after the switch
+
+They are written for Vue 3. Before a pull request: steps 4 (the dry run), 5 and 6 of the part above, on the changed
+branch, and `npm run lint:vue3 -- --base origin/pankbase-main` without a rise. A page that begins to use a shared
+component nobody on PanKbase used before makes the scan list that component's Vue 2 code: the scan reads only what the
+pages reach (278 of 859 files when this was written), and the rest of `src` has not been converted.
+
+Nothing goes back from `pankbase-main`. A fix in shared code that the others need as well is made on `master` and comes
+back by the two steps above.
+
+#### What was tried
+
+On 2026-11-25, in a clone: a pretend `master` with a real commit (`LigerTable.vue`), a real new page (`mskkp-main`'s
+`SingleCellCompare`) and a new component full of Vue 2 code, used by the download button that most tables have. Both
+merges went without a conflict. Between them the scripts listed all of that code but `$bvModal.msgBoxOk` (the array
+watcher as a note only), and after the hand work they read as before the update, and step 7's list was the old one plus
+the new component. A conflict made on a key line was settled as step 2 says: the file came out as it was plus `master`'s
+change. The build passed. Of eight pages compared with the build before, five were the same and three differed by the
+new component, which threw on gene because its chart drew over the component's own root: only opening the page showed
+that. `master` merged straight into this branch also went without a conflict; the scan then had 24 new hits and two new
+notes, and with only a `Vue.component` left in the new component the build passed and phenotype was blank. Not
+tried: the development A/B of the first part, and a conflict in its merge.
+
 ### Scripts of this branch
 
 ```bash
@@ -885,11 +1002,13 @@ string, which the pages read; `npm run preview` has no such config.
 Production builds of this branch, without compat and BootstrapVue, and of `vue3/pankbase` (Vue 2.7, with `maFormatter`
 added to the phenotype page) were compared, from the same recorded answers, on every page of the config, in Chromium at
 desktop and phone size: the same text, screenshots (no pixel differs) and DOM, and no error on Vue 3 only. Single
-actions (sorts, page changes, selects, tabs, clicks, hovers: 722, of which 619 are the same and 53 differ in the number
-of listeners only) and by-hand flows (458 steps, 422 and 17) were done on both in lockstep, and the cause of every
-other difference is below. The two guards of `DiffExp/main.js` and `Phenotype/Template.vue` came after that and were
-checked on their two pages. Downloads (CSV, TSV, JSON, SVG, PNG) have the same names and text, and the real 110 MB
-single-cell dataset gives the same text. The accessibility trees of gene, phenotype, donors (table, dropdown, modals),
+actions (sorts, page changes, selects, tabs, clicks, hovers: 722, of which 653 are the same and 36 differ in the number
+of listeners only) and by-hand flows (744 steps, 694 and 26) were done on both in lockstep, and the cause of every
+other difference is below. With BioIndex failing, empty or not answering, all 42 pages have the same text. In Firefox 41
+of 42 pages are the same (phenotype depends on which of two answers comes first, on both versions). All of this was run
+on the final code (2026-11-25, 0b6952900 and the same source since). What follows here was run before the two guards of
+`DiffExp/main.js` and `Phenotype/Template.vue`. Downloads (CSV, TSV, JSON, SVG, PNG) have the same names and text, and
+the real 110 MB single-cell dataset gives the same text. The accessibility trees of gene, phenotype, donors (table, dropdown, modals),
 diff-exp, data-browser and NMF are the same, and so is a walk by keyboard through donors and gene. The comparison tools
 and the probes of the components (`src/components/bv` has no test in the repository) are not in the repository.
 
