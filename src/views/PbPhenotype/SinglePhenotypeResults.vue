@@ -102,13 +102,48 @@
                 <th><span class="pbs-heading-help"><button class="pbp-sort" @click="sortBy('genes', 'ci')">95% CI {{ indicator('genes', 'ci') }}</button><result-info label="95% confidence interval" :text="ciHelp" /></span></th>
                 <th><span class="pbs-heading-help"><button class="pbp-sort" @click="sortBy('genes', 'p')">p {{ indicator('genes', 'p') }}</button><result-info label="p-value" :text="pHelp" /></span></th>
                 <th><span class="pbs-heading-help"><button class="pbp-sort" @click="sortBy('genes', 'q')">q {{ indicator('genes', 'q') }}</button><result-info label="q-value" :text="qHelp" /></span></th>
-                <th><span class="pbs-heading-help"><button class="pbp-sort" @click="sortBy('genes', 'withPhenotype')">Gene carriers with phenotype {{ indicator('genes', 'withPhenotype') }}</button><result-info label="gene carrier counts" :text="carrierHelp" /></span><small>of {{ number(burdenCarriers.nCases) }}</small></th>
-                <th><span class="pbs-heading-help"><button class="pbp-sort" @click="sortBy('genes', 'allCarriers')">Gene carriers {{ indicator('genes', 'allCarriers') }}</button><result-info label="all gene carriers" :text="carrierHelp" /></span></th>
+                <th class="pbs-gene-carriers" scope="col">
+                    <span class="pbs-heading-help">
+                        <span>Gene carriers</span>
+                        <button type="button" class="pg2-help" aria-label="About gene carrier counts" v-result-tooltip.click="carrierHelp">
+                            <b-icon-info-circle aria-hidden="true" />
+                        </button>
+                    </span>
+                    <small class="pbs-carrier-order">
+                        <button type="button" class="pbp-sort" aria-label="Sort by gene carriers with this HPO" @click="sortBy('genes', 'withPhenotype')">With HPO {{ indicator('genes', 'withPhenotype') }}</button>
+                        <span aria-hidden="true"> / </span>
+                        <button type="button" class="pbp-sort" aria-label="Sort by total gene carriers" @click="sortBy('genes', 'allCarriers')">Total {{ indicator('genes', 'allCarriers') }}</button>
+                    </small>
+                </th>
                 <th><button class="pbp-sort" @click="sortBy('genes', 'disease')">Reference disease {{ indicator('genes', 'disease') }}</button></th>
+                <th class="pbs-gene-grade" scope="col" :aria-sort="sort.genes.key === 'supportGrade' ? (sort.genes.dir === 'asc' ? 'ascending' : 'descending') : null">
+                    <div class="pbs-gene-grade-tools">
+                        <button type="button" class="pbp-sort" @click="sortBy('genes', 'supportGrade')">Support grade {{ indicator('genes', 'supportGrade') }}</button>
+                        <div class="pbs-gene-grade-actions">
+                            <button type="button" class="pg2-help" aria-label="About support grades" v-result-tooltip.click="burdenSupportHelp">
+                                <b-icon-info-circle aria-hidden="true" />
+                            </button>
+                            <association-filter v-model="geneSupportSelection" label="Support grade" :options="geneSupportOptions" :option-label="geneSupportLabel" />
+                        </div>
+                    </div>
+                </th>
             </tr></thead><tbody>
-                <tr v-for="row in visibleGenes" :key="row.gene"><td><a :href="`/pb_gene2.html?query=${encodeURIComponent(row.gene)}`"><b>{{ row.gene }}</b></a></td><td>{{ coefficient(row.association.betaPer0_1Grs) }}</td><td>{{ interval(row.association) }}</td><td>{{ statistic(row.association.pValue) }}</td><td :class="{ 'pbs-q': row.association.qValue != null && row.association.qValue < 0.05 }">{{ statistic(row.association.qValue) }}</td><td>{{ carrierLabel(row.gene, true) }}</td><td>{{ carrierLabel(row.gene, false) }}</td><td><template v-if="row.diseases.length"><a v-for="disease in row.diseases" :key="disease.key" :href="diseaseUrl(disease)" target="_blank" rel="noopener noreferrer" class="pbs-reference"><span class="pbp-reference-badge" :class="disease.source">{{ sourceLabel(disease.source) }}</span> {{ disease.name }}</a></template><span v-else class="pbs-muted">None linked</span></td></tr>
-                <tr v-if="!geneLoading && !geneError && !filteredGenes.length"><td colspan="8">No precomputed associations match this significance filter.</td></tr>
-            </tbody></table></div><result-pagination :page="pages.genes" :total="filteredGenes.length" :size="5" label="genes" @change="pages.genes = $event"/><small v-if="analysisN" class="pbs-carrier-coverage">Analysis N: {{ analysisN }} · original single-gene burden-analysis cohort</small>
+                <tr v-for="row in visibleGenes" :key="row.gene">
+                    <td><a :href="`/pb_gene2.html?query=${encodeURIComponent(row.gene)}`"><b>{{ row.gene }}</b></a></td>
+                    <td>{{ coefficient(row.association.betaPer0_1Grs) }}</td>
+                    <td>{{ interval(row.association) }}</td>
+                    <td>{{ statistic(row.association.pValue) }}</td>
+                    <td :class="{ 'pbs-q': row.association.qValue != null && row.association.qValue < 0.05 }">{{ statistic(row.association.qValue) }}</td>
+                    <td class="pbs-gene-carriers">{{ carrierLabel(row.gene) }}</td>
+                    <td><template v-if="row.diseases.length"><a v-for="disease in row.diseases" :key="disease.key" :href="diseaseUrl(disease)" target="_blank" rel="noopener noreferrer" class="pbs-reference"><span class="pbp-reference-badge" :class="disease.source">{{ sourceLabel(disease.source) }}</span> {{ disease.name }}</a></template><span v-else class="pbs-muted">None linked</span></td>
+                    <td class="pbs-gene-grade">
+                        <span v-if="row.supportGrade" class="pbs-support-grade" :data-status="row.supportGrade">{{ row.supportGrade }}</span>
+                        <span v-else class="pbs-muted" title="Support grade unavailable">—</span>
+                    </td>
+                </tr>
+                <tr v-if="!geneLoading && !geneError && !filteredGenes.length"><td colspan="8">No precomputed associations match the selected filters.</td></tr>
+            </tbody></table></div><result-pagination :page="pages.genes" :total="filteredGenes.length" :size="5" label="genes" @change="pages.genes = $event"/>
+            <small v-if="analysisN" class="pbs-carrier-coverage">Analysis N: {{ analysisN }}<template v-if="burdenCarriers.nCases != null"> · {{ number(burdenCarriers.nCases) }} with this HPO</template> · original single-gene burden-analysis cohort</small>
         </section>
 
         <section v-else v-show="(!error || ready) && (!ready || total > 0)" class="pbp-card" aria-labelledby="pbs-profile-genes-title">
@@ -155,10 +190,12 @@ import RefineButton from './RefineButton.vue';
 import QueryMatchMarkers from './QueryMatchMarkers.vue';
 import ProjectPhenotypeTree from './ProjectPhenotypeTree.vue';
 import { burdenCarrierCounts } from './singleBurdenCarriers';
+import AssociationFilter from '../PbGene2/AssociationFilter.vue';
+import { associationSupport, associationSupportOptions, associationSupportRules } from '../PbGene2/associationRows';
 export default {
     name: 'SinglePhenotypeResults',
     directives: { resultTooltip },
-    components: { ResultInfo, DiseaseRankDetails, ProjectTableFilter, ResultPagination, RefineButton, ProjectPhenotypeTree, QueryMatchMarkers },
+    components: { ResultInfo, DiseaseRankDetails, ProjectTableFilter, ResultPagination, RefineButton, ProjectPhenotypeTree, QueryMatchMarkers, AssociationFilter },
     props: {
         profileIds: { type: Array, default: () => [] }, matchMode: String, minimum: Number, termStyle: Function, multiGeneResult: Object, multiGeneLoading: Boolean, multiGeneError: String,
         hpo: String, terms: Object, samples: Array, cohortCount: Number, counts: Object,
@@ -168,7 +205,7 @@ export default {
     data() { return ({
         pages: { combinations: 1, profileGenes: 1, projects: 1, terms: 1, samples: 1, genes: 1, diseases: 1, separators: 1 },
         sort: { diseases: { key: 'rank', dir: 'asc' }, separators: { key: 'gain', dir: 'desc' }, profileGenes: { key: 'p', dir: 'asc' }, terms: { key: 'count', dir: 'desc' }, projects: { key: 'total', dir: 'desc' }, samples: { key: this.profileIds.length > 1 ? 'z' : 'project', dir: this.profileIds.length > 1 ? 'desc' : 'asc' }, genes: { key: 'p', dir: 'asc' } },
-        expandedDisease: '', cohortPhenotypeView: 'tree', cohortCategoryFilter: null, sampleProjectFilter: null, samplePhenotypeFilter: null, expanded: '', pinned: { projects: [], samples: [] }, geneFilter: 'p',
+        expandedDisease: '', cohortPhenotypeView: 'table', cohortCategoryFilter: null, sampleProjectFilter: null, samplePhenotypeFilter: null, expanded: '', pinned: { projects: [], samples: [] }, geneFilter: 'p', geneSupportSelection: null,
     }); },
     computed: {
         activeIds() { return this.profileIds.length ? this.profileIds : [this.hpo]; },
@@ -184,9 +221,17 @@ export default {
         samplesHelp() { return 'Click a sample ID to open its detail page. Click a column heading to sort; use the Phenotype match and Project / Investigator checkboxes to narrow this table. Selected phenotypes are combined with OR, then intersected with selected projects. Both filters also apply to the export, but do not change the other cards. Pins remain visible across pages. Phenotype match is the number of included terms matched, not a probability.'; },
         burdenHelp() { return 'Existing single-gene burden results for this one HPO across genes. The default list contains delivered P < 0.05 results; use Show to select q < 0.05. Both positive and negative effects are retained. β is per 0.1 Sum GRS. q is adjusted across valid genes within this HPO before the delivery filter. Carrier means Sum GRS > 0 in that original analysis cohort. The analysis cohort can differ from the search cohort.'; },
         qHelp() { return 'The p-value adjusted for multiple testing by Benjamini–Hochberg across all valid gene tests for this HPO, before filtering the delivered results. Gene pages instead adjust across HPOs for one gene. The same gene–HPO pair can therefore have different q-values on the two pages.'; },
+        burdenSupportHelp() { return [
+            'Grades help prioritize results for review. They use q adjusted across valid gene tests for this HPO and the number of samples with this HPO in the original burden analysis.',
+            ...associationSupportRules,
+            'A dash marks missing analysis counts or q-values. Gene-page grades can differ because their q-values are adjusted across HPOs for one gene.',
+        ].join('\n\n'); },
         pHelp() { return 'The original single-gene burden test p-value, before multiple-testing adjustment. A smaller p-value is stronger statistical evidence under the model; it is not the probability that this gene causes a patient’s symptoms.'; },
         ciHelp() { return '95% confidence interval for the displayed beta per 0.1 GRS, on the same effect scale. Wider intervals indicate less precise effect estimates.'; },
-        carrierHelp() { return 'A carrier has Sum GRS > 0 for the gene in the original burden-analysis cohort. Gene carriers with phenotype counts carriers who also have this HPO; Gene carriers counts all carriers in that cohort, including those with the phenotype. These are not matching-group versus nonmatching-group counts.'; },
+        carrierHelp() { return [
+            'Each cell shows gene carriers with this HPO / all carriers of this gene in the original single-gene burden analysis. For example, 1 / 22 means 1 of 22 carriers had this HPO recorded.',
+            'A carrier is a sample with a summed genetic risk score (Sum GRS) greater than zero for the gene. A dash means the corresponding count is unavailable.',
+        ].join('\n\n'); },
         diseaseHelp() { return 'Curated disease–phenotype references from the selected source. Source counts refer to diseases, not CRDC samples. Frequency describes how often a phenotype is reported for that disease; missing frequency stays unavailable. The separating-phenotype table counts diseases and current matching samples separately. These references do not establish a diagnosis.'; },
         betaHelp() { return 'β per 0.1 GRS summarizes how the gene burden is associated with this phenotype. Positive β indicates higher scored burden is associated with the phenotype being recorded more often; negative β indicates less often. GRS is the gene-level genetic risk score. Sum GRS adds ALT allele dosage × pathogenicity score across variants in a gene: 1 for LoFTEE high-confidence loss of function, otherwise the available AlphaMissense score.'; },
         zHelp() { return 'rPheRS is a residual phenotype risk score: phenotype matches are weighted and adjusted for the total HPO count. Z expresses this score in standard deviations from the full scoring cohort mean for this search. A higher value indicates a stronger phenotype match, not a disease probability. Missing scores display —; table filtering does not change the reference.'; },
@@ -230,10 +275,29 @@ export default {
         sampleGroups() { return splitPinnedRows(this.sortedSamples, this.pinned.samples, row => row.id, this.pages.samples, 5); },
         pinnedSamples() { return this.sampleGroups.pinned; }, unpinnedSamples() { return this.sampleGroups.unpinned; }, currentSamples() { return this.sampleGroups.page; }, displaySamples() { return this.sampleGroups.display; },
         deliveredGenes() { return this.geneRows.filter(row => row.association?.pValue != null && row.association.pValue < 0.05); },
-        filteredGenes() { return this.geneFilter === 'q' ? this.deliveredGenes.filter(row => row.association.qValue != null && row.association.qValue < 0.05) : this.deliveredGenes; },
+        geneSupportOptions() { return [...associationSupportOptions, '—']; },
+        filteredGenes() {
+            const rows = this.geneFilter === 'q'
+                ? this.deliveredGenes.filter(row => row.association.qValue != null && row.association.qValue < 0.05)
+                : this.deliveredGenes;
+            // The HPO-keyed release projects q_by_hpo into qValue for this table.
+            return rows
+                .map(row => ({ ...row, supportGrade: associationSupport(row.association) }))
+                .filter(row => this.geneSupportSelection === null || this.geneSupportSelection.includes(row.supportGrade ?? '—'));
+        },
         analysisN() { return [...new Set(this.deliveredGenes.map(row => row.association.nSamples).filter(Boolean))].map(this.number).join('–'); },
         burdenCarriers() { return burdenCarrierCounts(this.hpo, this.deliveredGenes, this.geneRelease?.carrierCoverage?.sampleMembership); },
-        sortedGenes() { return sortTableRows(this.filteredGenes, this.sort.genes, { gene: row => row.gene, beta: row => row.association.betaPer0_1Grs, ci: row => row.association.betaCiLowPer0_1Grs, p: row => row.association.pValue, q: row => row.association.qValue, withPhenotype: row => this.carrierValue(row.gene, true), allCarriers: row => this.carrierValue(row.gene, false), disease: row => row.diseases.map(item => item.name).join('; ') }); },
+        sortedGenes() { return sortTableRows(this.filteredGenes, this.sort.genes, {
+            gene: row => row.gene,
+            beta: row => row.association.betaPer0_1Grs,
+            ci: row => row.association.betaCiLowPer0_1Grs,
+            p: row => row.association.pValue,
+            q: row => row.association.qValue,
+            supportGrade: row => row.supportGrade,
+            withPhenotype: row => this.carrierValue(row.gene, true),
+            allCarriers: row => this.carrierValue(row.gene, false),
+            disease: row => row.diseases.map(item => item.name).join('; '),
+        }); },
         visibleGenes() { return this.page('genes', this.sortedGenes, 5); },
         carrierByGene() { return new Map(this.geneRows.filter(row => row.association).map(row => [row.gene, row.association])); },
         sortedDiseases() { return sortTableRows(this.diseases, this.sort.diseases, { rank: row => row.rank, name: row => row.name, matched: row => this.multiple ? row.matchedIds.length : FREQUENCIES.find(item => item[0] === row.frequency)?.[2] ?? null, genes: row => row.genes.length ? row.genes.map(gene => gene[0]).sort().join(', ') : null }); },
@@ -241,7 +305,7 @@ export default {
         separators() { return separatingTerms(this.multiple ? this.diseases.slice(0,10) : this.diseases, this.activeIds, this.terms); },
         omitTerms() { const omit = new Set(); this.activeIds.forEach(id => { omit.add(id); ancestorsOf(id, this.terms).forEach(parent => omit.add(parent)); }); return omit; },
     },
-    watch: { queryKey() { this.samplePhenotypeFilter = null; this.expandedDisease = ''; }, samplePhenotypeFilter() { this.pages.samples = 1; }, sampleProjectFilter() { this.pages.samples = 1; }, samples() { this.pages.samples = 1; this.pages.projects = 1; this.pages.terms = 1; this.pages.combinations = 1; }, multiGeneResult() { this.pages.profileGenes = 1; }, geneFilter() { this.pages.genes = 1; }, source() { this.pages.diseases = 1; this.pages.separators = 1; this.expandedDisease = ''; } },
+    watch: { queryKey() { this.samplePhenotypeFilter = null; this.expandedDisease = ''; }, samplePhenotypeFilter() { this.pages.samples = 1; }, sampleProjectFilter() { this.pages.samples = 1; }, samples() { this.pages.samples = 1; this.pages.projects = 1; this.pages.terms = 1; this.pages.combinations = 1; }, multiGeneResult() { this.pages.profileGenes = 1; }, geneFilter() { this.pages.genes = 1; }, geneSupportSelection() { this.pages.genes = 1; }, source() { this.pages.diseases = 1; this.pages.separators = 1; this.expandedDisease = ''; } },
     methods: {
         separatorSampleCount(id) { return this.ready && this.counts && Object.prototype.hasOwnProperty.call(this.counts, id) ? this.termCounts[id] || 0 : null; },
         searchableHpo(id) { return Number.isInteger(this.counts?.[id]) && this.counts[id] >= 1; },
@@ -258,9 +322,12 @@ export default {
             const row = this.burdenCarriers.byGene.get(gene);
             return row ? row[withPhenotype ? 'withPhenotype' : 'all'] : null;
         },
-        carrierLabel(gene, withPhenotype) {
-            return this.number(this.carrierValue(gene, withPhenotype));
+        carrierLabel(gene) {
+            const withPhenotype = this.number(this.carrierValue(gene, true));
+            const total = this.number(this.carrierValue(gene, false));
+            return `${withPhenotype} / ${total}`;
         },
+        geneSupportLabel(grade) { return grade === '—' ? 'Unavailable (—)' : grade; },
         number(value) { return value == null ? '—' : Number(value).toLocaleString(); },
         name(id) { return this.terms[id]?.[0] || id; },
         age(value) { return value == null ? '—' : Number(value.toFixed(1)).toLocaleString(); },

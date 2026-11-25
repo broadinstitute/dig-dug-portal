@@ -126,6 +126,20 @@ let pages = {
         title: "PB Sample Search",
         chunks: ["chunk-vendors", "chunk-common", "pbSample"]
     },
+    pbGuide: {
+        entry: "src/views/PbGuide/main.js",
+        template: "public/index.html",
+        filename: "pb_guide.html",
+        title: "Guide · CRDC Cohort Explorer",
+        chunks: ["chunk-vendors", "chunk-common", "pbGuide"]
+    },
+    pbSources: {
+        entry: "src/views/PbSources/main.js",
+        template: "public/index.html",
+        filename: "pb_sources.html",
+        title: "Data Sources · CRDC Cohort Explorer",
+        chunks: ["chunk-vendors", "chunk-common", "pbSources"]
+    },
     datasets: {
         entry: "src/views/Datasets/main.js",
         template: "public/index.html",

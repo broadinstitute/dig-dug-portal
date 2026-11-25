@@ -1,3 +1,20 @@
+# Latest CRDC Guide and Data Sources · 2026-11-25
+
+final result: passed
+
+The selected Guide and Data Sources mockups were compared with local Chrome captures. Side-by-side evidence is available in `/private/tmp/crdc-guide-20261125/guide-comparison.jpg` and `sources-comparison.jpg`. Desktop captures were normalized to equal width for review. Mobile captures used a 390 × 844 viewport.
+
+- Typography. The CRDC monospace brand and headings, sans-serif documentation text, and active navigation underline match the approved hierarchy. Link copy stays legible alongside the expanded source version notes.
+- Layout. Guide has the persistent left contents list and the expanded PDF overview. At narrow widths the contents links wrap and the source table scrolls within its own region. The first table capture wrapped the Website links. The approved removal of that column leaves room for concise download labels and five clear columns.
+- Colors and assets. The header, warm page surface, teal selection, and muted table header follow the mockups. The Overview uses the existing PDF preview and links to the byte-identical original. The four walkthrough screenshots show real controls. The Sample image only shows profile tabs.
+- Content. Phenotype follows Overview directly. The separate Quick start block was removed at the user's request. Each walkthrough keeps its own example link. Data Sources includes twelve records and distinguishes file releases, publisher download pages, and dates from the source metadata.
+- Navigation. Local checks covered the CRDC entry URLs and aliases. Gene2 opened its Guide section in a separate tab and preserved the original query. Both legacy Gene addresses now redirect to Gene2 with their query and hash. The CRDC header, Guide anchors, original PDF delivery and narrow documentation layout passed.
+- Phenotype. Gastroschisis opened in Table and switched to Hierarchy and back. Biliary atresia showed eight columns and the merged carrier value `1 / 22`. The local browser verified the carrier help, grade selection, q-filter intersection and Clear filter. See the [current Phenotype contract](docs/pb_phenotype_live_profile_and_spec_2026-10-16.md#current-phenotype-results-ui--2026-11-25).
+
+No actionable visual issues remained in the reviewed states. The production frontend build passed.
+
+---
+
 # Latest: Sample shared comparison — 2026-11-15
 
 final result: passed

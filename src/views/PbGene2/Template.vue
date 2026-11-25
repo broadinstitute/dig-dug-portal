@@ -1,7 +1,7 @@
 <template>
     <div class="pb-guide-page">
-        <portal-guide />
-        <page-header :disease-group="$parent.diseaseGroup" :front-contents="$parent.frontContents" />
+        <portal-guide section="gene" />
+        <page-header :disease-group="$parent.diseaseGroup" :front-contents="$parent.frontContents" hide-portal-chrome />
         <main class="container-fluid mdkp-body pbg-page pg2-page" :class="{ 'pg2-info-reserved': infoRailReserved }">
             <div class="pbg-shell">
                 <div class="pbg-toolbar">
@@ -260,8 +260,8 @@
     </div>
 </template>
 <script>
-import SummaryPager from "../PbGene/SummaryPager";
 import PortalGuide from "@/components/pb/PortalGuide.vue";
+import SummaryPager from "../PbGene/SummaryPager";
 import { createPbGeneState, pbGeneComputed, pbGeneMethods } from "../PbGene/pageModel";
 import { hpoLabel, resolveHpoTerms } from "../PbGene/hpoContextSearch";
 import { requireCrdcHpos } from '../../utils/crdcHpoAvailability';

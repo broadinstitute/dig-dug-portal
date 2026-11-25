@@ -34,7 +34,7 @@ This is the implementation contract for test-server migration, not a deployment 
 
 ## 2026-11-15 UI follow-up — included in this delivery
 
-The shared Guide PDF popup and default 100% scale are implemented locally. Carry the component, public PDF/preview, page imports and styles from the [common Guide contract](pb_front_gene_variant_merge_handoff.md#shared-guide-popup). Use the delivery commit containing this document and its full repository dependencies; the earlier `ddf455104` alone does not include this follow-up. APIs, data releases and analysis contracts below are unchanged.
+The November 15 delivery introduced the PDF preview and default 100% scale. The current [sticky CRDC header](pb_front_gene_variant_merge_handoff.md#shared-guide-and-data-sources) opens `/pb_guide.html#sample` in a new tab.
 
 ## Test-server source first
 

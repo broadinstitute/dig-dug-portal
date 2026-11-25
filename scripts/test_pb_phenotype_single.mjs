@@ -72,7 +72,9 @@ const singleModel = await import(`data:text/javascript;base64,${Buffer.from(sour
 const resultSource = readFileSync('src/views/PbPhenotype/SinglePhenotypeResults.vue', 'utf8').split('<script>')[1].split('</script>')[0];
 const dependencies = {
     ...singleModel, ...await import(modelUrl), describeMatchingRule: matchingRule.describeMatchingRule,
-    ResultInfo: {}, DiseaseRankDetails: {}, ResultPagination: {}, resultTooltip: {}, ProjectTableFilter: {}, RefineButton: {}, QueryMatchMarkers: {}, ProjectPhenotypeTree: {}, CohortPhenotypeTree: {}, burdenCarrierCounts: () => ({}),
+    ...require('../src/views/PbGene2/associationRows.js'),
+    ResultInfo: {}, DiseaseRankDetails: {}, ResultPagination: {}, resultTooltip: {}, ProjectTableFilter: {}, RefineButton: {}, QueryMatchMarkers: {}, ProjectPhenotypeTree: {}, CohortPhenotypeTree: {}, AssociationFilter: {},
+    burdenCarrierCounts: require('../src/views/PbPhenotype/singleBurdenCarriers.js').burdenCarrierCounts,
 };
 const resultComponent = new Function(...Object.keys(dependencies), resultSource.replace(/^import .*;$/gm, '').replace('export default', 'return'))(...Object.values(dependencies));
 const vm = new Vue({ ...resultComponent, propsData: {
@@ -102,6 +104,56 @@ await Vue.nextTick();
 assert.equal(vm.samplePhenotypeFilter, null, 'Changing query terms clears obsolete phenotype selections');
 vm.$destroy();
 console.log('Result component filter pipeline, pin visibility, pagination and curated-gene sorting PASS');
+
+const burdenVm = new Vue({ ...resultComponent, propsData: {
+    hpo: 'child',
+    geneRows: [
+        { gene: 'MissingQ', association: { nCases: 11, pValue: 0.001, qValue: null, qByGene: 0.001 } },
+        { gene: 'D', association: { nCases: 11, pValue: 0.002, qValue: 0.10 } },
+        { gene: 'C', association: { nCases: 11, pValue: 0.003, qValue: 0.05 } },
+        { gene: 'B', association: { nCases: 11, pValue: 0.004, qValue: 0.04, qByGene: 0.12, nCarriersWithPhenotype: 1 } },
+        { gene: 'MissingCount', association: { pValue: 0.005, qValue: 0.01 } },
+    ],
+} });
+assert.deepEqual(burdenVm.sortedGenes.map(row => row.supportGrade), [null, 'D', 'C', 'B', null], 'Grade uses HPO-wise q and original analysis case count');
+burdenVm.sortBy('genes', 'supportGrade');
+assert.deepEqual(burdenVm.sortedGenes.map(row => row.gene), ['B', 'C', 'D', 'MissingQ', 'MissingCount']);
+burdenVm.sortBy('genes', 'supportGrade');
+assert.deepEqual(burdenVm.sortedGenes.map(row => row.gene), ['D', 'C', 'B', 'MissingQ', 'MissingCount']);
+burdenVm.geneFilter = 'q';
+assert.deepEqual(burdenVm.sortedGenes.map(row => row.gene), ['B', 'MissingCount'], 'The significance filter still uses HPO-wise q');
+await Vue.nextTick();
+burdenVm.pages.genes = 3;
+burdenVm.geneSupportSelection = ['B', 'D'];
+await Vue.nextTick();
+assert.equal(burdenVm.pages.genes, 1, 'Selecting support grades resets pagination');
+assert.deepEqual(burdenVm.sortedGenes.map(row => row.gene), ['B'], 'Grade and q filters intersect');
+burdenVm.geneFilter = 'p';
+assert.deepEqual(burdenVm.sortedGenes.map(row => row.gene), ['D', 'B'], 'Several grades can be selected together');
+burdenVm.geneSupportSelection = ['—'];
+assert.deepEqual(burdenVm.sortedGenes.map(row => row.gene), ['MissingQ', 'MissingCount']);
+burdenVm.geneSupportSelection = [];
+assert.equal(burdenVm.sortedGenes.length, 0);
+burdenVm.geneSupportSelection = null;
+assert.equal(burdenVm.sortedGenes.length, 5, 'Clearing the grade filter restores the current significance results');
+burdenVm.$destroy();
+
+const carrierVm = new Vue({ ...resultComponent, propsData: {
+    hpo: 'child',
+    geneRows: [
+        { gene: 'WithMembership', association: { nCases: 2, nSamples: 30, pValue: 0.001, nPositive: 22 } },
+        { gene: 'MissingMembership', association: { nCases: 2, nSamples: 30, pValue: 0.002, nPositive: 5 } },
+    ],
+    geneRelease: { carrierCoverage: { sampleMembership: {
+        schema: 'original-burden-memberships-v1', cohortId: 'sha256:fixture', hpoId: 'child', analysisN: 30, nCases: 2,
+        hpoSampleIds: [0, 29],
+        geneCarrierSampleIds: { WithMembership: Array.from({length: 22}, (_, id) => id) },
+    } } },
+} });
+assert.equal(carrierVm.carrierLabel('WithMembership'), '1 / 22');
+assert.equal(carrierVm.carrierLabel('MissingMembership'), '— / 5');
+carrierVm.$destroy();
+console.log('Single-gene burden filters, grade sorting, pagination and merged carrier counts PASS');
 
 const { selectedHierarchyBranches } = singleModel;
 const queryTree = [{ id: 'ear', children: [

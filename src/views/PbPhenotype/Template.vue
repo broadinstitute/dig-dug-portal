@@ -1,13 +1,14 @@
 <template>
     <div class="pb-guide-page">
-        <portal-guide />
+        <portal-guide section="phenotype" />
         <page-header
+            hide-portal-chrome
             :disease-group="$parent.diseaseGroup"
             :front-contents="$parent.frontContents"
         ></page-header>
         <main class="container-fluid mdkp-body pbp-page" :class="{ 'pbp-info-reserved': infoRailReserved }">
             <div class="pbp-shell">
-                <info-rail shell-selector=".pbp-shell" card-selector=".pbp-card" :right-inset="92" reserve-on-hover @reserve="infoRailReserved = $event" />
+                <info-rail shell-selector=".pbp-shell" card-selector=".pbp-card" reserve-on-hover @reserve="infoRailReserved = $event" />
                 <div class="pbp-toolbar">
                     <div class="pbp-toolbar-left">
                         <a href="/pb_front2.html" class="pbp-home-link"><b-icon-house-door-fill aria-hidden="true" /><span>Home</span></a>
@@ -974,9 +975,9 @@
     </div>
 </template>
 <script>
+import PortalGuide from "@/components/pb/PortalGuide.vue";
 import SummaryPager from "../PbGene/SummaryPager";
 import InfoRail from "../PbGene2/InfoRail.vue";
-import PortalGuide from "@/components/pb/PortalGuide.vue";
 import { ORPHANET_REFERENCE } from "./orphanetReference.generated";
 import additionalReferences from "./additionalDiseaseReferences.generated.json";
 import {

@@ -1,5 +1,26 @@
 # Phenotype — test-server implementation contract
 
+## Current Phenotype results UI — 2026-11-25
+
+The following behavior was verified in the local prototype on port 8098.
+
+- **Default view.** Who → Phenotypes starts in **Table** for a new result. Hierarchy remains available using the view switch. The Hierarchy view uses `ProjectPhenotypeTree.vue`.
+- **Single-gene burden layout.** Columns are Gene, β, 95% CI, p, q, Gene carriers, Reference disease and Support grade. Use the shared table wrapper for horizontal scrolling on narrow layouts. Reference disease occupies 14% of the table, with readable wrapping for linked names. Retain all qualifying links.
+- **Gene carriers.** Render `carriers with this HPO / total gene carriers`, for example `1 / 22`. Both counts refer to the original single-gene burden-analysis cohort. A carrier has Sum GRS > 0 for the gene. The numerator is the validated intersection of carrier and HPO membership. The denominator comes from the released `nPositive` for the same gene and analysis. Display a dash for either unavailable field and keep the other value visible. The `With HPO` and `Total` subheadings independently sort their counts. The footer reports analysis N and original `nCases` when available.
+- **Support grade.** Use the shared `associationSupport()` with the original analysis `nCases` and this table's `qValue` from `q_by_hpo`. The release computes q across all valid gene tests for that HPO before selecting P < 0.05 rows. `nCases` counts all cases of this HPO in the underlying analysis. Missing or invalid grade inputs display `—`.
+- **Filters and help.** Keep the existing P/q significance selector. The rightmost grade header remains sortable and its funnel opens the shared multi-select `AssociationFilter.vue`. A–D and Unavailable can be selected together, or cleared. Grade and significance filters intersect before sorting and pagination. Changing either filter returns to page one. The carrier and grade icons use `resultTooltip.js` to show help on hover, focus or click without resizing the result table.
+
+| Original analysis `nCases` | q < 0.05 | 0.05 ≤ q < 0.10 | q ≥ 0.10 |
+|---|---|---|---|
+| 20+ | A | B | D |
+| 10–19 | B | C | D |
+| 1–9 | C | C | D |
+| 0 | D | D | D |
+
+**Implementation.** Carry `SinglePhenotypeResults.vue`, `singlePhenotypeResults.css`, `resultTooltip.js`, `singleBurdenCarriers.js` and the shared Gene2 `associationRows.js` and `AssociationFilter.vue` with their imports. The existing HPO-keyed association and original-membership response shapes supply the required fields. These are frontend presentation and filtering changes.
+
+**Local checks.** Gastroschisis (`HP:0001543`) opened in Table and switched to Hierarchy and back. Biliary atresia (`HP:0005912`) showed eight columns, PSMC6 `1 / 22`, the explanatory tooltip, and grade filtering with the existing q filter. Clearing the grade filter recovered the q-filtered rows. `node scripts/test_pb_phenotype_single.mjs` covers grade boundaries, unavailable values, filter intersection, pagination reset and partial carrier counts. `node scripts/test_pb_phenotype_tooltip.mjs` passed. Verify the target server separately with its original burden release and membership coverage.
+
 ## Shared analysis API — 2026-11-18
 
 `profileGeneApi.js` accepts score and sample settings for Gene2. Phenotype defaults to Max / All and requests the full eligible gene family for BH correction. Use `ProjectPhenotypeTree.vue` for the accepted hierarchy. [Local setup and review](pb_precommit_handoff_20261118.md).
@@ -33,7 +54,7 @@ Four-page review: the latest accepted Phenotype behavior below was retained afte
 ### Final accepted layout and hierarchy
 
 - Card order: summary → **Who the matching samples are** → Projects → Matching samples → Genes → External diseases. Complete-group statistics come before project-level detail.
-- Who defaults to **Hierarchy** with a **Table** switch. In Hierarchy, Age / Sex / Affected occupy one horizontal row above a full-width phenotype tree. In Table, the desktop split is 40% demographics stacked at left / 60% phenotype table at right. Narrow screens stack the content.
+- Who offers **Table** and **Hierarchy**. The November 25 default is **Table**, with demographics stacked at left and the phenotype table at right in a 40:60 desktop split. In Hierarchy, Age / Sex / Affected occupy one horizontal row above a full-width phenotype tree. Narrow screens stack the content.
 - The final Hierarchy is a connected, collapsible HPO list, using the same `ProjectPhenotypeTree.vue` presentation as expanded projects. Each line contains the term, its HPO link and `distinct samples with the term / matching samples`. **No cell grid, percentage columns or Require/Exclude actions in Hierarchy.** The intermediate 40:60 tree with five numeric/action columns is superseded. `CohortPhenotypeTree.vue` is an intermediate working-tree artifact and is no longer imported by the results page; do not use it as the accepted UI.
 - HP:0000118 is initially open. Immediate categories are visible; other branches stay collapsed except paths needed to reveal the selected query phenotypes. Users expand deeper terms themselves. Counts include more-specific descendants and count each sample once per HPO, including in multiple-parent graphs. Only observed/nonzero branches and their connecting ancestors are constructed. A deterministic single-parent presentation shows each HPO once in the tree; the count still uses all ontology ancestors.
 - Query rows retain the query chip/marker color and a tinted full row. Query terms appear first in a separate Selected phenotypes overview, then in their original hierarchy position. Query-containing branches precede other siblings. The table also puts selected terms first, followed by five paginated other terms; it omits query ancestors from the other-term list. Selected overview rows are intentional repeat navigation/context, not extra samples.
@@ -71,7 +92,7 @@ Four-page review: the latest accepted Phenotype behavior below was retained afte
 
 ## 2026-11-15 UI follow-up — included in this delivery
 
-The shared Guide PDF popup and default 100% scale are implemented locally. Carry the component, public PDF/preview, page imports and styles from the [common Guide contract](pb_front_gene_variant_merge_handoff.md#shared-guide-popup). Use the delivery commit containing this document and its full repository dependencies; the earlier `ddf455104` alone does not include this follow-up. APIs, data releases and analysis contracts below are unchanged.
+The November 15 delivery introduced the PDF preview and default 100% scale. The [shared Guide and Data Sources contract](pb_front_gene_variant_merge_handoff.md#shared-guide-and-data-sources) describes the current site navigation and web Guide.
 
 ## 1. Engineer / implementation-AI starting point
 
@@ -122,7 +143,8 @@ Adapter types/units: flat BioIndex `gene-hpo` can return numeric/boolean strings
 | **Gene / Gene2 q** | **`q_by_gene`: fix one gene; BH over all its valid HPO tests, before P<0.05 delivery filtering.** |
 | **Phenotype q** | **`q_by_hpo`: fix one HPO; BH over all its valid gene tests, before P<0.05 delivery filtering.** |
 | Same gene–HPO pair | Beta, original p and analysis N agree across views; the two q values may legitimately differ. Never rename one q as the other or recompute q on delivered/visible rows. |
-| Single-HPO carrier columns | Original burden-analysis `gene_score_sum > 0` memberships and original HPO case set, aligned to the same 15,574 analysis rows. The case denominator can differ from the 16,366-cohort search matches. |
+| Single-HPO Gene carriers | One cell shows carriers with this HPO / all carriers of the gene, using original burden-analysis `gene_score_sum > 0` membership and the original HPO case set across the same 15,574 analysis rows. The case total can differ from the 16,366-cohort search matches. |
+| Single-HPO Support grade | Original `nCases` and `q_by_hpo`, using the [November 25 thresholds](#current-phenotype-results-ui--2026-11-25). |
 | Multi-HPO gene comparison | Separate approved Sum GRS membership snapshot aligned to the 16,366 search cohort; current covered samples=15,748. Percentages/ratio/Fisher use **covered** denominators, not all samples. |
 | External diseases | Curated reference evidence, not a CRDC association input, replication or diagnosis. Missing qualifying link=`No phenotype-matched link in loaded references`; see the November 16 source/filter explanation above. |
 
@@ -130,7 +152,7 @@ The live GJB2 `gene-hpo15` response has no `q_by_gene`. Its 15 p and `q_by_hpo` 
 
 Use `src/utils/singleHpoUnits.js` for the approved per-0.1-GRS display conversion. The Phenotype header is `β`; hover explains β per 0.1 Sum GRS and the GRS definition without log-odds text. Underlying binary-HPO model/effect units do not change because the label is shorter. Custom Gene rPheRS-SD beta is a different outcome/unit.
 
-Current single-HPO UI expects `carrierCoverage.sampleMembership` with schema `original-burden-memberships-v1`, `hpoId`, `cohortId`, `analysisN`, `nCases`, `hpoSampleIds`, `geneCarrierSampleIds`. IDs are opaque zero-based analysis-row positions, not CRDC patient IDs; keep them private. `singleBurdenCarriers.js` validates and intersects these sets. Missing/mismatched memberships yield — and must not suppress stored beta/p/q. Do not feed the multi-HPO snapshot or an all-variant carrier union into this contract.
+Current single-HPO UI expects `carrierCoverage.sampleMembership` with schema `original-burden-memberships-v1`, `hpoId`, `cohortId`, `analysisN`, `nCases`, `hpoSampleIds`, `geneCarrierSampleIds`. IDs are private, opaque zero-based analysis-row positions. `singleBurdenCarriers.js` validates and intersects these sets. With missing or mismatched membership, render the numerator as `—` and retain any valid released total, beta, p and q. Grade relies on released `nCases` and q. Use the original burden-analysis membership for this display.
 
 ## 5. UI acceptance contract
 
@@ -140,11 +162,11 @@ Current single-HPO UI expects `carrierCoverage.sampleMembership` with schema `or
 - Six positive-result cards: common summary → Who → Projects → Matching samples → Genes → External diseases. Summary includes four metrics **and** mutually exclusive colored combination cards for multi-HPO queries.
 - Project mean Z and individual Z remain. `Phenotype match` labels the multi matched-count column. Five unpinned rows/page; pins stay fixed; numeric pagination shows at most five numbers; expanded project phenotypes use the connected hierarchy rather than term pagination.
 - Sample Project/Investigator header offers a searchable multi-select filter and A→Z/Z→A sort; multi-HPO Phenotype match offers query-term checkboxes. It affects sample-table pins/CSV only, with X of N caption; Advanced Project remains the global search condition.
-- Who defaults to the full-width overview hierarchy below one Age/Sex/Affected row. Table retains +/− actions, puts query terms first, sorts other rows before pagination and omits query ancestors from those other rows. Percentages use the complete matching group. `Subtype of` is an ontology relationship, not a different denominator. Require adds an external AND rule; Exclude removes matching observations.
+- Who defaults to **Table**. It retains +/− actions, puts query terms first, sorts other rows before pagination and omits query ancestors from those other rows. Percentages use the complete matching group. `Subtype of` describes an ontology relationship. Require adds an external AND rule and Exclude removes matching observations. The Hierarchy switch shows the full-width tree below one Age/Sex/Affected row.
 - Zero intersection is valid even when each HPO individually exists: show a full-width gray bar, explicit no-match/rule explanation, no 0/0 age/affected figures; hide empty CRDC detail cards, retain external references. Unavailable HPO is a separate validation state before calculation.
 - Keep readable desktop fonts/grid lines at the existing 100% scale. Compact row-label tooltips retain zoom-aware above/below placement and Escape/navigation cleanup. Superscript information icons use the separate same-height margin rail described below. Sample/Gene/Variant links retain exact encoded query IDs.
 
-Visible info icons accompany the six result-card headings and the Z, beta, CI, p, q and carrier headers. `ResultInfo.vue` reuses Gene2/Variant `HelpTooltip.vue` and `InfoRail.vue`: the icon is superscript and hover/focus/click opens a margin panel aligned to its top. When the margin is too narrow, reserve a side rail and keep it open until Close, Escape or an outside click so layout reflow does not dismiss it. Reserve Guide space outside the rail. Keep info clicks separate from sorting. Single-HPO q is within HPO across genes; multi-HPO carrier comparison uses unadjusted Fisher p. Help text does not change the calculations.
+Visible info icons accompany the result-card headings and the statistical headers. `ResultInfo.vue` reuses Gene2/Variant `HelpTooltip.vue` and `InfoRail.vue` for margin help. In the single-HPO burden table, the Gene carriers and Support grade icons use the viewport-positioned `resultTooltip.js` help to keep the table width stable. The shared Guide link sits in the sticky header. Keep info clicks separate from sorting. Single-HPO q is within HPO across genes. The multi-HPO carrier comparison uses unadjusted Fisher p.
 
 ## 6. Source files and reference backend
 

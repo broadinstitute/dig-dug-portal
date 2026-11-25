@@ -56,9 +56,11 @@ export default {
         state.update = value => { state.text = String(value || ''); if (state.panel) { state.panel.firstChild.textContent = state.text; place(); } };
         state.destroy = () => {
             close(); el.removeEventListener('mouseenter', open); el.removeEventListener('mouseleave', leave); el.removeEventListener('focus', open); el.removeEventListener('blur', leave);
+            el.removeEventListener('click', open);
             window.removeEventListener('resize', place); window.removeEventListener('scroll', place, true); document.removeEventListener('pointerdown', outside, true); document.removeEventListener('keydown', keydown);
         };
         el.addEventListener('mouseenter', open); el.addEventListener('mouseleave', leave); el.addEventListener('focus', open); el.addEventListener('blur', leave);
+        if (binding.modifiers?.click) el.addEventListener('click', open);
         window.addEventListener('resize', place); window.addEventListener('scroll', place, true); document.addEventListener('pointerdown', outside, true); document.addEventListener('keydown', keydown);
         el._pbsTooltip = state;
     },

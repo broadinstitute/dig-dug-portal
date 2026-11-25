@@ -4,7 +4,7 @@
         <google-analytics></google-analytics>
         <alert></alert>
 
-        <div v-if="diseaseGroup" class="container-fluid">
+        <div v-if="diseaseGroup && !hidePortalChrome" class="container-fluid">
             <div class="row amp-banner-2021" v-if="diseaseGroup.default">
                 <a
                     href="https://www.nih.gov/research-training/accelerating-medicines-partnership-amp/common-metabolic-diseases"
@@ -120,7 +120,13 @@ import { userMixin } from "@/mixins/userMixin";
 Vue.use(VueCookies);
 
 export default Vue.component("page-header", {
-    props: ["diseaseGroup", "frontContents", "rawPhenotypes", "page"],
+    props: {
+        diseaseGroup: null,
+        frontContents: null,
+        rawPhenotypes: null,
+        page: null,
+        hidePortalChrome: Boolean,
+    },
     components: {
         GoogleAnalytics,
         MenuItem,

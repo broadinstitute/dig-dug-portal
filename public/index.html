@@ -1,6 +1,6 @@
 <!DOCTYPE html>
 <% const pbPrototypePage = /^(?:pb_|public_gene|krfront|krgene|krvariant|krphenotype|krsample)/i.test((htmlWebpackPlugin.options.filename || '').split('/').pop()); %>
-<% const pbFullSizePage = /^pb_(?:front2?|gene2|variant|phenotype|sample)\.html$/i.test((htmlWebpackPlugin.options.filename || '').split('/').pop()); %>
+<% const pbFullSizePage = /^pb_(?:front2?|gene2|variant|phenotype|sample|guide|sources)\.html$/i.test((htmlWebpackPlugin.options.filename || '').split('/').pop()); %>
 <html lang="en"<%= pbPrototypePage ? ' class="pb-prototype-scale"' : '' %>>
     <head>
         <meta charset="utf-8" />

@@ -4,14 +4,11 @@ Updated: 2026-11-14 (Gene/Gene2 ClinVar display and approved GT-source instructi
 Target branch: `kyuryung/bch-prototype`  
 Revision: use the delivered branch HEAD; production deployment is separate
 
-This is the starting document for an engineer or AI agent integrating the
-tested `pb_Gene` page into the production BCH portal.
-
-`pb_gene2.html` is the default Gene page and PB prototype gene-link destination.
-For that screen, start with the concise
-[Gene2 integration handoff](pb_gene2_engineering_handoff_20261112.md).
-The original `pb_Gene.html` notes below remain applicable to the legacy page;
-new hyperlinks/search results must target `pb_gene2.html?query=<encoded gene>`.
+**November 25 routing update.** The active CRDC Gene page is `/pb_gene2.html`.
+Both `/pb_Gene.html` and `/pb_gene.html` forward bookmarks to Gene2 with their
+query string and hash. Use the [Gene2 integration handoff](pb_gene2_engineering_handoff_20261112.md)
+for the current page and its shared `PbGene/` dependencies. The implementation
+notes below record the original Gene prototype.
 
 The November 14 Gene2 specification replaces that page's ClinVar header sort
 with a checkbox filter (all/none toggle, Apply/Cancel). The original

@@ -1,5 +1,13 @@
 # Gene2 — test-server implementation contract
 
+## Gene entry and web Guide — 2026-11-25
+
+- All CRDC Gene links target `/pb_gene2.html?query=<encoded gene>`. Both `/pb_gene.html` and `/pb_Gene.html` build the redirect-only `src/views/PbGene/main.js` entry. It replaces the path with `/pb_gene2.html` while retaining the search string and hash. A bare alias uses the Gene2 default query. Carry both aliases in `vue.config.js` and retain the `PbGene/` models, styles and helpers used by Gene2.
+- The sticky CRDC header links to `/pb_guide.html#gene` in a separate tab. The Guide documents **Test a phenotype profile**, rPheRS β per 0.1 gene GRS, the 95% CI and profile-specific q. Follow the [shared Guide and Data Sources contract](pb_front_gene_variant_merge_handoff.md#shared-guide-and-data-sources).
+- **Single-phenotype association grades** continue using `nCases` and `q_by_gene` on Gene2. [Phenotype grades](pb_phenotype_live_profile_and_spec_2026-10-16.md#current-phenotype-results-ui--2026-11-25) share the A–D thresholds and use `q_by_hpo` for their HPO-keyed view.
+
+Local Chrome on port 8098 verified the Home Gene link and both old addresses, including an old bookmark with an explicit query and hash.
+
 ## Current browser behavior — 2026-11-18
 
 - Use released `nCases` and `q_by_gene` for A–D and their filters. Load HPO λ from `hpo_lambda_gc.json` for the same release. λ is diagnostic context.
@@ -67,7 +75,7 @@ Validation in this session: HPO endpoint/display tests and Gene2 template/CSS co
 
 ## 2026-11-15 UI follow-up — included in this delivery
 
-The shared Guide PDF popup and default 100% scale are implemented locally. Carry the component, public PDF/preview, page imports and styles from the [common Guide contract](pb_front_gene_variant_merge_handoff.md#shared-guide-popup). Use the delivery commit containing this document and its full repository dependencies; the earlier `ddf455104` alone does not include this follow-up. APIs, data releases and analysis contracts below are unchanged.
+The November 15 delivery introduced the PDF preview and default 100% scale. Follow the [shared Guide and Data Sources contract](pb_front_gene_variant_merge_handoff.md#shared-guide-and-data-sources) for the current web Guide.
 
 ## 1. Connect to the existing test-server BioIndex
 

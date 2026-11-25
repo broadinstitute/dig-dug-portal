@@ -1,6 +1,6 @@
 <template>
     <div class="crdc-front pb-guide-front" @click="closeOverlays">
-        <portal-guide front />
+        <portal-guide current="home" />
         <main class="crdc-front-main">
             <h1>
                 <span class="headline-line"><span class="brand">CRDC</span> is a rare disease</span>

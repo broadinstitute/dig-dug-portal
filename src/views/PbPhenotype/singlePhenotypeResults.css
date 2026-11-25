@@ -151,15 +151,26 @@
 .pbs-band-explanation { flex: 1 1 280px; }
 .pbs-gene-band .pbs-rest { background: #718198; color: #fff; }
 .pbs-precomputed { color: #865500; background: #fff2d9; border-radius: 18px; padding: 4px 12px; font-size: 19px; }
-.pbs-genes th:first-child { width: 10%; }
-.pbs-genes th:nth-child(2) { width: 6%; }
-.pbs-genes th:nth-child(3) { width: 11%; }
-.pbs-genes th:nth-child(4), .pbs-genes th:nth-child(5) { width: 8%; }
-.pbs-genes th:nth-child(6) { width: 16%; }
-.pbs-genes th:nth-child(7) { width: 13%; }
-.pbs-genes th:last-child { width: 28%; }
-.pbs-results .pbs-genes td:nth-child(n+2):nth-child(-n+7) { text-align: right; font-variant-numeric: tabular-nums; }
-.pbs-results .pbs-genes td:nth-child(n+2):nth-child(-n+5) { white-space: nowrap; }
+.pbs-results .pbs-table.pbs-genes { min-width: 1050px; }
+.pbs-genes th:first-child { width: 12%; }
+.pbs-genes th:nth-child(2) { width: 10%; }
+.pbs-genes th:nth-child(3), .pbs-genes th:nth-child(7) { width: 14%; }
+.pbs-genes th:nth-child(4), .pbs-genes th:nth-child(5) { width: 11%; }
+.pbs-genes th.pbs-gene-carriers { width: 16%; }
+.pbs-genes th.pbs-gene-grade { width: 12%; }
+.pbs-results .pbs-genes td:nth-child(n+2):nth-child(-n+5) { text-align: right; font-variant-numeric: tabular-nums; white-space: nowrap; }
+.pbs-results .pbs-genes .pbs-gene-carriers { text-align: center; font-variant-numeric: tabular-nums; white-space: nowrap; }
+.pbs-results .pbs-genes .pbs-carrier-order { margin-top: 2px; font-size: 16px; }
+.pbs-results .pbs-genes .pbs-carrier-order button { color: inherit; white-space: nowrap; text-decoration: underline; text-underline-offset: 2px; }
+.pbs-results .pbs-genes .pbs-gene-grade { text-align: center; }
+.pbs-gene-grade-tools { display: grid; justify-items: center; gap: 4px; }
+.pbs-gene-grade-actions { display: flex; align-items: center; gap: 8px; }
+.pbp-page .pbs-gene-grade-actions .pg2-help { top: 0; margin: 0; }
+.pbs-support-grade { display: inline-flex; align-items: center; justify-content: center; min-width: 1.75em; min-height: 1.75em; border: 1px solid transparent; border-radius: 5px; font-size: 18px; font-weight: 700; }
+.pbs-support-grade[data-status="A"] { color: #17623a; background: #e6f5ec; border-color: #b6ddc5; }
+.pbs-support-grade[data-status="B"] { color: #1e558f; background: #eaf2fc; border-color: #bfd4ef; }
+.pbs-support-grade[data-status="C"] { color: #765305; background: #fff4d8; border-color: #e8cf8e; }
+.pbs-support-grade[data-status="D"] { color: #962d36; background: #fbeded; border-color: #ecc0c5; }
 .pbs-q { color: #00796c; }
 .pbs-reference { display: block; margin: 5px 0; }
 .pbs-results .pbs-reference .pbp-reference-badge { font-size: 16px; font-weight: 500; }
@@ -251,7 +262,7 @@
 .pbs-filter-description { margin: 0; font-size: 18px; color: #596d87; }
 .pbs-results button:focus-visible, .pbs-results summary:focus-visible, .pbs-results a:focus-visible, .pbs-project-filter-panel input:focus-visible { outline: 2px solid var(--blue); outline-offset: 3px; }
 .pbs-hover-tooltip { position: fixed; z-index: 1080; width: max-content; max-width: 480px; box-sizing: border-box; padding: 14px 16px; border: 1px solid #aebed5; border-radius: 7px; background: #fff; color: #24334a; box-shadow: 0 5px 18px #24334a26; font: 400 19px/1.5 Arial, Helvetica, sans-serif; text-align: left; overflow-wrap: break-word; }
-.pbs-hover-tooltip > span { display: block; overflow-y: auto; }
+.pbs-hover-tooltip > span { display: block; overflow-y: auto; white-space: pre-line; }
 .pbs-tooltip-arrow { position: absolute; left: var(--pbs-tooltip-arrow); width: 10px; height: 10px; background: #fff; transform: translateX(-50%) rotate(45deg); pointer-events: none; }
 .pbs-hover-tooltip[data-placement=top] .pbs-tooltip-arrow { bottom: -6px; border-right: 1px solid #aebed5; border-bottom: 1px solid #aebed5; }
 .pbs-hover-tooltip[data-placement=bottom] .pbs-tooltip-arrow { top: -6px; border-left: 1px solid #aebed5; border-top: 1px solid #aebed5; }
@@ -269,7 +280,6 @@
     .pbs-project-grid { grid-template-columns: minmax(0, 1fr); gap: 24px; }
     .pbs-results .pbs-projects, .pbs-results .pbs-samples { min-width: 1100px; }
     .pbs-results .pbs-profile-samples { min-width: 1300px; }
-    .pbs-results .pbs-genes { min-width: 1100px; }
     .pbs-metrics { grid-template-columns: repeat(2, minmax(0, 1fr)); }
 }
 
@@ -277,7 +287,7 @@
 .pbp-page .pbs-heading-help { display:inline-flex; align-items:baseline; max-width:100%; }
 .pbp-page .pbs-heading-help > .pbp-sort { min-width:0; }
 .pbp-page .pg2-help > svg { width:14px; height:14px; }
-.pbp-page.pbp-info-reserved { padding-right:432px; }
+.pbp-page.pbp-info-reserved { padding-right:340px; }
 .pbp-page .pg2-info-rail { position:absolute; z-index:50; box-sizing:border-box; padding:16px; border:1px solid #d8e1ec; border-radius:8px; background:#fff; color:#334155; box-shadow:0 5px 18px #18274014; font:400 18px/1.6 Arial,Helvetica,sans-serif; text-align:left; max-height:calc(100vh - 40px); overflow-y:auto; }
 .pbp-page .pg2-info-rail-heading { display:flex; justify-content:space-between; align-items:flex-start; gap:10px; margin-bottom:10px; }
 .pbp-page .pg2-info-rail-heading > strong { font-size:18px; line-height:1.45; font-weight:600; color:#17233b; }

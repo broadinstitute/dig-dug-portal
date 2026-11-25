@@ -1,6 +1,18 @@
 # PB Front, Gene2, Phenotype, Variant and Sample — integration starting point
 
-The [current browser changes and pre-commit review](pb_precommit_handoff_20261118.md) cover the delta after `ece680bde`, including personal e3 jobs and the HPO λ input.
+## Current browser UI — 2026-11-25
+
+The November 25 update follows `c48649298` on `kyuryung/bch-prototype`. The checks below use the local prototype. Use the [November 18 review](pb_precommit_handoff_20261118.md) for the earlier runtime, personal e3 jobs and HPO λ changes.
+
+| Area | Current implementation |
+|---|---|
+| Shared navigation | Sticky CRDC header with Home, Guide and Data Sources on every CRDC screen. Use the [shared web Guide and source catalog](#shared-guide-and-data-sources) contract. |
+| Gene | `/pb_gene2.html?query=<encoded symbol>` is the canonical entry. Both legacy Gene URLs replace the current URL with Gene2 while retaining the search string and hash. See [Gene2 routing](pb_gene2_engineering_handoff_20261112.md#gene-entry-and-web-guide--2026-11-25). |
+| Phenotype | Who → Phenotypes opens in **Table**. The single-HPO burden table has paired carrier counts and a final, filterable **Support grade** column. See the [current Phenotype layout and field mappings](pb_phenotype_live_profile_and_spec_2026-10-16.md#current-phenotype-results-ui--2026-11-25). |
+
+The Guide and Data Sources are frontend entry points. Phenotype continues using the original single-HPO release and its stored HPO-wise q values. Carry the Vue page and asset changes together with the existing server adapters when preparing the target integration.
+
+A local production frontend build completed with LocusZoom/tabix-reader and CSS-order warnings. Local browser evidence covers the web Guide, source catalog, legacy Gene redirects and the Phenotype changes described above. Use the linked contracts to verify the target server after integration.
 
 For local review, `npm run start:pb` installs dependencies, verifies private inputs and starts the browser with the user's own e3 job. [Local setup](pb_local_browser_setup.md).
 
@@ -97,7 +109,7 @@ Follow the new [Gene2 delta](pb_gene2_engineering_handoff_20261112.md#2026-11-16
 
 | Role | Current source / boundary |
 |---|---|
-| Default gene navigation | `/pb_gene2.html?query=…` |
+| Default gene navigation | `/pb_gene2.html?query=…`. `/pb_gene.html` and `/pb_Gene.html` redirect through `src/views/PbGene/main.js`. |
 | **Primary live API** | **Test-server BioIndex** `http://100.80.30.199:5000/api/bio/query/<index>?q=…`; preserve authentication, query keys and all continuations |
 | Gene2/Variant carrier universe | BioIndex `gene-variants-crdc`, with all continuations; **not historical `gene-samples`** |
 | Gene2/Variant/Sample Project, PI | Same private BioIndex `samples-info`: `clean_name`, `investigator` |
@@ -134,17 +146,16 @@ This delivery includes the shared Guide/PDF preview, default 100% scale, Phenoty
 
 No API, BioIndex index/build, private data release, model, q family or carrier definition changed in this UI update. Keep the test-server BioIndex contract above. The subsequently selected Sample two-table shared-evidence mockup is now implemented locally inside the existing expansion; see the Sample contract. It replaces the rejected nested-expansion proposal, retains the same backend APIs, and is included in this delivery.
 
-## Shared Guide popup
+<a id="shared-guide-popup"></a>
 
-Front (`pb_front.html`, its uppercase alias and `pb_front2.html`) shows a Guide thumbnail at the upper right. Gene2, Phenotype, Variant and Sample show a compact Guide button in a reserved right gutter. All use `src/components/pb/PortalGuide.vue` and the same static `/guides/quick_guide_en.pdf`; ship `public/guides/quick_guide_en.pdf` and `quick_guide_en_preview.png` with the frontend. The preview is rendered from that exact PDF. No private data API is needed to open it.
+## Shared Guide and Data Sources
 
-The five current pages (including Front aliases) now start at 100% CSS scale. The Guide gutter stays reserved; browser zoom remains under the user’s control. Legacy prototype entries retain their previous scale.
-
-The component uses a native modal dialog with an embedded PDF, an Open PDF fallback, close button, Escape/backdrop dismissal and focus restoration. It compensates for the existing prototype zoom; retain the reserved gutter so the trigger does not cover result tables. To update the guide, replace the public PDF and regenerate its preview together. The `output/pdf/` authoring directory is not a runtime dependency. The selected source is `output/pdf/crdc-first-visit/quick_guide_en.pdf` (not the similarly named `crdc_quick_guide_en.pdf`); the served copy must match it byte for byte. The deployed URL is `/guides/quick_guide_en.pdf`, never a local filesystem path. Serve it as `application/pdf` and permit the same-origin PDF frame under the deployment CSP.
-
-Required shared files are `PortalGuide.vue`, both `public/guides/` assets, `public/index.html`, the six Front/Front2/Gene2/Phenotype/Variant/Sample `Template.vue` imports, and the associated page styles. Phenotype additionally requires `ResultInfo.vue`, the shared Gene2 `HelpTooltip.vue` / `InfoRail.vue` / `infoRailPosition.js`, and its result styles. Keep the InfoRail prop defaults for existing Gene2 consumers; Phenotype selects its own shell/card and reserves 92px for the outer Guide strip.
-
-Validation: the local desktop Guide was checked on all six entries for PDF URL, modal opening/closing, Escape/backdrop, focus restoration and gutter separation. Phenotype superscript/margin alignment passed at 1440px and 1980px. The margin-layout checks held API requests pending to isolate UI geometry; they are not a fresh data or backend acceptance test. Scale, Gene2 information-rail, Sample information-position and single-HPO tests passed. Production build passed with the existing locuszoom/tabix-reader warning. Repeat deployed static-asset/CSP/modal checks on the target server after integration.
+- **Navigation.** `src/components/pb/PortalGuide.vue` now renders the sticky CRDC header for Front, Front2, legacy Front, Gene2, Phenotype, Variant, Sample and both documentation pages. Home targets `/pb_front2.html`. Guide opens in a new tab on browser pages and links directly to `#gene`, `#phenotype`, `#variant` or `#sample` from results. The originating tab keeps its search state. Data Sources opens in the current tab.
+- **Page chrome.** The CRDC layouts that mount `src/components/PageHeader.vue` pass `hide-portal-chrome` to omit the AMP banner and CMDKP navigation. The shared header still initializes alerts, analytics and session state. Other portal layouts keep their existing header. The CRDC navigation occupies the top of the screen and result panels use the space formerly reserved for the Guide gutter.
+- **Guide.** `/pb_guide.html` begins with the one-page PDF Overview. It displays the supplied preview and offers the original PDF for opening or download. The contents list goes directly from Overview to Phenotype, Gene, Variant and Sample. Each walkthrough includes a control capture and an example link. Gene and Variant explain custom HPO input and rPheRS results. Gene β is per 0.1 gene GRS, while Variant β compares selected carriers with eligible noncarriers. The Sample example uses the existing illustrative fixture.
+- **Data Sources.** `/pb_sources.html` lists 12 external references. The columns are Resource, Used for, Version or date, Download and License. Use a release-specific file when verified. Otherwise use the publisher's download or access page with a label that identifies it as such. Preserve unrecorded versions as unavailable and distinguish releases, snapshots and retrieval dates. Gene/Variant provenance help links to anchored source rows.
+- **Build inputs.** Include the `pbGuide` and `pbSources` entries in `vue.config.js`, `public/index.html`, `src/views/PbGuide/`, `src/views/PbSources/`, `PortalGuide.vue`, `PageHeader.vue`, the consuming templates and `src/views/PbGene2/referenceProvenance.js`. `PbSources/catalog.js` is the display catalog. Ship the original `public/guides/quick_guide_en.pdf`, its preview and all four `guide-*-controls.png` images. Serve the original PDF as `application/pdf`. Update the preview when replacing that PDF.
+- **Acceptance.** Local Chrome verified the documentation entry points, PDF asset, mobile table containment, section anchors and Guide opening in a separate tab with the original Gene query retained. Both legacy Gene addresses also reached Gene2 on port 8098. Repeat these checks after installing the target frontend, including all Guide links, any source deep links, and the PDF download. This contract applies to the internal CRDC prototype. The public synthetic demo has its own documentation assets and release history.
 
 ## Local development lifecycle — 2026-11-16
 

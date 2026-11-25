@@ -36,12 +36,15 @@ function sortAssociationRows(rows, key, direction) {
 }
 
 const associationSupportOptions = ['A', 'B', 'C', 'D'];
-const associationSupportHelp = [
-    'Grades summarize support for review using the number of samples with this phenotype and the gene-adjusted q-value.',
+const associationSupportRules = [
     'A · q < 0.05 and 20+ samples.',
     'B · q < 0.05 and 10–19 samples, or 0.05 ≤ q < 0.10 and 20+ samples.',
     'C · q < 0.05 and 1–9 samples, or 0.05 ≤ q < 0.10 and 1–19 samples.',
     'D · q ≥ 0.10 or zero samples.',
+];
+const associationSupportHelp = [
+    'Grades summarize support for review using the number of samples with this phenotype and the gene-adjusted q-value.',
+    ...associationSupportRules,
     'A dash means the count or q-value is missing. P and HPO λ are available as separate context.',
 ].join('\n\n');
 
@@ -72,4 +75,4 @@ function associationSupport(row) {
 }
 
 module.exports = { associationKey, filterAssociations, togglePinnedAssociation, sortAssociationRows,
-    associationCaseCount, associationCaseBand, associationSupport, associationSupportHelp, associationSupportOptions };
+    associationCaseCount, associationCaseBand, associationSupport, associationSupportRules, associationSupportHelp, associationSupportOptions };

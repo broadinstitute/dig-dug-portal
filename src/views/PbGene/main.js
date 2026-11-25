@@ -1,17 +1,3 @@
-import Vue from "vue";
-import Template from "./Template.vue";
-import store from "./store.js";
-import { pageMixin } from "@/mixins/pageMixin";
-
-Vue.config.productionTip = false;
-
-new Vue({
-    store,
-    mixins: [pageMixin],
-    created() {
-        this.$store.dispatch("bioPortal/getDiseaseGroups");
-    },
-    render(createElement) {
-        return createElement(Template);
-    },
-}).$mount("#app");
+const destination = new URL(window.location.href);
+destination.pathname = "/pb_gene2.html";
+window.location.replace(destination.toString());

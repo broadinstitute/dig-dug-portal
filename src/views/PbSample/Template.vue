@@ -1,7 +1,8 @@
 <template>
     <div class="pb-guide-page">
-        <portal-guide />
+        <portal-guide section="sample" />
         <page-header
+            hide-portal-chrome
             :disease-group="$parent.diseaseGroup"
             :front-contents="$parent.frontContents"
         ></page-header>
@@ -293,8 +294,8 @@
 </template>
 
 <script>
-import SummaryPager from "../PbGene/SummaryPager";
 import PortalGuide from "@/components/pb/PortalGuide.vue";
+import SummaryPager from "../PbGene/SummaryPager";
 import SampleHpoTree from "./SampleHpoTree";
 import SampleVariants from "./SampleVariants";
 import SamplePagination from "./SamplePagination";

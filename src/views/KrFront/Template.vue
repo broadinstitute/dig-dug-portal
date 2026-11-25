@@ -1,6 +1,8 @@
 <template>
     <div>
+        <portal-guide current="home" />
         <page-header
+            hide-portal-chrome
             :disease-group="$parent.diseaseGroup"
             :front-contents="$parent.frontContents"
             page="front"
@@ -358,6 +360,7 @@
 </template>
 
 <script>
+import PortalGuide from "@/components/pb/PortalGuide.vue";
 import ClinicalFocusBar from "../KrClinicalFocus/ClinicalFocusBar.vue";
 import { onClinicalFocusChange, readClinicalFocus } from "../KrClinicalFocus/focusStore";
 import { createFrontPageState, frontComputed, frontMethods } from "./pageModel";
@@ -365,6 +368,7 @@ import { createFrontPageState, frontComputed, frontMethods } from "./pageModel";
 export default {
     name: "KrFrontTemplate",
     components: {
+        PortalGuide,
         ClinicalFocusBar,
     },
     data() {

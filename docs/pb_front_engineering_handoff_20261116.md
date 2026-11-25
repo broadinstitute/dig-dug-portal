@@ -1,6 +1,6 @@
 # Front — implementation contract
 
-Updated: 2026-11-16. Entries: `/pb_front.html`, `/pb_Front.html`, `/pb_front2.html`.
+Updated: 2026-11-25. Entries: `/pb_front.html`, `/pb_Front.html`, `/pb_front2.html`.
 
 The current local start command is `npm run start:pb`. Use Front2 to verify gene routing to Gene2 and multi-HPO routing to Phenotype. [Local setup](pb_local_browser_setup.md).
 
@@ -11,7 +11,8 @@ The current local start command is `npm run start:pb`. Use Front2 to verify gene
 - Show phenotype suggestions only after the shared `/__pb_phenotype_profile__/hpo-counts` check confirms at least one CRDC sample. Filter before ranking/limiting. Zero/absent terms do not appear or become selectable. Service failure is not zero; offer retry.
 - Validate selected and pasted terms at submission. Resolve names/aliases/labels to deduplicated HPO IDs. Keep invalid input visible with its error; do not silently drop a term or navigate.
 - Valid multi-HPO queries open `/pb_phenotype.html?query=<encoded IDs>&match=all` (All/AND). An available set with an empty intersection remains a valid zero-result search.
-- Preserve existing Gene/Variant routes and Front2's exclusion of Sample search.
+- Send Gene searches and links directly to `/pb_gene2.html?query=<encoded gene>`. Keep Variant routing and Front2's current search modes.
+- The [sticky CRDC header](pb_front_gene_variant_merge_handoff.md#shared-guide-and-data-sources) opens the web Guide Overview in a new tab and Data Sources in the current tab.
 
 ## Carry and verify
 

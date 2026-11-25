@@ -1,6 +1,6 @@
 <template>
     <div class="pb-guide-page">
-        <portal-guide />
+        <portal-guide section="variant" />
         <div class="container-fluid mdkp-body pbg-page pbv-page" :class="{ 'pbv-info-reserved': infoReserved }">
             <div class="pbg-shell">
                 <div class="pbg-toolbar">
